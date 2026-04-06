@@ -1,2 +1,2 @@
-# the-forest
-the forest of knowledge game
+# The Forest
+The Forest of Knowledge Game
