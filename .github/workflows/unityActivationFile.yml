@@ -1,0 +1,8 @@
+jobs:
+  activation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Request Unity activation file
+        uses: game-ci/unity-request-activation-file@v2
