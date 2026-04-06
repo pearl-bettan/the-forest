@@ -1,9 +1,7 @@
 name: Build and Deploy WebGL 🚀
 
 on:
-  push:
-    branches:
-      - main  # Triggers when you push to the main branch
+  workflow_dispatch:
 
 jobs:
   build:
