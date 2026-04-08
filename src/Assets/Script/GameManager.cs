@@ -4,19 +4,20 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-#if UNITY_WEBGL && !UNITY_EDITOR
-    [DllImport("__Internal")]
-    private static extern void CloseWindow();
 
-    [DllImport("__Internal")]
-    private static extern void RedirectHome();
-#endif
 
 // הסקריפט הזה הוא ה"מנהל" של המשחק: הוא מחליט איזה מסך מוצג, איזו שאלה נטענת,
 // כמה זמן נשאר, כמה טעויות וחיים יש לשחקן, ומתי עוברים שאלה/מנצחים/מפסידים.
 // הרעיון שלנו היה שכל הלוגיקה המרכזית תהיה במקום אחד כדי שיהיה קל לשלוט בזרימה של המשחק.
 public class GameManager : MonoBehaviour
 {
+    #if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")]
+        private static extern void CloseWindow();
+
+        [DllImport("__Internal")]
+        private static extern void RedirectHome();
+    #endif
     // מחלקה קטנה שמטרתה לייצג חיים עם 2 מצבים (דלוק/כבוי).
     // בפועל אצלנו החיים מוצגים דרך רשימת lifeMenu, אבל השארנו את המבנה הזה כתשתית מסודרת.
     [System.Serializable] public class Life
