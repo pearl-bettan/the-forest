@@ -224,6 +224,7 @@ public class GameManager : MonoBehaviour
     public void OnPauseGameClick()
     {
 	    Debug.Log("OnPauseGameClick");
+        canPlay = false;
 	    hideAllScreens();
 	    pauseScreen.SetActive(true);
     }
