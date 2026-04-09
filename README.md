@@ -8,6 +8,7 @@ Build and deploy
 2.1 In 'Resolution and Presentation' 
 2.1.1 Set Resolution to '1280x720'
 2.1.2 Enable 'Run in Background'
+2.1.3 Select 'PWA'   
 2.2 In 'Publishing Settings'
 2.2.1 Set 'Compression Format' to 'Disabled'
 2.2.2 Disable 'Data Caching'
