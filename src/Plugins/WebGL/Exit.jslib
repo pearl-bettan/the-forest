@@ -3,6 +3,6 @@ mergeInto(LibraryManager.library, {
         window.close();
     },
     RedirectHome: function () {
-        window.location.href = "https://pearl-bettan.github.io/the-forest/";
+        window.location.href = "https://pearl-bettan.github.io/the-forest/thanks.html";
     }
 });
