@@ -22,7 +22,7 @@ jobs:
           key: Library-WebGL
           restore-keys: |
             Library-
-       - name: Manual License Placement
+      - name: Manual License Placement
         run: |
             mkdir -p /root/.local/share/unity3d/Unity/
             echo "${{ secrets.UNITY_LICENSE }}" > /root/.local/share/unity3d/Unity/Unity_lic.ulf
