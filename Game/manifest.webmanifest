@@ -1,11 +1,11 @@
 {
-    "name": "HIT Final project Game",
-    "short_name": "HIT Final project Game",
+    "name": "ForestGame",
+    "short_name": "ForestGame",
     "start_url": "index.html",
     "display": "fullscreen",
     "background_color": "#231F20",
     "theme_color": "#000",
-    "description": "",
+    "description": "Knowledge game",
     "icons": [{
       "src": "TemplateData/icons/unity-logo-dark.png",
       "sizes": "144x144",
