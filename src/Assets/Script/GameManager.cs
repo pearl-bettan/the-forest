@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Runtime.InteropServices;
 
 
 // הסקריפט הזה הוא ה"מנהל" של המשחק: הוא מחליט איזה מסך מוצג, איזו שאלה נטענת,
@@ -315,6 +316,7 @@ public class GameManager : MonoBehaviour
         
         // מאפסות את השחקן לתחילת מסלול כדי להתחיל כל שאלה מאותה נקודה
         player.RestePos();
+        player.ResetInteractionState();
 
         // שומרות רפרנס לשאלה הנוכחית מתוך הרשימה
         GameData currentGame = allGames[gameIndex];

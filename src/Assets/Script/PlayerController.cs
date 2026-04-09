@@ -94,6 +94,28 @@ public class PlayerController : MonoBehaviour
         transform.position = basePosition;
     }
 
+    // איפוס מצב אינטראקציה פנימי של השחקן:
+    // מנקה סלע מודגש/נישא, סלוטים קרובים ודגלים זמניים כדי שלא יישמרו רפרנסים ישנים
+    // אחרי Pause/Resume או טעינה מחדש של שאלה.
+    public void ResetInteractionState()
+    {
+        if (highlightedRock != null)
+        {
+            highlightedRock.SetHighlight(false);
+            highlightedRock = null;
+        }
+
+        if (carriedRock != null)
+        {
+            carriedRock.ResetToStart();
+            carriedRock = null;
+        }
+
+        nearbySlots.Clear();
+        justPlacedRock = false;
+        lastValidPosition = transform.position;
+    }
+
     // טיפול בתנועה:
     // קוראות קלט מחיצים, יוצרות כיוון תנועה, מזיזות לפי מהירות וזמן (deltaTime),
     // ואז מגבילות למסך ולוגיקת "אגם".
