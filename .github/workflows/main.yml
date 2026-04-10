@@ -26,8 +26,6 @@ jobs:
       - name: Build Unity WebGL 🏗️
         uses: game-ci/unity-builder@v4
         env:
-          # Your .ulf file content stored in GitHub Secrets
-          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           # Recommended: Use email/password to prevent activation timeouts
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
