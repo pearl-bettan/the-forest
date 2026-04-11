@@ -41,8 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: WebGL-Build-Artifact
-          path: build/WebGL/WebGL # Unity Builder לרוב יוצר תיקייה נוספת עם שם הפלטפורמה
-
+          path: build/WebGL
   deploy:
     name: Deploy to GitHub Pages 🌐
     needs: build
