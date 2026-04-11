@@ -54,7 +54,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: WebGL-Build
-          path: build
+          path: build/WebGL
+      - name: Display structure of downloaded files # שלב עזר לבדיקה (אופציונלי)
+        run: ls -R build/WebGL
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
