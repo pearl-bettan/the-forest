@@ -1,1 +1,6 @@
 /[Ss]rc/[Ll]ibrary/
+src/Library/
+src/Temp/
+src/Logs/
+src/UserSettings/
+
