@@ -19,8 +19,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: src/Library
-          key: Library-src-WebGL
+          key: Library-src-WebGL-${{ github.sha }}
           restore-keys: |
+            Library-src-WebGL-
             Library-
           
       - name: Build Unity WebGL 🏗️
@@ -29,7 +30,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
+          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }} # השתמש בזה אם ה-License לא מספיק
         with:
           projectPath: src 
           buildName: WebGL-Build
@@ -39,13 +40,15 @@ jobs:
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
         with:
-          name: WebGL-Build
-          path: build/WebGL
+          name: WebGL-Build-Artifact
+          path: build/WebGL/WebGL # Unity Builder לרוב יוצר תיקייה נוספת עם שם הפלטפורמה
 
   deploy:
     name: Deploy to GitHub Pages 🌐
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write # נחוץ כדי ש-Action הדיפלוי יוכל לכתוב ל-gh-pages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -53,13 +56,15 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: WebGL-Build
-          path: build/WebGL
-      - name: Display structure of downloaded files # שלב עזר לבדיקה (אופציונלי)
-        run: ls -R build/WebGL
+          name: WebGL-Build-Artifact
+          path: deploy-folder
+
+      - name: Display structure for debugging
+        run: ls -R deploy-folder
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: build/WebGL
-          branch: gh-pages # Your game will live here
+          folder: deploy-folder
+          branch: gh-pages
+          clean: true # פותר את בעיית ה-Dirty Branch על ידי ניקוי קבצים לא רלוונטיים
