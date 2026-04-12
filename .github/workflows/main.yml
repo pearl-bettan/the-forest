@@ -30,7 +30,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
-          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }} # השתמש בזה אם ה-License לא מספיק
+          # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           projectPath: src 
           buildName: WebGL-Build
@@ -40,14 +40,14 @@ jobs:
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
         with:
-          name: WebGL-Build-Artifact
+          name: PWA-Build
           path: build/WebGL
   deploy:
     name: Deploy to GitHub Pages 🌐
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write # נחוץ כדי ש-Action הדיפלוי יוכל לכתוב ל-gh-pages
+      contents: write # so  actions can write to gh-pages
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -66,4 +66,4 @@ jobs:
         with:
           folder: deploy-folder
           branch: gh-pages
-          clean: true # פותר את בעיית ה-Dirty Branch על ידי ניקוי קבצים לא רלוונטיים
+          clean: true #Solve the Dirty Branch
