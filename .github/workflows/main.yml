@@ -39,9 +39,9 @@ jobs:
        
       - name: Prepare Artifact 📂
         run: |
-          # 1. Debug: List EVERYTHING in the root to find where the files are
-          echo "Listing all files in workspace root:"
-          ls -F $GITHUB_WORKSPACE
+          # 1. Gain ownership of the build folder
+          # Unity (Docker) created this as root, so we need to take it back
+          sudo chown -R $USER:$USER build/
           
           # 2. Define target (Make sure it matches your Unity Build output)
           # If Unity builds to build/WebGL, use that.
@@ -59,7 +59,7 @@ jobs:
           find $GITHUB_WORKSPACE -maxdepth 1 -type d -iname "css" -exec cp -r {} $DEST/ \;
           find $GITHUB_WORKSPACE -maxdepth 1 -type d -iname "js" -exec cp -r {} $DEST/ \;
           
-          echo "Final build structure in $DEST:"
+          echo "**** Final build structure in $DEST: *****"
           ls -R $DEST
           
       - name: Upload Build Artifact 📦
