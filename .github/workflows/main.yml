@@ -55,15 +55,12 @@ jobs:
       - name: Download Build Artifact
         uses: actions/download-artifact@v4
         with:
-          name: WebGL-Build-Artifact
-          path: deploy-folder
-
-      - name: Display structure for debugging
-        run: ls -R deploy-folder
+          name: PWA-Build
+          path: public
 
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: deploy-folder
+          folder: public
           branch: gh-pages
           clean: true #Solve the Dirty Branch
