@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>יער הידע - סיום משחק</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2c3e50;
+        }
+
+        .container {
+            position: relative;
+            display: inline-block;
+            max-width: 90%;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .background-image {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* הכפתור המוגדל */
+        .button-overlay {
+            position: absolute;
+            bottom: 4.5%; /* התאמה למיקום הכפתור בתמונה */
+            left: 46.5%;
+            transform: translateX(-45%);
+            
+            /* הגדלת הכפתור */
+            padding: 30px 60px; /* הגדלתי את המרווח הפנימי */
+            font-size: 2.5vw;    /* הגדלתי את הפונט */
+            
+            background: linear-gradient(to bottom, #e4a86a 0%, #b87330 100%);
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-weight: 900;
+            border-radius: 12px;
+            border: 4px solid #5d3a1a; /* מסגרת עבה יותר למראה משחקי */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            transition: transform 0.2s, filter 0.2s;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <img src="thanks.jpg" alt="יער הידע" class="background-image">
+        
+        <!-- הכפתור החדש והגדול -->
+        <div class="button-overlay">תודה ששיחקת!</div>
+    </div>
+
+</body>
+</html>
