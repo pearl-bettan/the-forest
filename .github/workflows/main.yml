@@ -72,7 +72,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write # so  actions can write to gh-pages
+      contents: write # so  actions can write to release
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -87,5 +87,5 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: public
-          branch: gh-pages
+          branch: release
           clean: true #Solve the Dirty Branch
