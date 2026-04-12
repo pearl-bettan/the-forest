@@ -4,3 +4,4 @@ src/Temp/
 src/Logs/
 src/UserSettings/
 
+.DS_Store
