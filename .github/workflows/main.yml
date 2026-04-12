@@ -39,18 +39,27 @@ jobs:
        
       - name: Prepare Artifact 📂
         run: |
-          DEST="build"
-          # Copy files
-          cp $GITHUB_WORKSPACE/thanks.html $DEST/
-          cp $GITHUB_WORKSPACE/thanks.jpg $DEST/
-          cp $GITHUB_WORKSPACE/web.config $DEST/
-          cp $GITHUB_WORKSPACE/index.html $DEST/
+          # 1. Debug: List EVERYTHING in the root to find where the files are
+          echo "Listing all files in workspace root:"
+          ls -F $GITHUB_WORKSPACE
           
-          # Copy folders 
-          [ -d "$GITHUB_WORKSPACE/css" ] && cp -r $GITHUB_WORKSPACE/css $DEST/
-          [ -d "$GITHUB_WORKSPACE/js" ] && cp -r $GITHUB_WORKSPACE/js $DEST/
+          # 2. Define target (Make sure it matches your Unity Build output)
+          # If Unity builds to build/WebGL, use that.
+          DEST="build/WebGL"
+          mkdir -p $DEST
           
-          echo "Final build structure:"
+          # 3. Copy with case-insensitivity check
+          # This will find the file regardless of "thanks.html" or "Thanks.html"
+          find $GITHUB_WORKSPACE -maxdepth 1 -iname "thanks.html" -exec cp {} $DEST/ \;
+          find $GITHUB_WORKSPACE -maxdepth 1 -iname "thanks.jpg" -exec cp {} $DEST/ \;
+          find $GITHUB_WORKSPACE -maxdepth 1 -iname "web.config" -exec cp {} $DEST/ \;
+          find $GITHUB_WORKSPACE -maxdepth 1 -iname "index.html" -exec cp {} $DEST/ \;
+          
+          # Copy folders if they exist (case-insensitive)
+          find $GITHUB_WORKSPACE -maxdepth 1 -type d -iname "css" -exec cp -r {} $DEST/ \;
+          find $GITHUB_WORKSPACE -maxdepth 1 -type d -iname "js" -exec cp -r {} $DEST/ \;
+          
+          echo "Final build structure in $DEST:"
           ls -R $DEST
           
       - name: Upload Build Artifact 📦
