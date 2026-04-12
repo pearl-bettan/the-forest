@@ -39,19 +39,19 @@ jobs:
        
       - name: Prepare Artifact 📂
         run: |
-          
+          DEST="build"
           # Copy files
-          cp thanks.html build/
-          cp thanks.jpg build/
-          cp web.config build/
-          cp index.html build/
+          cp $GITHUB_WORKSPACE/thanks.html $DEST/
+          cp $GITHUB_WORKSPACE/thanks.jpg $DEST/
+          cp $GITHUB_WORKSPACE/web.config $DEST/
+          cp $GITHUB_WORKSPACE/index.html $DEST/
           
           # Copy folders 
-          cp -r css build/
-          cp -r js build/
+          [ -d "$GITHUB_WORKSPACE/css" ] && cp -r $GITHUB_WORKSPACE/css $DEST/
+          [ -d "$GITHUB_WORKSPACE/js" ] && cp -r $GITHUB_WORKSPACE/js $DEST/
           
-          echo "Files copied to build directory:"
-          ls -R build/
+          echo "Final build structure:"
+          ls -R $DEST
           
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
