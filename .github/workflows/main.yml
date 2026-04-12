@@ -36,7 +36,23 @@ jobs:
           buildName: Game
           targetPlatform: WebGL
           unityVersion: 6000.3.0f1
-
+       
+      - name: Prepare Artifact 📂
+        run: |
+          
+          # Copy files
+          cp thanks.html build/
+          cp thanks.jpg build/
+          cp web.config build/
+          cp index.html build/
+          
+          # Copy folders 
+          cp -r css build/
+          cp -r js build/
+          
+          echo "Files copied to build directory:"
+          ls -R build/
+          
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
         with:
