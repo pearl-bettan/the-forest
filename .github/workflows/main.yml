@@ -33,7 +33,7 @@ jobs:
           # UNITY_SERIAL: ${{ secrets.UNITY_SERIAL }}
         with:
           projectPath: src 
-          buildName: WebGL-Build
+          buildName: Game
           targetPlatform: WebGL
           unityVersion: 6000.3.0f1
 
