@@ -1,0 +1,48 @@
+name: Build and Deploy .NET Web App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 2: Build .NET App, Combine wwwroot, & Deploy via SSH
+  # -------------------------------------------------------------
+  build-and-deploy:
+    name: Publish .NET & Deploy to OCI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish .NET Application
+        run: |
+          cd src/Portelem
+          dotnet publish -c Release -o ./publish --no-self-contained
+
+      - name: Deploy to OCI Server via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "src/Portelem/publish/*"
+          target: "/home/ubuntu/FinalProject/publish"
+          strip_components: 2
+
+      - name: Restart Systemd Service on Server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            sudo systemctl restart FinalProject.service
+            sudo systemctl status FinalProject.service --no-pager
