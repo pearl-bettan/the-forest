@@ -59,7 +59,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: unity-webgl-build
-          path: dotnet-app/wwwroot
+          path: src/Portelem/publish/wwwroot
 
       - name: Publish .NET Application
         run: |
@@ -72,8 +72,8 @@ jobs:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "dotnet-app/publish/*"
-          target: "/home/ubuntu/FinalProject/publish"
+          source: "src/Portelem/publish/*"
+          target: "/home/ubuntu/FinalProject"
           strip_components: 2
 
       - name: Restart Systemd Service on Server
