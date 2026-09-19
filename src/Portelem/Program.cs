@@ -1,8 +1,9 @@
 var builder = WebApplication.CreateBuilder(args);
 
-// Explicitly set the WebRootPath to the wwwroot folder in the publish directory
-var publishDir = AppContext.BaseDirectory;
-builder.Environment.WebRootPath = Path.Combine(publishDir, "wwwroot");
+// Force ContentRoot and WebRoot to match the actual executable folder location
+var baseDir = AppContext.BaseDirectory;
+builder.Environment.ContentRootPath = baseDir;
+builder.Environment.WebRootPath = Path.Combine(baseDir, "wwwroot");
 
 var app = builder.Build();
 
