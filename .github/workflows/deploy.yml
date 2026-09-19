@@ -1,4 +1,6 @@
 name: Build and Deploy Unity + .NET Web App
+on:
+  workflow_dispatch:
 
 jobs:
   # -------------------------------------------------------------
