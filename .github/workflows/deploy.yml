@@ -1,5 +1,6 @@
 name: Build and Deploy Unity + .NET Web App
-
+on:
+  workflow_dispatch:
 jobs:
   # -------------------------------------------------------------
   # Job 1: Build Unity WebGL Output
