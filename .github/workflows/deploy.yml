@@ -64,7 +64,7 @@ jobs:
 
       - name: Publish .NET Application
         run: |
-          cd dotnet-app
+          cd src/Portelem
           dotnet publish -c Release -o ./publish --no-self-contained
 
       - name: Deploy to OCI Server via SSH
