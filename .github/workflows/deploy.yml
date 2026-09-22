@@ -38,6 +38,8 @@ jobs:
           buildName: Game
           targetPlatform: WebGL
           unityVersion: 6000.3.0f1
+          versioning: None
+          allowDirtyBuild: true
 
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
