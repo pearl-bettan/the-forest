@@ -3,6 +3,13 @@ name: Build and Deploy WebGL + .NET 🚀
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   # -------------------------------------------------------------
   # Job 1: Build Unity WebGL Output
@@ -11,22 +18,44 @@ jobs:
     name: Build Unity Project 🛠️
     runs-on: ubuntu-latest
     steps:
+      # בלי ref, כדי שהבנייה תרוץ על הענף שממנו הפעילו את ה-workflow.
+      # ref: dev הפנה לענף ישן שבו פרויקט היוניטי יושב ב-src ולא ב-src/unity
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          ref: dev
           fetch-depth: 0
           lfs: true
 
+      # בניית WebGL צורכת הרבה מקום, והראנר מגיע כמעט מלא
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          df -h /
+
+      # גרסת היוניטי נקראת מהפרויקט, כדי שלא תוכל לסטות ממנו
+      - name: Read Unity Version
+        id: unity
+        run: |
+          VERSION="$(sed -n 's/^m_EditorVersion: //p' src/unity/ProjectSettings/ProjectVersion.txt | tr -d '\r')"
+          if [ -z "$VERSION" ]; then
+            echo "::error::לא מצאתי את src/unity/ProjectSettings/ProjectVersion.txt"
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Unity $VERSION"
+
       - name: Cache Library 💾
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: src/unity/Library
-          key: Library-src-unity-WebGL-${{ github.sha }}
+          key: Library-WebGL-${{ hashFiles('src/unity/Packages/packages-lock.json') }}-${{ hashFiles('src/unity/ProjectSettings/ProjectVersion.txt') }}
           restore-keys: |
-            Library-src-unity-WebGL-
+            Library-WebGL-
             Library-
 
+      # אותה מתודה ש-build-all.sh מריץ מקומית, כדי שהבנייה בשרת
+      # תצא זהה לבנייה במחשב: Brotli, Data Caching כבוי, והתאמת
+      # ה-CSS של התבנית לקנבס בתוך iframe
       - name: Build Unity WebGL 🏗️
         uses: game-ci/unity-builder@v4
         env:
@@ -36,16 +65,32 @@ jobs:
         with:
           projectPath: src/unity
           buildName: Game
+          buildsPath: build
           targetPlatform: WebGL
-          unityVersion: 6000.3.0f1
+          unityVersion: ${{ steps.unity.outputs.version }}
           versioning: None
           allowDirtyBuild: true
+          buildMethod: WebGLExport.BuildFromCommandLine
+          customParameters: -outputPath /github/workspace/build/WebGL/Game
+
+      # יוניטי רצה ב-docker כ-root, והקבצים שנוצרו שייכים ל-root
+      - name: Fix Permissions & Verify
+        run: |
+          sudo chown -R "$USER:$USER" build
+          if [ ! -f build/WebGL/Game/index.html ]; then
+            echo "::error::הבנייה הסתיימה אבל לא נוצר build/WebGL/Game/index.html"
+            ls -R build || true
+            exit 1
+          fi
+          echo "גודל הבנייה: $(du -sh build/WebGL/Game | cut -f1)"
 
       - name: Upload Build Artifact 📦
         uses: actions/upload-artifact@v4
         with:
           name: unity-webgl-build
           path: build/WebGL/Game
+          retention-days: 7
+          if-no-files-found: error
 
   # -------------------------------------------------------------
   # Job 2: Build .NET App, Embed Unity WebGL into wwwroot/Game & Deploy
@@ -64,16 +109,40 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      # ה-wwwroot של הבלייזור יושב תחת Client, ולכן המשחק חייב
+      # לנחות שם. src/Portelem/wwwroot אינו חלק מהפרויקט
       - name: Download Unity WebGL Artifact to wwwroot/Game 📥
         uses: actions/download-artifact@v4
         with:
           name: unity-webgl-build
-          path: src/Portelem/wwwroot/Game
+          path: src/Portelem/Client/wwwroot/Game
 
+      - name: Verify Game In Place
+        run: |
+          if [ ! -f src/Portelem/Client/wwwroot/Game/index.html ]; then
+            echo "::error::המשחק לא הושתל ב-Client/wwwroot/Game"
+            exit 1
+          fi
+          echo "המשחק: $(du -sh src/Portelem/Client/wwwroot/Game | cut -f1)"
+
+      # פרסום פרויקט השרת במפורש. תיקיית Portelem מכילה גם קובץ sln,
+      # ופרסום שלה לא מייצר את הפלט המצופה
       - name: Publish .NET Application ⚙️
         run: |
-          cd src/Portelem
-          dotnet publish -c Release -o ./publish --no-self-contained
+          dotnet publish src/Portelem/Server/AuthTemplate.Server.csproj \
+            -c Release \
+            -o src/Portelem/publish \
+            --no-self-contained \
+            --nologo
+          if [ ! -d src/Portelem/publish/wwwroot/Game ]; then
+            echo "::error::הפרסום לא כלל את תיקיית המשחק"
+            exit 1
+          fi
+
+      # קובץ ה-DB נכלל בפרסום. אסור לו לדרוס את בסיס הנתונים החי
+      # שבשרת, ולכן הוא מוצא מהחבילה לפני ההעתקה
+      - name: Keep Server Database
+        run: rm -f src/Portelem/publish/FinalProjectDB.db
 
       - name: Deploy to OCI Server via SSH 📤
         uses: appleboy/scp-action@v0.1.7
@@ -84,6 +153,7 @@ jobs:
           source: "src/Portelem/publish/*"
           target: "/home/ubuntu/FinalProject/publish"
           strip_components: 3
+          overwrite: true
 
       - name: Restart Systemd Service 🔄
         uses: appleboy/ssh-action@v1.2.0
@@ -93,4 +163,5 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             sudo systemctl restart FinalProject.service
+            sleep 3
             sudo systemctl status FinalProject.service --no-pager
