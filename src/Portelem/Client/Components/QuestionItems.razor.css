@@ -1,0 +1,136 @@
+/* ==========================================================
+   CSS לוקאלי - תצוגת הפריטים לקריאה בלבד.
+   המידות לפי הפיגמה: כרטיס 110x113 עם סלע בתוכו
+   ========================================================== */
+
+.items-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-card {
+    width: 110px;
+    height: 113px;
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+}
+
+/* אזור התוכן - הסלע או היבשת מהאפיון משמשים כרקע */
+.item-media {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    padding: 6px 10px;
+}
+
+.rock-media {
+    background-image: url('assets-images/stone.png');
+}
+
+.tag-media {
+    position: relative;
+    background-image: url('assets-images/tag.png');
+
+    /* מדדתי את התמונה: השטח החום של האבן משתרע בין 49% ל-81%
+       מגובהה, ומרכזו ב-65%. מעליו יש רק קנים. לכן התמונה מוגדלת
+       ונצמדת לתחתית, והטקסט ממוקם בדיוק על מרכז השטח החום */
+    background-size: 122% auto;
+    background-position: center bottom;
+    padding: 0;
+}
+
+/* הטקסט יושב במרכז השטח החום, לא במרכז הכרטיס */
+.tag-media .item-text {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 38%;
+    transform: translateY(50%);
+    max-width: none;
+}
+
+.item-text {
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 15px;
+    color: black;
+    text-align: center;
+    word-break: break-word;
+}
+
+.item-img {
+    max-width: 66px;
+    max-height: 52px;
+    object-fit: contain;
+}
+
+/* שורת האייקונים בתחתית הכרטיס */
+.item-tools {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px 4px 6px;
+}
+
+.tool-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+/* במצב תצוגה האייקונים עמומים, כי אין בהם פעולה */
+.is-quiet {
+    opacity: 0.55;
+}
+
+
+/* ==========================================================
+   רספונסיביות - תצוגת הפריטים לקריאה
+   ========================================================== */
+
+@media (max-width: 1279px) {
+
+    .item-card {
+        width: 96px;
+        height: 100px;
+    }
+
+    .item-text {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
+    .item-img {
+        max-width: 58px;
+        max-height: 46px;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .items-row {
+        gap: 6px;
+    }
+
+    .item-card {
+        width: 84px;
+        height: 90px;
+    }
+
+    .item-text {
+        font-size: 11px;
+        line-height: 13px;
+    }
+}

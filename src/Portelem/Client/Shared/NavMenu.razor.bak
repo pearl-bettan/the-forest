@@ -1,0 +1,85 @@
+﻿@inject IAuthenticationService _Auth
+
+<nav class="top-nav">
+
+    @* ---------- צד ימין: הלוגו ופרטי המשתמש ---------- *@
+    <div class="nav-brand">
+
+        @* הלוגו כפי שיוצא מהאפיון *@
+        <img src="assets-images/logo.png" alt="לוגו יער הידע"
+             class="nav-logo" width="30" height="22" />
+
+        <span class="system-name">יער הידע</span>
+
+        <AuthorizeView>
+            <Authorized>
+                @if (user != null)
+                {
+                    <span class="hello">שלום @user.FirstName</span>
+                }
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    @* ---------- צד שמאל: קישורי הניווט ---------- *@
+    <div class="nav-links">
+
+        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">למשחק</NavLink>
+
+        <NavLink class="nav-link" href="./GamesList">איך משחקים</NavLink>
+
+        @* כפתור שאינו מוביל לעמוד אלא פותח פופ-אפ *@
+        <button class="btn-nav" @onclick="showPopup">אודות</button>
+
+        <AuthorizeView>
+            <Authorized>
+                <span class="nav-divider">|</span>
+
+                <button class="btn-nav btn-logout" @onclick="() => { _Auth.Logout(); }">
+                    @* אייקון ההתנתקות מורכב משני ווקטורים באפיון:
+                       הדלת והחץ. שניהם ממוקמים זה מעל זה בתוך תיבה אחת *@
+                    <span class="logout-icon">
+                        <img src="assets-images/Vector.svg" alt=""
+                             class="logout-door" width="12" height="15" />
+                        <img src="assets-images/Vector-1.svg" alt=""
+                             class="logout-arrow" width="15" height="8" />
+                    </span>
+                    התנתקות
+                </button>
+            </Authorized>
+        </AuthorizeView>
+
+    </div>
+</nav>
+
+@* ---------- חלונית האודות ----------
+   נמצאת מחוץ ל-Authorized ול-NotAuthorized, כי היא צריכה
+   להיות זמינה תמיד ללא תלות בחיבור המשתמש *@
+@if (isShow == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner" tabindex="-1">
+            <h5>אודות המחולל</h5>
+            <p>
+                יער הידע הוא מחולל למשחק סדר: העורך יוצר שאלות, השחקן גורר את
+                התשובות ומסדר אותן ברצף הנכון על האגם.
+            </p>
+            <p>פותח על ידי: פרל ביתן, יובל פנחס וליאל סטרשינסקי</p>
+            <button class="btn-main" @onclick="showPopup">סגירה</button>
+        </div>
+    </div>
+}
+
+
+@code {
+    [CascadingParameter] private User user { get; set; }
+
+    // משתנה שאחראי על הצגה והסתרה של חלונית האודות
+    bool isShow = false;
+
+    // הופך את הערך מ-false ל-true ולהיפך
+    void showPopup()
+    {
+        isShow = !isShow;
+    }
+}

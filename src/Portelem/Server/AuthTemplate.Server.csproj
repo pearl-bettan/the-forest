@@ -1,0 +1,63 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
+
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.66" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.1" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.1" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Client\AuthTemplate.Client.csproj" />
+    <ProjectReference Include="..\Shared\AuthTemplate.Shared.csproj" />
+  </ItemGroup>
+
+
+  <!-- קובץ ה-DB של SQLite: נכלל בפרסום ומועתק לתיקיית ההרצה -->
+  <ItemGroup>
+    <None Remove="FinalProjectDB.db" />
+    <Content Include="FinalProjectDB.db">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <!-- קביעת <base href> בפרסום: dotnet publish -c Release -p:BaseHref=/FinalProject/ -->
+  <UsingTask TaskName="SetBaseHref"
+             TaskFactory="RoslynCodeTaskFactory"
+             AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">
+    <ParameterGroup>
+      <IndexFile ParameterType="System.String" Required="true" />
+      <Value ParameterType="System.String" Required="true" />
+    </ParameterGroup>
+    <Task>
+      <Using Namespace="System.IO" />
+      <Using Namespace="System.Text.RegularExpressions" />
+      <Code Type="Fragment" Language="cs"><![CDATA[
+        if (File.Exists(IndexFile))
+        {
+            var html = File.ReadAllText(IndexFile);
+            html = Regex.Replace(html, "<base\\s+href=\"[^\"]*\"\\s*/?>", "<base href=\"" + Value + "\" />");
+            File.WriteAllText(IndexFile, html);
+        }
+      ]]></Code>
+    </Task>
+  </UsingTask>
+
+  <Target Name="ApplyBaseHref" AfterTargets="Publish" Condition="'$(BaseHref)' != ''">
+    <SetBaseHref IndexFile="$([MSBuild]::NormalizePath('$(PublishDir)', 'wwwroot', 'index.html'))" Value="$(BaseHref)" />
+    <Message Importance="high" Text="base href בפרסום נקבע ל- $(BaseHref)" />
+  </Target>
+
+</Project>

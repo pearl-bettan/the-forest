@@ -1,0 +1,337 @@
+/* ==========================================================
+   CSS לוקאלי - חל רק על קומפוננטת תפריט הניווט
+   ========================================================== */
+
+.top-nav {
+    background-color: var(--nav-bg, #fffdd1);
+    height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 26px;
+
+    /* קו הפרדה עדין וצל רך שמנתקים את הסרגל מהתוכן */
+    border-bottom: 1px solid #cfe0ab;
+    box-shadow: 0 2px 6px rgba(60, 80, 40, 0.10);
+}
+
+
+/* ---------- צד ימין: לוגו ופרטי המשתמש ---------- */
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* הלוגו כבר מכיל את שם המשחק */
+.nav-logo {
+    height: 44px;
+    width: auto;
+    display: block;
+}
+
+.hello {
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 14px;
+    color: #3a5220;
+    padding-right: 16px;
+    border-right: 1px solid #c3d9a0;
+}
+
+
+/* ---------- צד שמאל: קישורי הניווט ---------- */
+
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 23px;
+}
+
+.nav-divider {
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 14px;
+    color: #a8bf84;
+    letter-spacing: 0.24px;
+}
+
+/* עיצוב כפתור "אודות" כך שייראה זהה לקומפוננטה NavLink */
+.btn-nav {
+    background-color: unset;
+    border: none;
+    padding: 0;
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 14px;
+    color: var(--nav-link, #2f6b2a);
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+/* אייקון ההתנתקות מורכב משני ווקטורים באפיון - דלת וחץ */
+.logout-icon {
+    position: relative;
+    display: inline-block;
+    width: 18px;
+    height: 15px;
+    flex: 0 0 18px;
+}
+
+.logout-door {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
+
+.logout-arrow {
+    position: absolute;
+    left: 0;
+    top: 3px;
+}
+
+.btn-nav:hover {
+    color: var(--nav-link-hover, #1d4a1a);
+}
+
+
+/* ==========================================================
+   deep:: נדרש כדי לעצב אלמנטים שנמצאים בתוך הקומפוננטה NavLink.
+   NavLink היא רכיב אחר, ולכן העיצוב הלוקאלי של NavMenu
+   לא מגיע אליה מעצמו
+   ========================================================== */
+
+::deep a.nav-link {
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 14px;
+    color: var(--nav-link, #2f6b2a);
+    text-decoration: underline;
+}
+
+/* המחלקה active מסמנת את העמוד הנוכחי שבו אנחנו נמצאים */
+::deep a.nav-link.active {
+    font-weight: bold;
+}
+
+::deep a.nav-link:hover {
+    color: var(--nav-link-hover, #1d4a1a);
+}
+
+
+/* ==========================================================
+   חלונית האודות
+   ========================================================== */
+
+.popup-background {
+    background-color: rgba(0, 0, 0, .5);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.popup-inner {
+    color: black;
+    width: 570px;
+    height: auto;
+    position: fixed;
+    top: 50%;
+    right: 50%;
+    transform: translateX(50%) translateY(-50%);
+    background-color: var(--sky, #ddf0f4);
+    border-radius: 35px;
+    box-shadow: 0 4px 40px 0 rgba(0, 0, 0, 0.25);
+    padding: 30px;
+    text-align: center;
+}
+
+.popup-inner h5 {
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.popup-inner p {
+    font-family: var(--font, 'Alef', Arial, sans-serif);
+    font-size: 18px;
+    line-height: 28px;
+    margin-bottom: 12px;
+}
+
+
+/* ==========================================================
+   חלונית "איך משחקים?"
+   ========================================================== */
+
+.howto-popup {
+    max-width: 620px;
+    text-align: right;
+}
+
+/* ההדגמה היא GIF שנבנה מהספרייטים של המשחק */
+.howto-gif {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    height: auto;
+    margin: 14px auto 18px;
+    border: 1px solid var(--line, #d8d2c4);
+    border-radius: 12px;
+}
+
+.howto-steps {
+    margin: 0;
+    padding-right: 20px;
+    font-family: var(--font, inherit);
+    font-size: 15px;
+    line-height: 22px;
+    color: #2c2c2c;
+}
+
+.howto-steps li {
+    margin-bottom: 7px;
+}
+
+.howto-note {
+    margin-top: 12px;
+    padding: 9px 12px;
+    background-color: #f6f3ec;
+    border-radius: 8px;
+    font-size: 14px;
+    line-height: 20px;
+    color: #4a4a4a;
+}
+
+
+/* ==========================================================
+   חלונית האודות
+   ========================================================== */
+
+.about-popup {
+    max-width: 430px;
+    text-align: center;
+}
+
+.about-logo {
+    width: 46px;
+    height: auto;
+    margin: 0 auto 4px;
+    display: block;
+}
+
+.about-line {
+    margin: 5px 0;
+    font-family: var(--font, inherit);
+    font-size: 15px;
+    line-height: 21px;
+    color: #2c2c2c;
+}
+
+.about-courses {
+    list-style: none;
+    margin: 4px 0 8px;
+    padding: 0;
+    font-family: var(--font, inherit);
+    font-size: 15px;
+    line-height: 21px;
+    color: #2c2c2c;
+}
+
+.about-credit {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #6b6b6b;
+}
+
+
+/* ==========================================================
+   רספונסיביות - סרגל הניווט והחלוניות
+   ========================================================== */
+
+@media (max-width: 1279px) {
+
+    .top-nav {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 8px 16px;
+        height: auto;
+    }
+
+    .nav-links {
+        gap: 12px;
+    }
+
+    .nav-link,
+    .btn-nav {
+        font-size: 16px;
+    }
+
+    .howto-popup,
+    .about-popup {
+        max-width: 92vw;
+    }
+}
+
+@media (max-width: 720px) {
+
+    .nav-brand,
+    .nav-links {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        row-gap: 6px;
+    }
+
+    .howto-steps {
+        font-size: 14px;
+        line-height: 20px;
+    }
+}
+
+
+
+/* ==========================================================
+   כפתור הסגירה של החלוניות
+   הסגנון הזה מוגדר בקבצים המקומיים של העמודים, ולכן הוא לא
+   הגיע לחלוניות שכאן והאיקס נפל למרכז. כאן הוא ממוקם בצד ימין
+   ========================================================== */
+
+.howto-popup,
+.about-popup {
+    position: relative;
+}
+
+.howto-popup .popup-close,
+.about-popup .popup-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    left: auto;
+    background-color: unset;
+    border: none;
+    padding: 0;
+    line-height: 0;
+    cursor: pointer;
+}
+
+.howto-popup .popup-close img,
+.about-popup .popup-close img {
+    display: block;
+}
+
+/* מקום לאיקס כדי שלא ידרוס את הכותרת */
+.howto-popup .popup-title,
+.about-popup .popup-title {
+    padding-left: 34px;
+    padding-right: 34px;
+}

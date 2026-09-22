@@ -1,0 +1,660 @@
+@attribute [Authorize]
+@page "/GamesList"
+
+@using AuthTemplate.Shared.Models.Games
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@* ==========================================================
+   מסך "המשחקים שלי", לפי הפיגמה:
+   כותרת במרכז, כפתור היצירה בפינה השמאלית, ומסגרת שבתוכה
+   טבלת המשחקים. לשתי עמודות הפעולה יש אייקון סימן שאלה
+   שמציג טולטיפ במעבר עכבר
+   ========================================================== *@
+
+<div class="games-page">
+
+    <div class="page-header">
+        <h1 class="page-title">המשחקים שלי</h1>
+
+        <button class="btn-second create-btn" @onclick="OpenAddPopup">
+            <img src="assets-images/plus.png" alt="" class="plus-icon"
+                 width="20" height="20" />
+            יצירת משחק חדש
+        </button>
+    </div>
+
+    <div class="games-box">
+
+        @if (MyGamesList != null && MyGamesList.Count > 0)
+        {
+            @* מחושב פעם אחת ומשמש גם למונה, גם לבדיקה הריקה וגם ללולאה *@
+            List<GameToTable> visible = VisibleGames();
+
+            @* ---------- סינון ---------- *@
+            <div class="filter-row">
+
+                <div class="search-wrap">
+                    <input class="search-input"
+                           placeholder="חיפוש לפי שם משחק או קוד"
+                           value="@searchText"
+                           @oninput="(e) => searchText = e.Value.ToString()" />
+
+                    @if (searchText != "")
+                    {
+                        <button class="search-clear" title="ניקוי החיפוש"
+                                @onclick='() => searchText = ""'>✕</button>
+                    }
+                </div>
+
+                <div class="filter-chips">
+                    <button class="chip @(publishFilter == "all" ? "chip-on" : "")"
+                            @onclick='() => publishFilter = "all"'>הכל</button>
+
+                    <button class="chip @(publishFilter == "published" ? "chip-on" : "")"
+                            @onclick='() => publishFilter = "published"'>מפורסמים</button>
+
+                    <button class="chip @(publishFilter == "draft" ? "chip-on" : "")"
+                            @onclick='() => publishFilter = "draft"'>לא מפורסמים</button>
+                </div>
+
+                <span class="filter-count">@visible.Count מתוך @MyGamesList.Count</span>
+            </div>
+
+            @* ---------- כותרות העמודות ---------- *@
+            <div class="games-head">
+                <span class="col-name">
+                    <button class="sort-btn" title="מיון לפי שם" @onclick='() => SortBy("name")'>
+                        שם המשחק<span class="sort-mark">@SortMark("name")</span>
+                    </button>
+                </span>
+
+                <span class="col-code">
+                    <button class="sort-btn" title="מיון לפי קוד" @onclick='() => SortBy("code")'>
+                        קוד<span class="sort-mark">@SortMark("code")</span>
+                    </button>
+                </span>
+
+                <span class="col-count">
+                    <button class="sort-btn" title="מיון לפי מספר שאלות" @onclick='() => SortBy("count")'>
+                        מס' שאלות<span class="sort-mark">@SortMark("count")</span>
+                    </button>
+                </span>
+
+                <span class="col-action">עריכה</span>
+
+                <span class="col-action">
+                    <button class="sort-btn" title="מיון לפי מצב פרסום" @onclick='() => SortBy("publish")'>
+                        פרסם<span class="sort-mark">@SortMark("publish")</span>
+                    </button>
+                    <span class="tip tip-wide"
+                          data-tip="כדי לפרסם צריך לפחות 3 שאלות, ובכל שאלה לפחות 3 פריטים">
+                        <img src="assets-images/question-mark.svg" alt="" class="tip-mark" />
+                    </span>
+                </span>
+
+                <span class="col-action">
+                    מחק
+                    <span class="tip tip-wide"
+                          data-tip="מחיקת המשחק תמחק גם את כל השאלות והפריטים שלו">
+                        <img src="assets-images/question-mark.svg" alt="" class="tip-mark" />
+                    </span>
+                </span>
+            </div>
+
+            @* ---------- שורות המשחקים ---------- *@
+            <div class="games-rows">
+                @if (visible.Count == 0)
+                {
+                    <p class="no-results">לא נמצאו משחקים שתואמים לסינון</p>
+                }
+
+                @foreach (GameToTable game in visible)
+                {
+                    <div class="game-row">
+                        <span class="col-name">@game.GameName</span>
+                        <span class="col-code">@game.GameCode</span>
+                        <span class="col-count">@game.QuestionsCount</span>
+
+                        <span class="col-action">
+                            <span class="tip" data-tip="עריכת המשחק">
+                                <button class="icon-btn" @onclick="() => OpenEditor(game.ID)">
+                                    <img src="assets-images/pen.svg" alt="עריכה"
+                                         width="27" height="27" />
+                                </button>
+                            </span>
+                        </span>
+
+                        @* צ'ק בוקס פרסום בשלושה מצבים:
+                           מסומן פעיל = מפורסם וניתן להסתרה
+                           לא מסומן פעיל = עומד בתנאים וניתן לפרסם
+                           לא מסומן לא פעיל = לא עומד בתנאי הפרסום *@
+                        <span class="col-action">
+                            <span class="tip tip-wide" data-tip="@PublishTip(game)">
+                                @* צ'ק בוקס בלבד. המצב מוסבר בטולטיפ ולא בטקסט לידו *@
+                                <label class="publish-check @PublishCheckClass(game)"
+                                       aria-label="@PublishLabel(game)">
+                                    <input type="checkbox"
+                                           checked="@game.IsPublish"
+                                           disabled="@(CanTogglePublish(game) == false)"
+                                           @onchange="() => PublishGame(game)" />
+                                </label>
+                            </span>
+                        </span>
+
+                        <span class="col-action">
+                            <span class="tip" data-tip="מחיקת המשחק">
+                                <button class="icon-btn" @onclick="() => AskDelete(game)">
+                                    <img src="assets-images/bin.svg" alt="מחיקה"
+                                         width="27" height="27" />
+                                </button>
+                            </span>
+                        </span>
+                    </div>
+                }
+            </div>
+        }
+        else if (isLoaded == true)
+        {
+            @* מצב ריק - מוצג רק אחרי שהטעינה הסתיימה,
+               כדי שהאיור לא יופיע לרגע בזמן הטעינה *@
+            <div class="empty-state">
+                <p class="empty-text">לא נוצרו עדיין משחקים ...</p>
+                <img src="assets-images/dwarf.png" alt="" class="empty-img" />
+            </div>
+        }
+
+    </div>
+
+    @if (msg != "")
+    {
+        <p class="page-msg">@msg</p>
+    }
+
+</div>
+
+
+@* ==========================================================
+   פופאפ יצירת משחק חדש.
+   לפי הערות האפיון: כפתור "יצירת משחק" כלל אינו מוצג עד
+   שהוזן שם תקין ונבחר זמן לשאלה
+   ========================================================== *@
+@if (isPopupOpen == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner" tabindex="-1">
+
+            <button class="popup-close" @onclick="ClosePopup" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה"
+                     width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">יצירת משחק חדש</h2>
+
+            <EditForm Model="gameForm" OnValidSubmit="CreateGame">
+
+                @* ---------- שם המשחק ---------- *@
+                <label class="field-label">שם המשחק:</label>
+
+                <input class="game-name-input" maxlength="@NameMax"
+                       placeholder="הקלד את שם המשחק"
+                       value="@gameForm.GameName"
+                       @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
+
+                <span class="chars-counter @CounterClass()">@NameLength()/@NameMax</span>
+
+                @* ---------- זמן לשאלה ---------- *@
+                <label class="field-label">זמן לשאלה:</label>
+
+                <div class="time-options">
+                    @foreach (TimeOption option in timeOptions)
+                    {
+                        <button type="button"
+                                class="time-btn @(gameForm.TimePerQuestion == option.Seconds ? "time-btn-selected" : "")"
+                                @onclick="() => gameForm.TimePerQuestion = option.Seconds">
+                            @option.Label
+                        </button>
+                    }
+                </div>
+
+                @* ---------- שמירה ---------- *@
+                @if (IsFormReady() == true)
+                {
+                    <div class="popup-actions">
+                        <button type="submit" class="btn-main">יצירת משחק</button>
+                    </div>
+                }
+
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   אישור מחיקה
+   ========================================================== *@
+@if (gameToDelete != null)
+{
+    <div class="popup-background">
+        <div class="popup-inner popup-small" tabindex="-1">
+            <h2 class="popup-title">מחיקת משחק</h2>
+            <p class="delete-text">
+                למחוק את המשחק "@gameToDelete.GameName"?
+                כל השאלות והפריטים שלו יימחקו גם הם.
+            </p>
+            <div class="popup-actions">
+                <button class="btn-main" @onclick="DeleteGame">כן, למחוק</button>
+                <button class="btn-second" @onclick="CancelDelete">ביטול</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [CascadingParameter]
+    private User user { get; set; }
+
+    // מספר התווים המרבי לשם משחק, לפי הפיגמה
+    const int NameMax = 30;
+
+    // רשימת המשחקים של המשתמש
+    List<GameToTable> MyGamesList;
+
+    // ---------- סינון ומיון ----------
+
+    // חיפוש חופשי לפי שם המשחק או הקוד שלו
+    string searchText = "";
+
+    // all / published / draft
+    string publishFilter = "all";
+
+    string sortColumn = "name";
+    bool sortAsc = true;
+
+
+    // הרשימה שמוצגת בפועל: קודם מסננים, אחר כך ממיינים
+    List<GameToTable> VisibleGames()
+    {
+        List<GameToTable> result = new List<GameToTable>();
+
+        if (MyGamesList == null) return result;
+
+        string needle = searchText.Trim().ToLower();
+
+        foreach (GameToTable game in MyGamesList)
+        {
+            if (needle != "")
+            {
+                bool byName = game.GameName != null && game.GameName.ToLower().Contains(needle);
+                bool byCode = game.GameCode.ToString().Contains(needle);
+
+                if (byName == false && byCode == false) continue;
+            }
+
+            if (publishFilter == "published" && game.IsPublish == false) continue;
+            if (publishFilter == "draft" && game.IsPublish == true) continue;
+
+            result.Add(game);
+        }
+
+        result.Sort(CompareGames);
+        return result;
+    }
+
+
+    int CompareGames(GameToTable a, GameToTable b)
+    {
+        int cmp = 0;
+
+        if (sortColumn == "name")
+        {
+            cmp = string.Compare(a.GameName, b.GameName, StringComparison.OrdinalIgnoreCase);
+        }
+        else if (sortColumn == "code")
+        {
+            cmp = a.GameCode.CompareTo(b.GameCode);
+        }
+        else if (sortColumn == "count")
+        {
+            cmp = a.QuestionsCount.CompareTo(b.QuestionsCount);
+        }
+        else if (sortColumn == "publish")
+        {
+            cmp = a.IsPublish.CompareTo(b.IsPublish);
+        }
+
+        // שובר שוויון קבוע, כדי שהסדר לא יקפוץ בין רינדורים
+        if (cmp == 0) cmp = a.ID.CompareTo(b.ID);
+
+        return sortAsc ? cmp : -cmp;
+    }
+
+
+    // לחיצה על אותה כותרת הופכת את כיוון המיון
+    void SortBy(string column)
+    {
+        if (sortColumn == column)
+        {
+            sortAsc = !sortAsc;
+            return;
+        }
+
+        sortColumn = column;
+        sortAsc = true;
+    }
+
+
+    string SortMark(string column)
+    {
+        if (sortColumn != column) return "";
+
+        return sortAsc ? " ▲" : " ▼";
+    }
+
+    // המופע שמקושר לטופס יצירת המשחק
+    GameToAdd gameForm = new GameToAdd();
+
+    bool isPopupOpen = false;
+
+    // האם הטעינה מהשרת הסתיימה. עד אז לא מציגים את המצב הריק
+    bool isLoaded = false;
+
+    // המשחק שממתין לאישור מחיקה
+    GameToTable gameToDelete;
+
+    string msg = "";
+
+    // אפשרויות הזמן לשאלה. 0 = ללא הגבלה
+    // זהה למסך עריכת המשחק
+    TimeOption[] timeOptions =
+    {
+        new TimeOption { Seconds = 0,   Label = "ללא הגבלת זמן" },
+        new TimeOption { Seconds = 60,  Label = "דקה" },
+        new TimeOption { Seconds = 90,  Label = "דקה וחצי" },
+        new TimeOption { Seconds = 120, Label = "שתי דקות" }
+    };
+
+    public class TimeOption
+    {
+        public int Seconds { get; set; }
+        public string Label { get; set; }
+    }
+
+
+    // שליפת המשחקים בטעינת העמוד
+    protected override async Task OnParametersSetAsync()
+    {
+        if (user != null && user.Id > 0)
+        {
+            var gamesRes = await Http.GetAsync("api/games/");
+
+            if (gamesRes.IsSuccessStatusCode == true)
+            {
+                MyGamesList = gamesRes.Content.ReadFromJsonAsync<List<GameToTable>>().Result;
+            }
+            else
+            {
+                string error = gamesRes.Content.ReadAsStringAsync().Result;
+                ShowError(error);
+            }
+
+            isLoaded = true;
+        }
+    }
+
+
+    // ==========================================================
+    // יצירת משחק
+    // ==========================================================
+
+    void OpenAddPopup()
+    {
+        gameForm = new GameToAdd();
+        isPopupOpen = true;
+        msg = "";
+    }
+
+
+    void ClosePopup()
+    {
+        isPopupOpen = false;
+    }
+
+
+    // אורך השם שהוזן, עבור מונה התווים
+    int NameLength()
+    {
+        if (gameForm.GameName == null)
+        {
+            return 0;
+        }
+
+        return gameForm.GameName.Length;
+    }
+
+
+    // צבע המונה: אפור לפני הקלדה, ירוק כשתקין ואדום בחריגה
+    string CounterClass()
+    {
+        if (NameLength() > NameMax)
+        {
+            return "chars-over";
+        }
+
+        if (NameLength() == 0)
+        {
+            return "chars-short";
+        }
+
+        return "chars-ok";
+    }
+
+
+    // הכפתור מוצג רק כשהשם תקין ונבחר זמן
+    bool IsFormReady()
+    {
+        if (string.IsNullOrWhiteSpace(gameForm.GameName))
+        {
+            return false;
+        }
+
+        if (NameLength() > NameMax)
+        {
+            return false;
+        }
+
+        if (gameForm.TimePerQuestion < 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // אחרי היצירה עוברים למסך העורך, כפי שמוגדר באפיון
+    async Task CreateGame()
+    {
+        var newGameRes = await Http.PostAsJsonAsync("api/games/addGame/", gameForm);
+
+        if (newGameRes.IsSuccessStatusCode == true)
+        {
+            GameToTable newGame = newGameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+
+            isPopupOpen = false;
+            msg = "";
+
+            OpenEditor(newGame.ID);
+        }
+        else
+        {
+            string error = newGameRes.Content.ReadAsStringAsync().Result;
+            ShowError(error);
+        }
+    }
+
+
+    void OpenEditor(int gameId)
+    {
+        Nav.NavigateTo($"GameEditor/{gameId}");
+    }
+
+
+    // ==========================================================
+    // פרסום
+    // ==========================================================
+
+    // הטקסט שמופיע בטולטיפ של כפתור הפרסום, לפי מצב המשחק
+    string PublishTip(GameToTable game)
+    {
+        if (game.CanPublish == false)
+        {
+            return "חובה לעמוד בתנאי הפרסום: לפחות 3 שאלות, ובכל שאלה לפחות 3 פריטים";
+        }
+
+        if (game.IsPublish == true)
+        {
+            return "המשחק מפורסם. לחיצה תסתיר אותו מהשחקנים";
+        }
+
+        return "פרסום המשחק לשחקנים";
+    }
+
+
+    // ביטול פרסום מותר תמיד. רק ההדלקה מותנית בעמידה בתנאים
+    bool CanTogglePublish(GameToTable game)
+    {
+        if (game.IsPublish == true) return true;
+
+        return game.CanPublish == true;
+    }
+
+
+    string PublishCheckClass(GameToTable game)
+    {
+        if (CanTogglePublish(game) == false) return "publish-check-disabled";
+
+        if (game.IsPublish == true) return "publish-check-on";
+
+        return "publish-check-off";
+    }
+
+
+    string PublishLabel(GameToTable game)
+    {
+        if (game.IsPublish == true) return "מפורסם";
+
+        if (CanTogglePublish(game) == false) return "לא ניתן לפרסום";
+
+        return "פרסום";
+    }
+
+
+    // שינוי מצב הפרסום. השרת בודק את התנאים ומחליט אם לאשר
+    async Task PublishGame(GameToTable game)
+    {
+        var publishRes = await Http.PutAsJsonAsync($"api/games/publishGame/{game.ID}", game.ID);
+
+        if (publishRes.IsSuccessStatusCode == true)
+        {
+            GameToTable updatedGame = publishRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            UpdateGameInList(updatedGame);
+            msg = "";
+        }
+        else
+        {
+            string error = publishRes.Content.ReadAsStringAsync().Result;
+            ShowError(error);
+        }
+    }
+
+
+    // ==========================================================
+    // מחיקה
+    // ==========================================================
+
+    void AskDelete(GameToTable game)
+    {
+        gameToDelete = game;
+        msg = "";
+    }
+
+
+    void CancelDelete()
+    {
+        gameToDelete = null;
+    }
+
+
+    async Task DeleteGame()
+    {
+        var deleteRes = await Http.DeleteAsync($"api/games/deleteGame/{gameToDelete.ID}");
+
+        if (deleteRes.IsSuccessStatusCode == true)
+        {
+            MyGamesList.Remove(gameToDelete);
+            gameToDelete = null;
+            msg = "";
+        }
+        else
+        {
+            string error = deleteRes.Content.ReadAsStringAsync().Result;
+            gameToDelete = null;
+            ShowError(error);
+        }
+    }
+
+
+    // ==========================================================
+    // עזרה
+    // ==========================================================
+
+    // החלפת המשחק ברשימה במשחק המעודכן שחזר מהשרת
+    void UpdateGameInList(GameToTable updatedGame)
+    {
+        for (int i = 0; i < MyGamesList.Count; i++)
+        {
+            if (MyGamesList[i].ID == updatedGame.ID)
+            {
+                MyGamesList[i] = updatedGame;
+                return;
+            }
+        }
+    }
+
+
+    // תרגום הודעת השגיאה מהשרת להודעה בעברית למשתמש
+    void ShowError(string error)
+    {
+        switch (error)
+        {
+            case "No games for this user":
+                msg = "";
+                break;
+            case "user is not authenticated":
+                msg = "אישור אימות נכשל, לא ניתן לגשת אל המשחקים";
+                break;
+            case "Game not created":
+                msg = "אירעה תקלה ביצירת המשחק";
+                break;
+            case "Game code not created":
+                msg = "אירעה תקלה ביצירת קוד המשחק";
+                break;
+            case "Game not found":
+                msg = "המשחק לא נמצא";
+                break;
+            case "Game cannot be published":
+                msg = "לא ניתן לפרסם: המשחק צריך לפחות 3 שאלות, ובכל שאלה לפחות 3 פריטים";
+                break;
+            case "Publish not changed":
+                msg = "אירעה תקלה בשינוי מצב הפרסום";
+                break;
+            case "Game not deleted":
+                msg = "אירעה תקלה במחיקת המשחק";
+                break;
+        }
+    }
+}

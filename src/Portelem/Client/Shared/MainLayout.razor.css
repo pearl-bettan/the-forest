@@ -1,0 +1,49 @@
+/* ==========================================================
+   CSS לוקאלי - חל רק על תבנית העל MainLayout
+   ========================================================== */
+
+.page {
+    background-color: white;
+    min-height: 100vh;
+
+    /* התוכן מתמתח וממלא את מה שנשאר מתחת לסרגל העליון */
+    display: flex;
+    flex-direction: column;
+}
+
+.page > main {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* התוכן נפרס על כל רוחב המסך וגם על כל הגובה שנשאר */
+.content {
+    width: 100%;
+    flex: 1 1 auto;
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* רקע עולם המשחק, כפי שיוצא מהאפיון.
+   השקיפות 35% היא הערך שמוגדר בפיגמה, והיא שומרת על קריאות הטקסט */
+.content::before {
+    content: "";
+    background-image: url('assets-images/world-bg.png');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.35;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+
+    /* היה קבוע על 720px, ולכן הרקע נגמר באמצע המסך
+       ומתחתיו נשאר לבן. עכשיו הוא ממלא את כל גובה התוכן */
+    height: 100%;
+    min-height: 720px;
+    z-index: 0;
+    pointer-events: none;
+}

@@ -1,0 +1,1378 @@
+fileFormatVersion: 2
+guid: ffe7af0d24597644b853258fdc459891
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 3493043487840528105
+    second: TAV2_0
+  - first:
+      213: -5342249032881237090
+    second: TAV2_1
+  - first:
+      213: 2651249747817843878
+    second: TAV2_2
+  - first:
+      213: 8410851403453442120
+    second: TAV2_3
+  - first:
+      213: 7654470323572395186
+    second: TAV2_4
+  - first:
+      213: -1706058408823717420
+    second: TAV2_5
+  - first:
+      213: 9149542721024228202
+    second: TAV2_6
+  - first:
+      213: 4849010417522357339
+    second: TAV2_7
+  - first:
+      213: 8575069615953576008
+    second: TAV2_8
+  - first:
+      213: 5509864162293582579
+    second: TAV2_9
+  - first:
+      213: -6373194736025267579
+    second: TAV2_10
+  - first:
+      213: -5322922521431300630
+    second: TAV2_11
+  - first:
+      213: -2713156913997635847
+    second: TAV2_12
+  - first:
+      213: 1470477896354058575
+    second: TAV2_13
+  - first:
+      213: 7367846705482713908
+    second: TAV2_14
+  - first:
+      213: -2134909767185812079
+    second: TAV2_15
+  - first:
+      213: -3577973063160857948
+    second: TAV2_16
+  - first:
+      213: 7721892714297481137
+    second: TAV2_17
+  - first:
+      213: -4643650233232268930
+    second: TAV2_18
+  - first:
+      213: 7583774795475078741
+    second: TAV2_19
+  - first:
+      213: 1834880619246137352
+    second: TAV2_20
+  - first:
+      213: 3214968414785671182
+    second: TAV2_21
+  - first:
+      213: 6141708062435698858
+    second: TAV2_22
+  - first:
+      213: 7505525639193456917
+    second: TAV2_23
+  - first:
+      213: -2845510347264561621
+    second: TAV2_24
+  - first:
+      213: 8510892980546979905
+    second: TAV2_25
+  - first:
+      213: -474212711291957720
+    second: TAV2_26
+  - first:
+      213: -212984806910106555
+    second: TAV2_27
+  - first:
+      213: -5436431275673850207
+    second: TAV2_28
+  - first:
+      213: -9202389157667606812
+    second: TAV2_29
+  - first:
+      213: -5837753790833878132
+    second: TAV2_30
+  - first:
+      213: -1875161333946485788
+    second: TAV2_31
+  - first:
+      213: 2963577631586992586
+    second: TAV2_32
+  - first:
+      213: -6080104430919493889
+    second: TAV2_33
+  - first:
+      213: -2008819343655729716
+    second: TAV2_34
+  - first:
+      213: -4372951170974708046
+    second: TAV2_35
+  - first:
+      213: -5962764521796953230
+    second: TAV2_36
+  - first:
+      213: 451253864825122007
+    second: TAV2_37
+  - first:
+      213: 2697659601973818173
+    second: TAV2_38
+  - first:
+      213: -6545614780034647511
+    second: TAV2_39
+  - first:
+      213: 1257119508936395717
+    second: TAV2_40
+  - first:
+      213: -7524724400856958970
+    second: TAV2_41
+  - first:
+      213: -4924457424694469716
+    second: TAV2_42
+  - first:
+      213: 4604177230490253246
+    second: TAV2_43
+  - first:
+      213: 8899527340591231050
+    second: TAV2_44
+  - first:
+      213: -8337168183506777579
+    second: TAV2_45
+  - first:
+      213: -4050409541021415121
+    second: TAV2_46
+  - first:
+      213: 4105827049297771093
+    second: TAV2_47
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: TAV2_0
+      rect:
+        serializedVersion: 2
+        x: 169
+        y: 2482
+        width: 128
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9e6e9b59b88c97030800000000000000
+      internalID: 3493043487840528105
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_1
+      rect:
+        serializedVersion: 2
+        x: 649
+        y: 2482
+        width: 128
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e93907d1fc48cd5b0800000000000000
+      internalID: -5342249032881237090
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_2
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 2482
+        width: 129
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6acc68549912bc420800000000000000
+      internalID: 2651249747817843878
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_3
+      rect:
+        serializedVersion: 2
+        x: 1608
+        y: 2482
+        width: 129
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8482071f9c859b470800000000000000
+      internalID: 8410851403453442120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_4
+      rect:
+        serializedVersion: 2
+        x: 2088
+        y: 2482
+        width: 130
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2bc4d4444342a3a60800000000000000
+      internalID: 7654470323572395186
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_5
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 2212
+        width: 132
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4d18eff8aecd258e0800000000000000
+      internalID: -1706058408823717420
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_6
+      rect:
+        serializedVersion: 2
+        x: 646
+        y: 2212
+        width: 133
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a6bf8efd0a4b9fe70800000000000000
+      internalID: 9149542721024228202
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_7
+      rect:
+        serializedVersion: 2
+        x: 1126
+        y: 2212
+        width: 135
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b54b69898452b4340800000000000000
+      internalID: 4849010417522357339
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_8
+      rect:
+        serializedVersion: 2
+        x: 1606
+        y: 2212
+        width: 135
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 840882f0264c00770800000000000000
+      internalID: 8575069615953576008
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_9
+      rect:
+        serializedVersion: 2
+        x: 2086
+        y: 2212
+        width: 135
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3fa0a2a5348f67c40800000000000000
+      internalID: 5509864162293582579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_10
+      rect:
+        serializedVersion: 2
+        x: 166
+        y: 1942
+        width: 135
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58213da772ddd87a0800000000000000
+      internalID: -6373194736025267579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_11
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 1942
+        width: 137
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae529273b2e2126b0800000000000000
+      internalID: -5322922521431300630
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_12
+      rect:
+        serializedVersion: 2
+        x: 1130
+        y: 1942
+        width: 137
+        height: 175
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9fe9641692ee85ad0800000000000000
+      internalID: -2713156913997635847
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_13
+      rect:
+        serializedVersion: 2
+        x: 1617
+        y: 1942
+        width: 141
+        height: 168
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f415f361bdf286410800000000000000
+      internalID: 1470477896354058575
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_14
+      rect:
+        serializedVersion: 2
+        x: 2102
+        y: 1942
+        width: 143
+        height: 162
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 43b44d7ca89df3660800000000000000
+      internalID: 7367846705482713908
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_15
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 1666
+        width: 139
+        height: 155
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 195b063c0e64f52e0800000000000000
+      internalID: -2134909767185812079
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_16
+      rect:
+        serializedVersion: 2
+        x: 671
+        y: 1661
+        width: 123
+        height: 149
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4aa716ab47c785ec0800000000000000
+      internalID: -3577973063160857948
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_17
+      rect:
+        serializedVersion: 2
+        x: 1151
+        y: 1662
+        width: 117
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1b7d065e28ca92b60800000000000000
+      internalID: 7721892714297481137
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_18
+      rect:
+        serializedVersion: 2
+        x: 1631
+        y: 1663
+        width: 112
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e71e70b47b07e8fb0800000000000000
+      internalID: -4643650233232268930
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_19
+      rect:
+        serializedVersion: 2
+        x: 2111
+        y: 1664
+        width: 112
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55e4ad4fefafe3960800000000000000
+      internalID: 7583774795475078741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_20
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 1401
+        width: 111
+        height: 142
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8003a6b933ec67910800000000000000
+      internalID: 1834880619246137352
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_21
+      rect:
+        serializedVersion: 2
+        x: 672
+        y: 1401
+        width: 115
+        height: 151
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e0096675dbcdd9c20800000000000000
+      internalID: 3214968414785671182
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_22
+      rect:
+        serializedVersion: 2
+        x: 1152
+        y: 1402
+        width: 117
+        height: 156
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa8e1af41fabb3550800000000000000
+      internalID: 6141708062435698858
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_23
+      rect:
+        serializedVersion: 2
+        x: 1633
+        y: 1402
+        width: 118
+        height: 170
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51176b88dcbf82860800000000000000
+      internalID: 7505525639193456917
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_24
+      rect:
+        serializedVersion: 2
+        x: 2108
+        y: 1402
+        width: 125
+        height: 180
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2ee8925a67b288d0800000000000000
+      internalID: -2845510347264561621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_25
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 1132
+        width: 126
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1484edab214cc1670800000000000000
+      internalID: 8510892980546979905
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_26
+      rect:
+        serializedVersion: 2
+        x: 667
+        y: 1132
+        width: 126
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 82ec7733d024b69f0800000000000000
+      internalID: -474212711291957720
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_27
+      rect:
+        serializedVersion: 2
+        x: 1145
+        y: 1131
+        width: 121
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 544619152735b0df0800000000000000
+      internalID: -212984806910106555
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_28
+      rect:
+        serializedVersion: 2
+        x: 1621
+        y: 1131
+        width: 110
+        height: 206
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1aee2a7ee8aed84b0800000000000000
+      internalID: -5436431275673850207
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_29
+      rect:
+        serializedVersion: 2
+        x: 2099
+        y: 1131
+        width: 107
+        height: 210
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4eee05441db8a4080800000000000000
+      internalID: -9202389157667606812
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_30
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 861
+        width: 140
+        height: 211
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c8b18236bd12cfea0800000000000000
+      internalID: -5837753790833878132
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_31
+      rect:
+        serializedVersion: 2
+        x: 635
+        y: 861
+        width: 147
+        height: 209
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4e37299a3b61af5e0800000000000000
+      internalID: -1875161333946485788
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_32
+      rect:
+        serializedVersion: 2
+        x: 1109
+        y: 861
+        width: 158
+        height: 206
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ac1490b772eb02920800000000000000
+      internalID: 2963577631586992586
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_33
+      rect:
+        serializedVersion: 2
+        x: 1586
+        y: 861
+        width: 164
+        height: 204
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff6d3cddb312f9ba0800000000000000
+      internalID: -6080104430919493889
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_34
+      rect:
+        serializedVersion: 2
+        x: 2060
+        y: 861
+        width: 178
+        height: 198
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cc5877b337d3f14e0800000000000000
+      internalID: -2008819343655729716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_35
+      rect:
+        serializedVersion: 2
+        x: 132
+        y: 591
+        width: 194
+        height: 189
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2be8ce134182053c0800000000000000
+      internalID: -4372951170974708046
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_36
+      rect:
+        serializedVersion: 2
+        x: 599
+        y: 591
+        width: 222
+        height: 185
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 27b9dfe6241004da0800000000000000
+      internalID: -5962764521796953230
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_37
+      rect:
+        serializedVersion: 2
+        x: 1076
+        y: 592
+        width: 230
+        height: 183
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7dc6c6ccffc234600800000000000000
+      internalID: 451253864825122007
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_38
+      rect:
+        serializedVersion: 2
+        x: 1556
+        y: 592
+        width: 232
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d33329c7d13007520800000000000000
+      internalID: 2697659601973818173
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_39
+      rect:
+        serializedVersion: 2
+        x: 2039
+        y: 592
+        width: 227
+        height: 181
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 92afc77a90e4925a0800000000000000
+      internalID: -6545614780034647511
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_40
+      rect:
+        serializedVersion: 2
+        x: 129
+        y: 322
+        width: 207
+        height: 179
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5cb0e5a688f227110800000000000000
+      internalID: 1257119508936395717
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_41
+      rect:
+        serializedVersion: 2
+        x: 621
+        y: 322
+        width: 183
+        height: 178
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 608f43e660fc29790800000000000000
+      internalID: -7524724400856958970
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_42
+      rect:
+        serializedVersion: 2
+        x: 1114
+        y: 322
+        width: 158
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cab1d892010d8abb0800000000000000
+      internalID: -4924457424694469716
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_43
+      rect:
+        serializedVersion: 2
+        x: 1600
+        y: 322
+        width: 147
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eb730521cc255ef30800000000000000
+      internalID: 4604177230490253246
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_44
+      rect:
+        serializedVersion: 2
+        x: 2086
+        y: 322
+        width: 134
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a4031dce6f8718b70800000000000000
+      internalID: 8899527340591231050
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_45
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 52
+        width: 131
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 51ac36595bd6c4c80800000000000000
+      internalID: -8337168183506777579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_46
+      rect:
+        serializedVersion: 2
+        x: 647
+        y: 52
+        width: 131
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f29c0908bfd0ac7c0800000000000000
+      internalID: -4050409541021415121
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: TAV2_47
+      rect:
+        serializedVersion: 2
+        x: 1128
+        y: 52
+        width: 130
+        height: 177
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55a759e92f3daf830800000000000000
+      internalID: 4105827049297771093
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      TAV2_0: 3493043487840528105
+      TAV2_1: -5342249032881237090
+      TAV2_10: -6373194736025267579
+      TAV2_11: -5322922521431300630
+      TAV2_12: -2713156913997635847
+      TAV2_13: 1470477896354058575
+      TAV2_14: 7367846705482713908
+      TAV2_15: -2134909767185812079
+      TAV2_16: -3577973063160857948
+      TAV2_17: 7721892714297481137
+      TAV2_18: -4643650233232268930
+      TAV2_19: 7583774795475078741
+      TAV2_2: 2651249747817843878
+      TAV2_20: 1834880619246137352
+      TAV2_21: 3214968414785671182
+      TAV2_22: 6141708062435698858
+      TAV2_23: 7505525639193456917
+      TAV2_24: -2845510347264561621
+      TAV2_25: 8510892980546979905
+      TAV2_26: -474212711291957720
+      TAV2_27: -212984806910106555
+      TAV2_28: -5436431275673850207
+      TAV2_29: -9202389157667606812
+      TAV2_3: 8410851403453442120
+      TAV2_30: -5837753790833878132
+      TAV2_31: -1875161333946485788
+      TAV2_32: 2963577631586992586
+      TAV2_33: -6080104430919493889
+      TAV2_34: -2008819343655729716
+      TAV2_35: -4372951170974708046
+      TAV2_36: -5962764521796953230
+      TAV2_37: 451253864825122007
+      TAV2_38: 2697659601973818173
+      TAV2_39: -6545614780034647511
+      TAV2_4: 7654470323572395186
+      TAV2_40: 1257119508936395717
+      TAV2_41: -7524724400856958970
+      TAV2_42: -4924457424694469716
+      TAV2_43: 4604177230490253246
+      TAV2_44: 8899527340591231050
+      TAV2_45: -8337168183506777579
+      TAV2_46: -4050409541021415121
+      TAV2_47: 4105827049297771093
+      TAV2_5: -1706058408823717420
+      TAV2_6: 9149542721024228202
+      TAV2_7: 4849010417522357339
+      TAV2_8: 8575069615953576008
+      TAV2_9: 5509864162293582579
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

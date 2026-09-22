@@ -1,0 +1,167 @@
+﻿@inject IAuthenticationService _Auth
+@inject NavigationManager Nav
+
+<nav class="top-nav">
+
+    @* ---------- צד ימין: הלוגו ופרטי המשתמש ---------- *@
+    <div class="nav-brand">
+
+        @* הלוגו כולל את שם המשחק, ולכן הוא מחליף גם את הסמל וגם את הטקסט *@
+        <img src="assets-images/logo-forest.png" alt="יער הידע" class="nav-logo" />
+
+        <AuthorizeView>
+            <Authorized>
+                @if (user != null)
+                {
+                    <span class="hello">שלום @user.FirstName</span>
+                }
+            </Authorized>
+        </AuthorizeView>
+    </div>
+
+    @* ---------- צד שמאל: קישורי הניווט ---------- *@
+    <div class="nav-links">
+
+        @* מעבר לעמוד שמטמיע את המשחק ב-iframe *@
+        <NavLink class="nav-link" href="./Play">למשחק</NavLink>
+
+        @* מעבר לעורך - רשימת המשחקים של המשתמש *@
+        <NavLink class="nav-link" href="./GamesList">לעורך</NavLink>
+
+        @* שני הכפתורים לא מובילים לעמוד אלא פותחים פופ-אפ *@
+        <button class="btn-nav" @onclick="ShowHowTo">איך משחקים</button>
+
+        <button class="btn-nav" @onclick="ShowAbout">אודות</button>
+
+        <AuthorizeView>
+            <Authorized>
+                <span class="nav-divider">|</span>
+
+                <button class="btn-nav btn-logout" @onclick="() => { _Auth.Logout(); }">
+                    @* אייקון ההתנתקות מורכב משני ווקטורים באפיון:
+                       הדלת והחץ. שניהם ממוקמים זה מעל זה בתוך תיבה אחת *@
+                    <span class="logout-icon">
+                        <img src="assets-images/Vector.svg" alt=""
+                             class="logout-door" width="12" height="15" />
+                        <img src="assets-images/Vector-1.svg" alt=""
+                             class="logout-arrow" width="15" height="8" />
+                    </span>
+                    התנתקות
+                </button>
+            </Authorized>
+        </AuthorizeView>
+
+    </div>
+</nav>
+
+
+@* ==========================================================
+   חלונית "איך משחקים?"
+   ההדגמה מורכבת מהאיורים של המשחק עצמו ומאנימציית CSS:
+   הגמד הולך אל האבן, מרים אותה וזורק אותה בין תגיות הקצה
+   ========================================================== *@
+@if (isHowToOpen == true)
+{
+    <div class="popup-background" @onclick="CloseAll">
+        <div class="popup-inner howto-popup" tabindex="-1" @onclick:stopPropagation="true">
+
+            <button class="popup-close" @onclick="CloseAll" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">איך משחקים?</h2>
+
+            @* ---------- ההדגמה המונפשת ----------
+               GIF שנבנה מהספרייטים של המשחק עצמו:
+               הגמד הולך אל האבן, מרים, זורק, והאבן נוחתת בין התגיות *@
+            <img class="howto-gif" src="assets-images/howto.gif"
+                 alt="הגמד ניגש לאבן, מרים אותה וזורק אותה אל האגם בין שתי תגיות הקצה" />
+
+            @* ---------- ההוראות ---------- *@
+            <ol class="howto-steps">
+                <li>מזינים את <b>קוד המשחק</b> במסך הפתיחה.</li>
+                <li>המצלמה מראה את האגם ואת <b>תגיות הקצה</b> - מימין ההתחלה, משמאל הסוף.</li>
+                <li><b>לוחצים על אבן</b> והגמד זורק אותה לאגם. טעות עולה פסילה אחת מתוך שלוש.</li>
+                <li>כשכל האבנים מסודרות נכון - עוברים לשאלה הבאה.</li>
+            </ol>
+
+            <div class="popup-actions">
+                <button class="btn-main" @onclick="CloseAll">הבנתי, בואו נשחק</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   חלונית האודות
+   נמצאת מחוץ ל-Authorized ול-NotAuthorized, כי היא צריכה
+   להיות זמינה תמיד ללא תלות בחיבור המשתמש
+   ========================================================== *@
+@if (isAboutOpen == true)
+{
+    <div class="popup-background" @onclick="CloseAll">
+        <div class="popup-inner about-popup" tabindex="-1" @onclick:stopPropagation="true">
+
+            <button class="popup-close" @onclick="CloseAll" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <img src="assets-images/logo-forest.png" alt="" class="about-logo" />
+
+            <h2 class="popup-title">יער הידע</h2>
+
+            <p class="about-line">
+                <b>אפיון ופיתוח:</b> פרל ביתן, יובל פנחס וליאל סטרשינסקי
+            </p>
+
+            <p class="about-line">אופיין ופותח במסגרת פרוייקט בקורסים:</p>
+
+            <ul class="about-courses">
+                <li>סביבות לימוד אינטראקטיביות 2</li>
+                <li>תכנות 2</li>
+                <li>תכנות אינטראקציה ואנימציה 2</li>
+            </ul>
+
+            <p class="about-line">תשפ״ו</p>
+
+            <p class="about-line">הפקולטה לטכנולוגיות למידה</p>
+            <p class="about-line">מכון טכנולוגי חולון</p>
+
+            <p class="about-credit">מוזיקת רקע נלקחה מ-FreeSounds</p>
+
+            <div class="popup-actions">
+                <button class="btn-main" @onclick="CloseAll">סגירה</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@code {
+    [CascadingParameter] private User user { get; set; }
+
+    // איזו חלונית פתוחה כרגע
+    bool isHowToOpen = false;
+    bool isAboutOpen = false;
+
+    void ShowHowTo()
+    {
+        isAboutOpen = false;
+        isHowToOpen = !isHowToOpen;
+    }
+
+    void ShowAbout()
+    {
+        isHowToOpen = false;
+        isAboutOpen = !isAboutOpen;
+    }
+
+    void CloseAll()
+    {
+        isHowToOpen = false;
+        isAboutOpen = false;
+    }
+}

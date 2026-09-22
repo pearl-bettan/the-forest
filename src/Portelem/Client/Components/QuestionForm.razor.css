@@ -1,0 +1,582 @@
+/* ==========================================================
+   CSS לוקאלי - חל רק על טופס עריכת השאלה.
+   כל הערכים לפי קובץ הפיגמה "Ui מחולל"
+   ========================================================== */
+
+.question-body {
+    border: 1px solid var(--green);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    background-color: rgba(255, 255, 255, 0.32);
+    padding: 20px 22px 22px 22px;
+    margin-top: -6px;
+}
+
+
+/* ---------- נוסח השאלה ---------- */
+
+.topic-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.topic-label {
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 16px;
+    color: black;
+    white-space: nowrap;
+}
+
+.topic-input {
+    flex: 1 1 420px;
+    max-width: 520px;
+    height: 34px;
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    font-family: var(--font);
+    font-size: 16px;
+    padding: 0 12px;
+}
+
+.topic-input:focus {
+    outline: 2px solid var(--green);
+}
+
+.topic-counter {
+    font-family: var(--font);
+    font-size: 14px;
+    color: var(--gray);
+}
+
+
+/* ---------- שורת ההסבר ---------- */
+
+.items-hint {
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 32px;
+    color: black;
+    text-align: right;
+    margin-top: 6px;
+}
+
+
+/* ==========================================================
+   שורת הפריטים
+   ========================================================== */
+
+/* לפי האפיון התצוגה במצב עריכה גדולה יותר מתצוגת הקריאה */
+.items-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+    min-height: 165px;
+}
+
+.item-card {
+    width: 152px;
+    height: 158px;
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    display: flex;
+    flex-direction: column;
+    cursor: grab;
+}
+
+.item-card:active {
+    cursor: grabbing;
+}
+
+/* הפריט שנגרר כרגע */
+.item-card.is-dragging {
+    opacity: 0.45;
+}
+
+/* כרטיס ריק להוספת פריט */
+.item-card.is-empty {
+    cursor: default;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.18);
+}
+
+/* אזור התוכן - הסלע או היבשת מהאפיון משמשים כרקע */
+.item-media {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    padding: 6px 10px;
+}
+
+.rock-media {
+    background-image: url('assets-images/stone.png');
+}
+
+.tag-media {
+    position: relative;
+    background-image: url('assets-images/tag.png');
+
+    /* מדדתי את התמונה: השטח החום של האבן משתרע בין 49% ל-81%
+       מגובהה, ומרכזו ב-65%. מעליו יש רק קנים. לכן התמונה מוגדלת
+       ונצמדת לתחתית, והטקסט ממוקם בדיוק על מרכז השטח החום */
+    background-size: 122% auto;
+    background-position: center bottom;
+    padding: 0;
+}
+
+/* הטקסט יושב במרכז השטח החום, לא במרכז הכרטיס */
+.tag-media .item-text {
+    position: absolute;
+    left: 10%;
+    right: 10%;
+    bottom: 36%;
+    transform: translateY(50%);
+    max-width: none;
+}
+
+.item-text {
+    font-family: var(--font);
+    font-size: 17px;
+    line-height: 20px;
+    color: black;
+    text-align: center;
+    word-break: break-word;
+}
+
+/* ערך קיצון שטרם הוזן */
+.item-text.is-placeholder {
+    color: var(--gray);
+    font-size: 14px;
+}
+
+.item-img {
+    max-width: 92px;
+    max-height: 74px;
+    object-fit: contain;
+}
+
+/* כפתור המחיקה מופיע רק במעבר עכבר על הכרטיס */
+.item-remove {
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    display: none;
+    background-color: white;
+    border: 1px solid var(--gray);
+    border-radius: 5px;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    line-height: 1;
+    color: black;
+    cursor: pointer;
+    padding: 0;
+}
+
+.item-card:hover .item-remove {
+    display: block;
+}
+
+.item-remove:hover:not(:disabled) {
+    background-color: var(--gold-soft);
+}
+
+/* חובה שיישארו לפחות שלושה פריטים, ולכן המחיקה חסומה */
+.item-remove:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+
+/* ==========================================================
+   פופאפ הגדלת תמונת פריט
+   ========================================================== */
+
+.zoom-popup {
+    max-width: 640px;
+}
+
+.zoom-frame {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #f6f3ec;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    min-height: 240px;
+}
+
+.zoom-img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+}
+
+/* כפתור הפלוס שבמרכז כרטיס ריק */
+.add-item-btn {
+    background-color: unset;
+    border: none;
+    font-size: 34px;
+    line-height: 1;
+    color: #4a4a4a;
+    cursor: pointer;
+    padding: 0 8px;
+}
+
+.add-item-btn:hover {
+    color: var(--gold-dark);
+    transform: scale(1.1);
+}
+
+/* שורת האייקונים בתחתית הכרטיס */
+.item-tools {
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px 4px 6px;
+}
+
+.tool-btn {
+    background-color: unset;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.tool-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+}
+
+.drag-icon {
+    cursor: grab;
+}
+
+.tool-btn:hover .tool-icon {
+    transform: scale(1.15);
+}
+
+
+/* ---------- שמירה וביטול ---------- */
+
+.question-actions {
+    display: flex;
+    gap: 14px;
+    margin-top: 26px;
+}
+
+.question-actions .btn-green {
+    width: 174px;
+    height: 31px;
+    padding: 0;
+}
+
+
+/* ==========================================================
+   הפופאפים - הוספת סלע, ערך קיצון ומחיקת פריט
+   ========================================================== */
+
+.popup-background {
+    background-color: rgba(0, 0, 0, .56);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.popup-inner {
+    position: fixed;
+    top: 50%;
+    right: 50%;
+    transform: translateX(50%) translateY(-50%);
+    width: 400px;
+    background-color: var(--sky);
+    border-radius: 35px;
+    box-shadow: 0 4px 40px 0 rgba(0, 0, 0, 0.25);
+    padding: 25px 30px 30px 30px;
+    color: black;
+    text-align: center;
+}
+
+.popup-small {
+    width: 400px;
+}
+
+.popup-close {
+    background-color: unset;
+    border: none;
+    position: absolute;
+    top: 16px;
+    left: 25px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.popup-close img {
+    display: block;
+}
+
+.popup-title {
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 30px;
+    color: black;
+    text-align: center;
+    margin: 0;
+}
+
+.popup-subtitle {
+    font-family: var(--font);
+    font-size: 15px;
+    color: black;
+    text-align: center;
+    margin-top: 4px;
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 22px;
+}
+
+.delete-text {
+    font-family: var(--font);
+    font-size: 18px;
+    line-height: 28px;
+    margin-top: 12px;
+}
+
+
+/* ---------- הסלע הגדול שבתוך הפופאפ ---------- */
+
+.big-rock {
+    width: 300px;
+    height: 190px;
+    margin: 16px auto 0 auto;
+    background-image: url('assets-images/stone.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+/* תיבת הטקסט שבתוך הסלע */
+.rock-input {
+    width: 150px;
+    height: 80px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    font-family: var(--font);
+    font-size: 16px;
+    text-align: center;
+    padding: 6px;
+    resize: none;
+}
+
+.rock-input:focus {
+    outline: 2px solid var(--gold-dark);
+}
+
+.rock-preview {
+    max-width: 140px;
+    max-height: 100px;
+    object-fit: contain;
+}
+
+.rock-waiting {
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--gray);
+}
+
+.rock-counter {
+    font-family: var(--font);
+    font-size: 14px;
+}
+
+.rock-counter.chars-ok    { color: var(--green-ok); }
+.rock-counter.chars-over  { color: var(--danger); }
+.rock-counter.chars-short { color: var(--gray); }
+
+
+/* ---------- בחירת סוג התוכן ---------- */
+
+.type-choice {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.type-or {
+    font-family: var(--font);
+    font-size: 20px;
+    color: black;
+}
+
+.type-btn {
+    background-color: unset;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 0;
+}
+
+.type-btn img {
+    width: 34px;
+    height: 34px;
+    display: block;
+}
+
+.type-btn:hover img {
+    transform: scale(1.12);
+}
+
+/* החלפת סוג התוכן אחרי שכבר נבחר */
+.type-switch {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 12px;
+}
+
+.type-btn-sm {
+    background-color: white;
+    border: 1px solid var(--gold-dark);
+    border-radius: 8px;
+    width: 40px;
+    height: 34px;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.type-btn-sm img {
+    width: 20px;
+    height: 20px;
+    display: block;
+}
+
+.type-btn-sm.is-on {
+    background-color: var(--gold-soft);
+}
+
+
+/* ---------- היבשת שבפופאפ ערך הקיצון ---------- */
+
+.big-tag {
+    width: 260px;
+    height: 150px;
+    margin: 16px auto 0 auto;
+    background-image: url('assets-images/tag.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+
+.tag-input {
+    width: 130px;
+    height: 34px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid var(--gray);
+    border-radius: 4px;
+    font-family: var(--font);
+    font-size: 16px;
+    text-align: center;
+    padding: 0 6px;
+}
+
+.tag-input:focus {
+    outline: 2px solid var(--gold-dark);
+}
+
+
+/* ==========================================================
+   רספונסיביות - טופס עריכת השאלה
+   שורת הפריטים כבר עוטפת שורות, כאן מקטינים את הכרטיסים
+   בהדרגה כדי שיישארו כמה שיותר פריטים בשורה אחת
+   ========================================================== */
+
+@media (max-width: 1279px) {
+
+    .item-card {
+        width: 128px;
+        height: 134px;
+    }
+
+    .item-text {
+        font-size: 15px;
+        line-height: 18px;
+    }
+
+    .item-img {
+        max-width: 78px;
+        max-height: 62px;
+    }
+
+    .topic-input {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 900px) {
+
+    .items-row {
+        gap: 8px;
+    }
+
+    .item-card {
+        width: 106px;
+        height: 112px;
+    }
+
+    .item-text {
+        font-size: 13px;
+        line-height: 16px;
+    }
+
+    .item-img {
+        max-width: 64px;
+        max-height: 50px;
+    }
+
+    .topic-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .question-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}

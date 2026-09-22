@@ -1,0 +1,792 @@
+@* ==========================================================
+   טופס עריכת שאלה, לפי הפיגמה.
+   הפריטים מוצגים ככרטיסי סלע בשורה אחת, בין שתי היבשות.
+   כרטיס ריק עם סימן פלוס פותח את פופאפ "הוספת סלע",
+   אייקון העיפרון שבתחתית הכרטיס פותח אותו לעריכה,
+   ואייקון ההזזה מאפשר לגרור ולשנות את הסדר
+   ========================================================== *@
+
+@using AuthTemplate.Shared.Models.Games
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<div class="question-body">
+
+    @* ---------- נוסח השאלה ---------- *@
+    <div class="topic-row">
+        <label class="topic-label">מה השאלה?</label>
+
+        <input class="topic-input" maxlength="@TopicMax"
+               placeholder="נוסח השאלה כפי שהשחקן יראה"
+               value="@Question.Topic"
+               @oninput="(e) => Question.Topic = e.Value.ToString()" />
+
+        <span class="topic-counter">@Length(Question.Topic)/@TopicMax</span>
+    </div>
+
+    @* ---------- שורת ההסבר ---------- *@
+    <p class="items-hint">
+        יש להזין את ערכי הקיצון ביבשות ולסדר את הפריטים בהתאם.
+        חובת 3-10 פריטים לשאלה.
+    </p>
+
+    @* ---------- שורת הפריטים ---------- *@
+    <div class="items-row">
+
+        @* ---------- יבשת ימין ---------- *@
+        <div class="item-card">
+            <div class="item-media tag-media">
+                <span class="item-text @(string.IsNullOrWhiteSpace(Question.RightTag) ? "is-placeholder" : "")">
+                    @TagText(Question.RightTag)
+                </span>
+            </div>
+
+            <div class="item-tools">
+                <span></span>
+                <span class="tip" data-tip="עריכת ערך הקיצון">
+                    <button type="button" class="tool-btn" @onclick="() => OpenTagPopup(true)">
+                        <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
+                    </button>
+                </span>
+            </div>
+        </div>
+
+        @* ---------- הפריטים שהוזנו ---------- *@
+        @for (int i = 0; i < Question.Answers.Count; i++)
+        {
+            int pos = i;
+            AnswerToEdit answer = Question.Answers[pos];
+
+            <div class="item-card @(dragIndex == pos ? "is-dragging" : "")"
+                 draggable="true"
+                 @ondragstart="() => StartDrag(pos)"
+                 @ondragover:preventDefault="true"
+                 @ondrop="() => DropOn(pos)"
+                 @ondragend="EndDrag">
+
+                <div class="item-media rock-media">
+                    @if (answer.IsImage == true)
+                    {
+                        <img class="item-img" src="uploadedFiles/@answer.Content" alt="" />
+                    }
+                    else
+                    {
+                        <span class="item-text">@answer.Content</span>
+                    }
+
+                    @* אייקון המחיקה מופיע רק במעבר עכבר על הכרטיס.
+                       לפי האפיון אי אפשר לרדת מתחת לשלושה פריטים *@
+                    <button type="button" class="item-remove"
+                            title="@RemoveTitle()"
+                            disabled="@(CanRemove() == false)"
+                            @onclick="() => AskRemove(pos)">✕</button>
+                </div>
+
+                <div class="item-tools">
+                    <span class="tip" data-tip="גרירה לשינוי הסדר">
+                        <img src="assets-images/all-directions.svg" alt="" class="tool-icon drag-icon" />
+                    </span>
+
+                    @* זכוכית מגדלת - רק לפריטי תמונה, ורק במצב עריכה *@
+                    @if (answer.IsImage == true)
+                    {
+                        <span class="tip" data-tip="הצגת התמונה בגדול">
+                            <button type="button" class="tool-btn"
+                                    @onclick="() => OpenZoom(answer.Content)">
+                                <img src="assets-images/zoom.svg" alt="הגדלה" class="tool-icon" />
+                            </button>
+                        </span>
+                    }
+
+                    <span class="tip" data-tip="עריכת הפריט">
+                        <button type="button" class="tool-btn" @onclick="() => OpenEditItem(pos)">
+                            <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        }
+
+        @* ---------- כרטיסים ריקים להוספה ----------
+           לפי האפיון תמיד מוצגים לפחות שלושה פריטים,
+           וכשיש כבר שלושה מתווסף כרטיס הכנה אחד *@
+        @for (int i = 0; i < EmptySlots(); i++)
+        {
+            <div class="item-card is-empty">
+                <div class="item-media rock-media">
+                    <button type="button" class="add-item-btn" title="הוספת פריט"
+                            @onclick="OpenAddItem">+</button>
+                </div>
+
+                <div class="item-tools"></div>
+            </div>
+        }
+
+        @* ---------- יבשת שמאל ---------- *@
+        <div class="item-card">
+            <div class="item-media tag-media">
+                <span class="item-text @(string.IsNullOrWhiteSpace(Question.LeftTag) ? "is-placeholder" : "")">
+                    @TagText(Question.LeftTag)
+                </span>
+            </div>
+
+            <div class="item-tools">
+                <span></span>
+                <span class="tip" data-tip="עריכת ערך הקיצון">
+                    <button type="button" class="tool-btn" @onclick="() => OpenTagPopup(false)">
+                        <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
+                    </button>
+                </span>
+            </div>
+        </div>
+
+    </div>
+
+    @* ---------- שמירה וביטול ---------- *@
+    <div class="question-actions">
+        <span class="tip tip-wide" data-tip="@SaveTip()">
+            <button type="button" class="btn-green"
+                    disabled="@(IsReady() == false)"
+                    @onclick="OnSave">שמירת שאלה</button>
+        </span>
+
+        <button type="button" class="btn-green" @onclick="OnCancel">בטל שינויים</button>
+    </div>
+
+</div>
+
+
+@* ==========================================================
+   פופאפ הוספת ועריכת פריט
+   ========================================================== *@
+@if (isItemPopupOpen == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner rock-popup" tabindex="-1">
+
+            <button type="button" class="popup-close" @onclick="CloseItemPopup" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">@(editIndex < 0 ? "הוספת סלע" : "עריכת סלע")</h2>
+            <p class="popup-subtitle">יש לבחור סוג תוכן</p>
+
+            @* הסלע הגדול שבתוכו נבחר ומוזן התוכן *@
+            <div class="big-rock">
+
+                @if (itemType == "")
+                {
+                    @* בחירת סוג התוכן *@
+                    <div class="type-choice">
+                        <span class="tip tip-wide"
+                              data-tip="ניתן להעלות קבצי png, jpg ו-jpeg בלבד, עד 5MB">
+                            <button type="button" class="type-btn" @onclick="ChooseImage">
+                                <img src="assets-images/content-image.svg" alt="תמונה" />
+                            </button>
+                        </span>
+
+                        <span class="type-or">או</span>
+
+                        <button type="button" class="type-btn" @onclick='() => itemType = "text"'>
+                            <img src="assets-images/content-text.svg" alt="טקסט" />
+                        </button>
+                    </div>
+                }
+                else if (itemType == "text")
+                {
+                    <textarea class="rock-input" maxlength="@ItemMax"
+                              @bind="itemText" @bind:event="oninput"></textarea>
+
+                    <span class="rock-counter @ItemCounterClass()">@itemText.Length/@ItemMax</span>
+                }
+                else
+                {
+                    @* תצוגה מקדימה של התמונה שנבחרה *@
+                    @if (itemFile != "")
+                    {
+                        <img class="rock-preview" src="uploadedFiles/@itemFile" alt="" />
+                    }
+                    else
+                    {
+                        <span class="rock-waiting">בחרו תמונה מהמחשב</span>
+                    }
+                }
+
+                @* פקד ההעלאה מוסתר, וכפתור התמונה מפעיל אותו *@
+                <InputFile id="itemFileInput" OnChange="UploadImage"
+                           accept=".png,.jpg,.jpeg" hidden />
+            </div>
+
+            @* החלפת סוג התוכן אחרי שכבר נבחר *@
+            @if (itemType != "")
+            {
+                <div class="type-switch">
+                    <span class="tip tip-wide"
+                          data-tip="ניתן להעלות קבצי png, jpg ו-jpeg בלבד, עד 5MB">
+                        <button type="button" class="type-btn-sm @(itemType == "image" ? "is-on" : "")"
+                                @onclick="ChooseImage">
+                            <img src="assets-images/content-image.svg" alt="תמונה" />
+                        </button>
+                    </span>
+
+                    <button type="button" class="type-btn-sm @(itemType == "text" ? "is-on" : "")"
+                            @onclick='() => itemType = "text"'>
+                        <img src="assets-images/content-text.svg" alt="טקסט" />
+                    </button>
+                </div>
+            }
+
+            <div class="popup-actions">
+                <button type="button" class="btn-main"
+                        disabled="@(CanSaveItem() == false)"
+                        @onclick="SaveItem">
+                    @(editIndex < 0 ? "הוספה" : "שמירה")
+                </button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   פופאפ עריכת ערך קיצון
+   ========================================================== *@
+@if (isTagPopupOpen == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner tag-popup" tabindex="-1">
+
+            <button type="button" class="popup-close" @onclick="CloseTagPopup" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">ערך קיצון</h2>
+            <p class="popup-subtitle">
+                @(isRightTag ? "היבשת שבצד ימין של הרצף" : "היבשת שבצד שמאל של הרצף")
+            </p>
+
+            <div class="big-tag">
+                <input class="tag-input" maxlength="@TagMax"
+                       value="@tagText"
+                       @oninput="(e) => tagText = e.Value.ToString()" />
+
+                <span class="rock-counter @TagCounterClass()">@tagText.Length/@TagMax</span>
+            </div>
+
+            <div class="popup-actions">
+                <button type="button" class="btn-main"
+                        disabled="@(CanSaveTag() == false)"
+                        @onclick="SaveTag">שמירה</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   הגדלת תמונת פריט
+   ========================================================== *@
+@if (zoomFile != "")
+{
+    <div class="popup-background" @onclick="CloseZoom">
+        <div class="popup-inner zoom-popup" tabindex="-1" @onclick:stopPropagation="true">
+
+            <button type="button" class="popup-close" @onclick="CloseZoom" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">תצוגת התמונה</h2>
+
+            <div class="zoom-frame">
+                <img class="zoom-img" src="uploadedFiles/@zoomFile" alt="תמונת הפריט" />
+            </div>
+
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   אישור מחיקת פריט
+   ========================================================== *@
+@if (removeIndex >= 0)
+{
+    <div class="popup-background">
+        <div class="popup-inner popup-small" tabindex="-1">
+            <h2 class="popup-title">מחיקת פריט</h2>
+            <p class="delete-text">למחוק את הפריט מהרצף?</p>
+
+            <div class="popup-actions">
+                <button type="button" class="btn-main" @onclick="RemoveItem">כן, למחוק</button>
+                <button type="button" class="btn-second" @onclick="() => removeIndex = -1">ביטול</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+
+    // השאלה שנערכת. מגיעה מהעמוד ומתעדכנת ישירות
+    [Parameter]
+    public QuestionToEdit Question { get; set; }
+
+    [Parameter]
+    public EventCallback OnSave { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancel { get; set; }
+
+    // מודיע לעמוד שרשימת הפריטים השתנתה, כדי שהמונה בכותרת יתעדכן
+    [Parameter]
+    public EventCallback OnItemsChanged { get; set; }
+
+
+    // המגבלות מהאפיון
+    const int TopicMax = 50;
+    const int ItemMax = 30;
+    const int TagMax = 10;
+    const int MinItems = 3;
+    const int MaxItems = 10;
+
+    // ---------- פופאפ הפריט ----------
+    bool isItemPopupOpen = false;
+
+    // 1- פירושו הוספת פריט חדש, אחרת המיקום של הפריט הנערך
+    int editIndex = -1;
+
+    // סוג התוכן שנבחר: ריק לפני בחירה, אחרת text או image
+    string itemType = "";
+    string itemText = "";
+
+    // שם קובץ התמונה שהועלתה לשרת
+    string itemFile = "";
+
+    // ---------- פופאפ ערך הקיצון ----------
+    bool isTagPopupOpen = false;
+    bool isRightTag = true;
+    string tagText = "";
+
+    // ---------- מחיקת פריט ----------
+    int removeIndex = -1;
+
+    // ---------- הגדלת תמונה ----------
+    // שם קובץ התמונה שמוצגת בגדול. ריק = הפופאפ סגור
+    string zoomFile = "";
+
+    // ---------- גרירה ----------
+    int dragIndex = -1;
+
+
+    // ==========================================================
+    // הכרטיסים הריקים
+    // ==========================================================
+
+    // כמה כרטיסי הוספה מוצגים כרגע.
+    // עד שלושה פריטים - משלימים לשלושה.
+    // משלושה ומעלה - כרטיס הכנה אחד, עד למקסימום
+    int EmptySlots()
+    {
+        if (Question.Answers.Count < MinItems)
+        {
+            return MinItems - Question.Answers.Count;
+        }
+
+        if (Question.Answers.Count < MaxItems)
+        {
+            return 1;
+        }
+
+        return 0;
+    }
+
+
+    // ==========================================================
+    // פופאפ הפריט
+    // ==========================================================
+
+    void OpenAddItem()
+    {
+        editIndex = -1;
+        itemType = "";
+        itemText = "";
+        itemFile = "";
+        isItemPopupOpen = true;
+    }
+
+
+    void OpenEditItem(int index)
+    {
+        AnswerToEdit answer = Question.Answers[index];
+
+        editIndex = index;
+
+        if (answer.IsImage == true)
+        {
+            itemType = "image";
+            itemFile = answer.Content;
+            itemText = "";
+        }
+        else
+        {
+            itemType = "text";
+            itemText = answer.Content;
+            itemFile = "";
+        }
+
+        isItemPopupOpen = true;
+    }
+
+
+    void CloseItemPopup()
+    {
+        isItemPopupOpen = false;
+    }
+
+
+    // בחירת תוכן מסוג תמונה פותחת מיד את חלון הקבצים במחשב
+    async Task ChooseImage()
+    {
+        itemType = "image";
+
+        await JS.InvokeVoidAsync("eval",
+            "document.getElementById('itemFileInput').click()");
+    }
+
+
+    // קריאת הקובץ, שליחתו לשרת ושמירת שם הקובץ שחזר
+    async Task UploadImage(InputFileChangeEventArgs e)
+    {
+        IBrowserFile file = e.File;
+
+        // שימוש ב-MemoryStream מבטיח שכל הקובץ נקרא,
+        // גם כשהוא מגיע בכמה חלקים
+        using (var stream = file.OpenReadStream(5 * 1024 * 1024))
+        {
+            MemoryStream memory = new MemoryStream();
+            await stream.CopyToAsync(memory);
+            byte[] buffer = memory.ToArray();
+
+            ImageToUpload image = new ImageToUpload();
+            image.ImageBase64 = Convert.ToBase64String(buffer);
+            image.Extension = Path.GetExtension(file.Name).Replace(".", "");
+
+            var res = await Http.PostAsJsonAsync("api/games/uploadImage/", image);
+
+            if (res.IsSuccessStatusCode == true)
+            {
+                itemFile = res.Content.ReadAsStringAsync().Result;
+            }
+        }
+    }
+
+
+    // צבע מונה התווים של הפריט: ירוק כשתקין, אדום בחריגה
+    string ItemCounterClass()
+    {
+        if (itemText.Length > ItemMax)
+        {
+            return "chars-over";
+        }
+
+        if (itemText.Length == 0)
+        {
+            return "chars-short";
+        }
+
+        return "chars-ok";
+    }
+
+
+    bool CanSaveItem()
+    {
+        if (itemType == "text")
+        {
+            if (string.IsNullOrWhiteSpace(itemText) == true)
+            {
+                return false;
+            }
+
+            return itemText.Length <= ItemMax;
+        }
+
+        if (itemType == "image")
+        {
+            return itemFile != "";
+        }
+
+        return false;
+    }
+
+
+    async Task SaveItem()
+    {
+        AnswerToEdit answer;
+
+        if (editIndex < 0)
+        {
+            answer = new AnswerToEdit();
+        }
+        else
+        {
+            answer = Question.Answers[editIndex];
+        }
+
+        if (itemType == "image")
+        {
+            answer.IsImage = true;
+            answer.Content = itemFile;
+        }
+        else
+        {
+            answer.IsImage = false;
+            answer.Content = itemText.Trim();
+        }
+
+        if (editIndex < 0)
+        {
+            Question.Answers.Add(answer);
+        }
+
+        isItemPopupOpen = false;
+
+        await OnItemsChanged.InvokeAsync();
+    }
+
+
+    // ==========================================================
+    // הגדלת תמונה
+    // ==========================================================
+
+    void OpenZoom(string fileName)
+    {
+        zoomFile = fileName;
+    }
+
+
+    void CloseZoom()
+    {
+        zoomFile = "";
+    }
+
+
+    // ==========================================================
+    // מחיקת פריט
+    // ==========================================================
+
+    // לפי האפיון שאלה מכילה לפחות שלושה פריטים,
+    // ולכן אי אפשר למחוק את השלישי
+    bool CanRemove()
+    {
+        return Question.Answers.Count > MinItems;
+    }
+
+
+    string RemoveTitle()
+    {
+        if (CanRemove() == false)
+        {
+            return "חובה שיישארו לפחות 3 פריטים בשאלה";
+        }
+
+        return "מחיקת הפריט";
+    }
+
+
+    void AskRemove(int index)
+    {
+        if (CanRemove() == false) return;
+
+        removeIndex = index;
+    }
+
+
+    async Task RemoveItem()
+    {
+        Question.Answers.RemoveAt(removeIndex);
+        removeIndex = -1;
+
+        await OnItemsChanged.InvokeAsync();
+    }
+
+
+    // ==========================================================
+    // ערכי הקיצון
+    // ==========================================================
+
+    void OpenTagPopup(bool right)
+    {
+        isRightTag = right;
+
+        if (right == true)
+        {
+            tagText = Question.RightTag ?? "";
+        }
+        else
+        {
+            tagText = Question.LeftTag ?? "";
+        }
+
+        isTagPopupOpen = true;
+    }
+
+
+    void CloseTagPopup()
+    {
+        isTagPopupOpen = false;
+    }
+
+
+    string TagCounterClass()
+    {
+        if (tagText.Length > TagMax)
+        {
+            return "chars-over";
+        }
+
+        if (tagText.Length == 0)
+        {
+            return "chars-short";
+        }
+
+        return "chars-ok";
+    }
+
+
+    bool CanSaveTag()
+    {
+        if (string.IsNullOrWhiteSpace(tagText) == true)
+        {
+            return false;
+        }
+
+        return tagText.Length <= TagMax;
+    }
+
+
+    void SaveTag()
+    {
+        if (isRightTag == true)
+        {
+            Question.RightTag = tagText.Trim();
+        }
+        else
+        {
+            Question.LeftTag = tagText.Trim();
+        }
+
+        isTagPopupOpen = false;
+    }
+
+
+    // ==========================================================
+    // גרירה לשינוי הסדר
+    // ==========================================================
+
+    void StartDrag(int index)
+    {
+        dragIndex = index;
+    }
+
+
+    // הפריט הנגרר נכנס למקום שעליו שוחרר, והשאר נדחפים בהתאם
+    async Task DropOn(int targetIndex)
+    {
+        if (dragIndex < 0 || dragIndex == targetIndex)
+        {
+            dragIndex = -1;
+            return;
+        }
+
+        AnswerToEdit moved = Question.Answers[dragIndex];
+        Question.Answers.RemoveAt(dragIndex);
+        Question.Answers.Insert(targetIndex, moved);
+
+        dragIndex = -1;
+        await OnItemsChanged.InvokeAsync();
+    }
+
+
+    void EndDrag()
+    {
+        dragIndex = -1;
+    }
+
+
+    // ==========================================================
+    // עזרה
+    // ==========================================================
+
+    // הטקסט שמופיע בטולטיפ של כפתור השמירה
+    string SaveTip()
+    {
+        if (Question.Answers.Count < MinItems)
+        {
+            return "ניתן לשמור שאלה בתנאי שיש לפחות 3 פריטים";
+        }
+
+        if (string.IsNullOrWhiteSpace(Question.RightTag) || string.IsNullOrWhiteSpace(Question.LeftTag))
+        {
+            return "יש להזין ערך קיצון בשתי היבשות";
+        }
+
+        if (string.IsNullOrWhiteSpace(Question.Topic))
+        {
+            return "יש להזין את נוסח השאלה";
+        }
+
+        return "שמירת השאלה וחזרה לרשימה";
+    }
+
+
+    // כפתור השמירה פעיל רק כששאלה מלאה
+    bool IsReady()
+    {
+        if (string.IsNullOrWhiteSpace(Question.Topic))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Question.RightTag))
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(Question.LeftTag))
+        {
+            return false;
+        }
+
+        if (Question.Answers.Count < MinItems)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
+    int Length(string text)
+    {
+        if (text == null)
+        {
+            return 0;
+        }
+
+        return text.Length;
+    }
+
+
+    // כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום
+    string TagText(string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return "ערך קיצון";
+        }
+
+        return tag;
+    }
+}

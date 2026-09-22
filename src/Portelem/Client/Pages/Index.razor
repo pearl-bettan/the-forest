@@ -1,0 +1,46 @@
+﻿@page "/"
+
+<PageTitle>יער הידע</PageTitle>
+
+<div class="home-page">
+
+    <AuthorizeView>
+
+        @* ---------- משתמש מחובר ---------- *@
+        <Authorized>
+            @if (user != null)
+            {
+                <h1 class="home-title">היי @user.FirstName @user.LastName</h1>
+            }
+
+            <p class="home-text">ברוכים הבאים למחולל של יער הידע.</p>
+
+            <NavLink class="btn-second home-link" href="./GamesList">
+                המשחקים שלי
+            </NavLink>
+        </Authorized>
+
+        @* ---------- משתמש לא מחובר ---------- *@
+        <NotAuthorized>
+            <h1 class="home-title">אין משתמש מחובר</h1>
+
+            <p class="home-text">
+                כדי ליצור ולערוך משחקים יש להתחבר דרך הפורטל"מ
+            </p>
+
+            <NavLink class="btn-second home-link" href="./GamesList">
+                המשחקים שלי
+            </NavLink>
+        </NotAuthorized>
+
+    </AuthorizeView>
+
+</div>
+
+
+@code {
+
+    [CascadingParameter]
+    private User user { get; set; }
+
+}

@@ -1,0 +1,75 @@
+@* ==========================================================
+   תיבת טקסט שסופרת תווים תוך כדי הקלדה
+
+   הקומפוננטה InputText המובנית מעדכנת את הערך רק ביציאה
+   מפוקוס. כדי לספור תווים בזמן ההקלדה יורשים ממנה ומוסיפים
+   את ההתנהגות החסרה
+   ========================================================== *@
+
+@inherits Microsoft.AspNetCore.Components.Forms.InputText
+
+<input @attributes="@AdditionalAttributes"
+       class="@CssClass @inputClass"
+       @bind="@CurrentValueAsString"
+       @bind:event="oninput"
+       @onkeyup="countChars"
+       maxlength="@maxLength" />
+
+<span class="chars-counter @inputClass">@length/@maxLength</span>
+
+
+@code {
+    // אורך מחרוזת מינימלי
+    [Parameter]
+    public int minLength { get; set; } = 1;
+
+    // אורך מחרוזת שממנו מוצגת אזהרה
+    [Parameter]
+    public int midLength { get; set; } = 40;
+
+    // אורך מחרוזת מקסימלי
+    [Parameter]
+    public int maxLength { get; set; } = 50;
+
+    // שם המחלקה שתתאים למצב הנוכחי: תקין, אזהרה או לא תקין
+    string inputClass = "";
+
+    // אורך המחרוזת שהוקלדה
+    int length = 0;
+
+
+    // רצה בטעינת הקומפוננטה ובכל עדכון מהעמוד.
+    // בלעדיה המונה היה מציג 0 עד להקלדה הראשונה, גם כשכבר יש טקסט
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        countChars();
+    }
+
+
+    // רצה בכל הקלדה ומעדכנת את המונה ואת המחלקה
+    void countChars()
+    {
+        if (CurrentValueAsString == null)
+        {
+            length = 0;
+        }
+        else
+        {
+            length = CurrentValueAsString.Length;
+        }
+
+        if (length < minLength)
+        {
+            inputClass = "chars-short";
+        }
+        else if (length >= midLength)
+        {
+            inputClass = "chars-warning";
+        }
+        else
+        {
+            inputClass = "chars-ok";
+        }
+    }
+}

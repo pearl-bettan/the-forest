@@ -1,0 +1,338 @@
+/* ==========================================================
+   CSS גלובאלי - הגדרות עיצוב כלליות שחלות על כל הפרויקט.
+   כל הערכים כאן נלקחו מקובץ הפיגמה "Ui מחולל" (גרסה 2)
+   ========================================================== */
+
+
+/* ==========================================================
+   טוקני העיצוב - הצבעים מהפיגמה במקום אחד.
+   כל שאר הקבצים משתמשים במשתנים האלה, כך שהחלפת עיצוב
+   בעתיד מתבצעת רק כאן
+   ========================================================== */
+:root {
+    /* משפחת הזהב - הכפתורים הראשיים */
+    --gold: #eeb311;
+    --gold-dark: #d29015;
+    --gold-press: #b78220;
+    --gold-soft: #ead69e;
+
+    /* משפחת הירוק - אזור השאלות והעריכה */
+    --green: #7c9c38;
+    --green-soft: #e3f0c6;
+    --green-ok: #11ca00;
+
+    /* התכלת של הפופאפים */
+    --sky: #ddf0f4;
+
+    /* טבלת המשחקים */
+    --table-head: #fffdd1;
+    --table-row: #fffeee;
+
+    /* כפתור הפרסום */
+    --publish: #fef48c;
+    --publish-border: #ebe48d;
+    --publish-shadow: #eee9b9;
+
+    /* ניטרליים */
+    --nav-bg: #fffdd1;
+
+    /* קישורי הסרגל העליון. התכלת המקורית נותנת יחס ניגודיות 2.26
+       על הרקע הירוק, שנכשל בתקן. הירוק הכהה נותן 5.39 ועובר AA */
+    --nav-link: #2f6b2a;
+    --nav-link-hover: #1d4a1a;
+    --gray: #707070;
+    --line: #707070;
+    --link: #4da0fd;
+    --danger: #e03131;
+
+    /* טיפוגרפיה - בפיגמה כל הטקסטים בפונט Alef */
+    --font: 'Alef', Arial, sans-serif;
+}
+
+
+/* ---------- איפוס בסיסי ----------
+   נדרש אחרי שהסרנו את Bootstrap, שסיפק אותו קודם */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html, body {
+    font-family: var(--font);
+    direction: rtl;
+    text-align: right;
+    margin: 0;
+    padding: 0;
+    background-color: white;
+    font-size: 16px;
+}
+
+h1, h2, h3, h4, h5, p {
+    margin: 0;
+}
+
+button {
+    font-family: inherit;
+}
+
+h1:focus {
+    outline: none;
+}
+
+a, .btn-link {
+    color: var(--link);
+}
+
+
+/* ==========================================================
+   כפתורי הפרסום - עיצוב אחיד שחוזר בכל המסכים.
+   בפיגמה יש שלוש משפחות: זהב מלא, לבן עם מסגרת זהב,
+   ולבן עם מסגרת ירוקה באזור עריכת השאלה
+   ========================================================== */
+
+/* כפתור ראשי - רקע זהב. למשל "שמירת שינויים" ו"יצירת משחק" */
+.btn-main {
+    background-color: var(--gold);
+    border: 1px solid var(--gold-dark);
+    border-radius: 10px;
+    box-shadow: 0 2px 0 0 var(--gold-dark);
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 16px;
+    color: black;
+    padding: 5px 20px;
+    cursor: pointer;
+}
+
+/* כפתור משני - לבן עם מסגרת זהב. למשל "יצירת משחק חדש" */
+.btn-second {
+    background-color: white;
+    border: 1px solid var(--gold-dark);
+    border-radius: 10px;
+    box-shadow: 0 4px 0 0 var(--gold);
+    font-family: var(--font);
+    font-size: 17px;
+    color: black;
+    padding: 4px 16px;
+    cursor: pointer;
+}
+
+/* כפתור ירוק - הפעולות שבתוך עריכת השאלה */
+.btn-green {
+    background-color: white;
+    border: 1px solid var(--green);
+    border-radius: 10px;
+    box-shadow: 0 4px 0 0 var(--green);
+    font-family: var(--font);
+    font-size: 20px;
+    color: black;
+    padding: 2px 18px;
+    cursor: pointer;
+}
+
+/* מצב מעבר עכבר - הכפתור "נלחץ" כלפי מטה */
+.btn-main:hover:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 0 var(--gold-dark);
+}
+
+.btn-second:hover:not(:disabled) {
+    background-color: var(--gold-soft);
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--gold);
+}
+
+.btn-green:hover:not(:disabled) {
+    background-color: var(--green-soft);
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--green);
+}
+
+/* כפתור מנוטרל - בפיגמה הוא מוצג בשקיפות 56% */
+.btn-main:disabled,
+.btn-second:disabled,
+.btn-green:disabled {
+    opacity: 0.56;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* ==========================================================
+   Tooltip - ההסבר שמופיע רק במעבר עכבר.
+   באפיון הוא תיבה לבנה עם מסגרת זהב מעל האלמנט.
+
+   העטיפה היא span ולא הכפתור עצמו, כי דפדפנים לא מפיצים
+   אירועי עכבר מכפתור מנוטרל, ובאפיון יש טולטיפים דווקא
+   על כפתורים מנוטרלים ("פרסום", "שמירת שאלה")
+   ========================================================== */
+
+.tip {
+    position: relative;
+    display: inline-flex;
+}
+
+.tip::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 50%;
+    transform: translateX(50%);
+    background-color: white;
+    border: 1px solid var(--gold-dark);
+    border-radius: 11px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    padding: 5px 14px;
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 18px;
+    color: black;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .12s ease;
+    pointer-events: none;
+    z-index: 300;
+}
+
+.tip:hover::after,
+.tip:focus-within::after {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* טולטיפ ארוך - נשבר לשתי שורות במקום להיות רצועה אחת */
+.tip-wide::after {
+    white-space: normal;
+    width: 250px;
+}
+
+/* אלמנט שיושב בקצה השמאלי של המסך: הטולטיפ נפתח ימינה
+   במקום להתמרכז עליו, אחרת הוא גולש מהמסך ונחתך
+   על ידי ה-overflow-x: hidden של אזור התוכן */
+.tip-anchor-left::after {
+    right: auto;
+    left: 0;
+    transform: none;
+}
+
+/* טולטיפ שנפתח כלפי מטה, לאלמנטים שיושבים בראש המסך */
+.tip-below::after {
+    bottom: auto;
+    top: calc(100% + 8px);
+}
+
+/* אייקון סימן השאלה שליד כותרות הטבלה */
+.tip-mark {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: help;
+}
+
+
+/* ==========================================================
+   הודעות ולידציה
+   ========================================================== */
+.valid.modified:not([type=checkbox]) {
+    outline: 1px solid var(--green-ok);
+}
+
+.invalid {
+    outline: 1px solid var(--danger);
+}
+
+.validation-message {
+    color: var(--danger);
+    font-size: 16px;
+    font-family: var(--font);
+}
+
+
+/* ==========================================================
+   הודעת שגיאה של Blazor - חלק מהתבנית
+   ========================================================== */
+#blazor-error-ui {
+    background: lightyellow;
+    bottom: 0;
+    box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
+    display: none;
+    left: 0;
+    padding: 0.6rem 1.25rem 0.7rem 1.25rem;
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+    #blazor-error-ui .dismiss {
+        cursor: pointer;
+        position: absolute;
+        right: 0.75rem;
+        top: 0.5rem;
+    }
+
+.blazor-error-boundary {
+    background: #b32121;
+    padding: 1rem;
+    color: white;
+}
+
+    .blazor-error-boundary::after {
+        content: "An error has occurred."
+    }
+
+
+/* ==========================================================
+   רספונסיביות גלובלית
+   לפי ההנחיה בקורס: הממשק נדרש להיראות טוב מרוחב 1280px ומעלה.
+   הכללים כאן דואגים שמתחת לרוחב הזה שום דבר לא יגלוש מהמסך,
+   בעזרת יחידות יחסיות ובלי מידות קבועות
+   ========================================================== */
+
+/* שום תמונה לא גולשת מהמכל שלה */
+img,
+svg,
+video {
+    max-width: 100%;
+    height: auto;
+}
+
+/* החלוניות מצטמצמות עם המסך במקום לגלוש ממנו */
+.popup-inner {
+    max-width: min(94vw, 780px);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* תיבות טקסט לא שוברות את הפריסה במסך צר */
+input,
+textarea,
+select {
+    max-width: 100%;
+}
+
+@media (max-width: 1279px) {
+
+    html, body {
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 900px) {
+
+    html, body {
+        font-size: 14px;
+    }
+
+    .popup-inner {
+        max-width: 94vw;
+        padding: 16px;
+    }
+
+    .popup-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+}

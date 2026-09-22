@@ -1,0 +1,49 @@
+@page "/Play"
+@page "/Play/{code:int}"
+
+@* ==========================================================
+   עמוד המשחק. מטמיע את בניית היוניטי שיושבת ב-wwwroot/Game
+   בתוך iframe, ומעביר לה את קוד המשחק בכתובת.
+   קוד 0 פירושו שלא נשלח קוד, ואז השחקן מקליד אותו במסך הפתיחה
+   ========================================================== *@
+
+<PageTitle>יער הידע - משחק</PageTitle>
+
+<div class="play-page">
+
+    @if (loading == true)
+    {
+        <div class="play-loading">
+            <p>המשחק נטען...</p>
+            <p class="play-loading-note">הטעינה הראשונה עשויה לקחת כמה שניות</p>
+        </div>
+    }
+
+    <div class="play-frame">
+        <iframe title="יער הידע"
+                width="1280" height="758" scrolling="no"
+                src="@GameUrl()"
+                @onload="() => loading = false"></iframe>
+    </div>
+
+</div>
+
+
+@code {
+
+    // קוד המשחק שמגיע מהכתובת. 0 = לא נשלח קוד
+    [Parameter]
+    public int code { get; set; }
+
+    bool loading = true;
+
+    // בלי קוד תקין לא מוסיפים ?code= בכלל. אחרת המשחק היה שולח
+    // code=0 לשרת, מקבל "קוד המשחק חייב להיות מספר חיובי",
+    // ומציג שגיאה במסך הפתיחה עוד לפני שהשחקן הקליד משהו
+    private string GameUrl()
+    {
+        if (code <= 0) return "Game/index.html";
+
+        return $"Game/index.html?code={code}";
+    }
+}

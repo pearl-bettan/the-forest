@@ -1,0 +1,930 @@
+@attribute [Authorize]
+@page "/GameEditor/{GameId:int}"
+
+@using AuthTemplate.Shared.Models.Games
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+@* ==========================================================
+   מסך העורך לפי הפיגמה:
+   בראש המסך שני כרטיסים - ההגדרות הכלליות מימין ותנאי
+   הפרסום משמאל. מתחתם כפתור הוספת שאלה ורשימת השאלות.
+   כל שורת שאלה נפתחת לתצוגה בעזרת החץ, ונפתחת לעריכה
+   בעזרת אייקון העיפרון. בזמן עריכה מוצגת רק השאלה הנערכת
+   ========================================================== *@
+
+<div class="editor-page">
+
+    @if (game == null)
+    {
+        <p class="editor-msg">@msg</p>
+    }
+    else
+    {
+        @* ---------- חזרה למשחקים שלי ---------- *@
+        <div class="top-row">
+            <span class="tip tip-below tip-wide"
+                  data-tip="@(IsEditing() ? "אי אפשר לצאת בזמן עריכת שאלה" : "חזרה לרשימת המשחקים")">
+                <button class="btn-second back-btn"
+                        disabled="@IsEditing()"
+                        @onclick="BackToList">
+                    חזור למשחקים שלי
+                </button>
+            </span>
+        </div>
+
+        @* ---------- שני כרטיסי הראש ---------- *@
+        <div class="cards-row">
+
+            @* כרטיס ההגדרות הכלליות - הרחב, מימין *@
+            <div class="head-card settings-card">
+                <h2 class="card-title">הגדרות כלליות</h2>
+
+                <span class="card-item">שם המשחק: @game.GameName</span>
+                <span class="card-item">זמן לשאלה: @TimeText(game.TimePerQuestion)</span>
+
+                <span class="tip tip-below" data-tip="עריכת ההגדרות הכלליות">
+                    <button class="pen-btn"
+                            disabled="@IsEditing()"
+                            @onclick="OpenSettingsPopup">
+                        <img src="assets-images/pen.svg" alt="עריכה" width="25" height="25" />
+                    </button>
+                </span>
+            </div>
+
+            @* כרטיס תנאי הפרסום - הצר, משמאל *@
+            <div class="head-card publish-card">
+                <h2 class="card-title">תנאי<br />פרסום</h2>
+
+                <div class="conditions">
+                    <span class="condition">
+                        @if (HasEnoughQuestions() == true)
+                        {
+                            <img src="assets-images/check.svg" alt="" class="check-icon" />
+                        }
+                        לפחות 3 שאלות
+                    </span>
+
+                    <span class="condition">
+                        @if (AllQuestionsValid() == true)
+                        {
+                            <img src="assets-images/check.svg" alt="" class="check-icon" />
+                        }
+                        כל השאלות נשמרו ותקינות
+                    </span>
+                </div>
+
+                @* במסך העריכה זהו כפתור רגיל, בלי צ'ק בוקס.
+                   שלושת המצבים באים לידי ביטוי במראה הכפתור *@
+                <span class="tip tip-below tip-wide tip-anchor-left" data-tip="@PublishTip()">
+                    <button class="publish-btn @PublishCheckClass()"
+                            disabled="@(CanTogglePublish() == false)"
+                            @onclick="PublishGame">
+                        @PublishLabel()
+                    </button>
+                </span>
+            </div>
+
+        </div>
+
+        @* ---------- שורת הפעולה שמעל רשימת השאלות ---------- *@
+        <div class="action-row @(IsEditing() ? "is-editing" : "")">
+            @if (IsEditing() == true)
+            {
+                @* לפי האפיון אין יציאה מהשאלה עד שמסיימים לערוך אותה.
+                   היציאה היא רק דרך "שמירת שאלה" או "בטל שינויים" שבטופס *@
+                <span class="editing-hint">
+                    סיימו את עריכת השאלה כדי לחזור לרשימה
+                </span>
+            }
+            else
+            {
+                <span class="tip tip-wide" data-tip="@AddQuestionTip()">
+                    <button class="btn-second add-question-btn"
+                            disabled="@(CanAddQuestion() == false)"
+                            @onclick="StartNewQuestion">
+                        הוספת שאלה
+                        <img src="assets-images/plus.png" alt="" width="15" height="15" />
+                    </button>
+                </span>
+
+                @* הרחבה וקיבוץ של כל השאלות בבת אחת *@
+                @if (questions.Count > 0)
+                {
+                    <span class="tip tip-wide" data-tip="@ExpandAllTip()">
+                        <button class="btn-second expand-all-btn" @onclick="ToggleExpandAll">
+                            @(AreAllExpanded() ? "קבץ הכל" : "הרחב הכל")
+                        </button>
+                    </span>
+                }
+            }
+        </div>
+
+        @* ---------- רשימת השאלות ---------- *@
+        <div class="questions-area @(IsEditing() ? "is-editing" : "")">
+
+            @if (questions.Count == 0 && IsEditing() == false)
+            {
+                <div class="questions-empty-box">
+                    <p class="questions-empty">עוד לא נוספו שאלות לרשימה</p>
+                </div>
+            }
+
+            @* השאלות הקיימות. בזמן עריכה הן נשארות ברקע בשקיפות נמוכה
+               ואי אפשר ללחוץ עליהן *@
+            @for (int i = 0; i < questions.Count; i++)
+            {
+                @if (IsEditing() == true && questions[i].ID == openQuestionId)
+                {
+                    @* השאלה שנערכת - הטופס מוצג במקומה ברשימה *@
+                    <div class="question-card is-editing">
+
+                        <div class="question-strip">
+                            <span class="strip-right">
+                                <span class="question-title">שאלה @(i + 1)</span>
+                            </span>
+
+                            <span class="strip-left">
+                                <span class="tip" data-tip="מחיקת שאלה">
+                                    <button class="strip-icon-btn" @onclick="AskDeleteEdited">
+                                        <img src="assets-images/bin.svg" alt="מחיקה"
+                                             width="14" height="14" />
+                                    </button>
+                                </span>
+
+                                <span class="items-count">
+                                    מספר פריטים: @editedQuestion.Answers.Count/10
+                                </span>
+                            </span>
+                        </div>
+
+                        <QuestionForm Question="editedQuestion"
+                                      OnSave="SaveQuestion"
+                                      OnCancel="CancelQuestion"
+                                      OnItemsChanged="StateHasChanged" />
+                    </div>
+                }
+                else
+                {
+                    int index = i;
+                    QuestionToEdit question = questions[index];
+
+                    // בזמן עריכה שאר השאלות מוצגות סגורות וברקע
+                    bool isOpen = IsEditing() == false && expanded.Contains(question.ID);
+
+                    <div class="question-card">
+
+                        @* פס הכותרת הירוק.
+                           לחיצה בכל מקום בשורה פותחת וסוגרת את התצוגה,
+                           לא רק החץ הקטן שבצד *@
+                        <div class="question-strip is-clickable"
+                             title="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")"
+                             @onclick="() => ToggleExpand(question.ID)">
+
+                            @* צד ימין: מספר השאלה והחץ *@
+                            <span class="strip-right">
+                                <span class="question-title">שאלה @(index + 1)</span>
+
+                                <button class="chevron-btn"
+                                        title="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")"
+                                        @onclick="() => ToggleExpand(question.ID)"
+                                        @onclick:stopPropagation="true">
+                                    @(isOpen ? "⌃" : "⌄")
+                                </button>
+                            </span>
+
+                            @* צד שמאל: מחיקה, עריכה ומונה הפריטים *@
+                            <span class="strip-left">
+                                <span class="tip" data-tip="מחיקת שאלה">
+                                    <button class="strip-icon-btn"
+                                            @onclick="() => AskDeleteQuestion(question)"
+                                            @onclick:stopPropagation="true">
+                                        <img src="assets-images/bin.svg" alt="מחיקה"
+                                             width="14" height="14" />
+                                    </button>
+                                </span>
+
+                                <span class="tip" data-tip="עריכת שאלה">
+                                    <button class="strip-icon-btn"
+                                            @onclick="() => StartEditQuestion(question)"
+                                            @onclick:stopPropagation="true">
+                                        <img src="assets-images/pen.svg" alt="עריכה"
+                                             width="13" height="13" />
+                                    </button>
+                                </span>
+
+                                <span class="items-count">
+                                    מספר פריטים: @question.Answers.Count/10
+                                </span>
+                            </span>
+                        </div>
+
+                        @* גוף התצוגה - מוצג רק כשהשאלה פתוחה בחץ *@
+                        @if (isOpen == true)
+                        {
+                            <div class="question-view">
+                                <QuestionItems Question="question" ReadOnly="true" />
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            @* שאלה חדשה שעוד לא נשמרה - נוספת בסוף הרשימה *@
+            @if (openQuestionId == -1)
+            {
+                <div class="question-card is-editing">
+
+                    <div class="question-strip">
+                        <span class="strip-right">
+                            <span class="question-title">שאלה @EditedQuestionNumber()</span>
+                        </span>
+
+                        <span class="strip-left">
+                            <span class="tip" data-tip="מחיקת שאלה">
+                                <button class="strip-icon-btn" @onclick="AskDeleteEdited">
+                                    <img src="assets-images/bin.svg" alt="מחיקה"
+                                         width="14" height="14" />
+                                </button>
+                            </span>
+
+                            <span class="items-count">
+                                מספר פריטים: @editedQuestion.Answers.Count/10
+                            </span>
+                        </span>
+                    </div>
+
+                    <QuestionForm Question="editedQuestion"
+                                  OnSave="SaveQuestion"
+                                  OnCancel="CancelQuestion"
+                                  OnItemsChanged="StateHasChanged" />
+                </div>
+            }
+
+        </div>
+
+        @if (msg != "")
+        {
+            <p class="editor-msg">@msg</p>
+        }
+    }
+
+</div>
+
+
+@* ==========================================================
+   פופאפ עריכת ההגדרות הכלליות.
+   לפי האפיון: כפתור השמירה מופיע רק אחרי שבוצע שינוי תקין
+   ========================================================== *@
+@if (isSettingsOpen == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner" tabindex="-1">
+
+            <button class="popup-close" @onclick="CloseSettingsPopup" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
+            <h2 class="popup-title">עריכת הגדרות משחק</h2>
+
+            <EditForm Model="gameForm" OnValidSubmit="SaveSettings">
+
+                <label class="field-label">שם המשחק:</label>
+
+                <input class="game-name-input" maxlength="@NameMax"
+                       placeholder="הקלד את שם המשחק"
+                       value="@gameForm.GameName"
+                       @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
+
+                <span class="chars-counter @CounterClass()">@NameLength()/@NameMax</span>
+
+                <label class="field-label">זמן לשאלה:</label>
+
+                <div class="time-options">
+                    @foreach (TimeOption option in timeOptions)
+                    {
+                        <button type="button"
+                                class="time-btn @(gameForm.TimePerQuestion == option.Seconds ? "time-btn-selected" : "")"
+                                @onclick="() => gameForm.TimePerQuestion = option.Seconds">
+                            @option.Label
+                        </button>
+                    }
+                </div>
+
+                @if (IsFormReady() == true && HasChanges() == true)
+                {
+                    <div class="popup-actions">
+                        <button type="submit" class="btn-main">שמירת שינויים</button>
+                    </div>
+                }
+
+            </EditForm>
+        </div>
+    </div>
+}
+
+
+@* ==========================================================
+   אישור מחיקת שאלה
+   ========================================================== *@
+@if (questionToDelete != null)
+{
+    <div class="popup-background">
+        <div class="popup-inner popup-small" tabindex="-1">
+            <h2 class="popup-title">מחיקת שאלה</h2>
+            <p class="delete-text">
+                למחוק את השאלה? כל הפריטים שלה יימחקו גם הם.
+            </p>
+            <div class="popup-actions">
+                <button class="btn-main" @onclick="DeleteQuestion">כן, למחוק</button>
+                <button class="btn-second" @onclick="() => questionToDelete = null">ביטול</button>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+
+    [Parameter]
+    public int GameId { get; set; }
+
+    [CascadingParameter]
+    private User user { get; set; }
+
+    // מספר התווים המרבי לשם משחק, לפי הפיגמה
+    const int NameMax = 30;
+
+    // המשחק שנערך כרגע
+    GameToTable game;
+
+    // השאלות של המשחק
+    List<QuestionToEdit> questions = new List<QuestionToEdit>();
+
+    // השאלה שנמצאת כרגע בעריכה. עותק, כדי שביטול לא ישנה את המקור
+    QuestionToEdit editedQuestion;
+
+    // 0 = אין שאלה בעריכה, 1- = שאלה חדשה, אחרת המזהה של הנערכת
+    int openQuestionId = 0;
+
+    // מזהי השאלות שפתוחות לתצוגה בעזרת החץ
+    HashSet<int> expanded = new HashSet<int>();
+
+    // השאלה שממתינה לאישור מחיקה
+    QuestionToEdit questionToDelete;
+
+    // ההגדרות הכלליות
+    GameToEdit gameForm = new GameToEdit();
+    bool isSettingsOpen = false;
+
+    // הערכים שהיו בפתיחת הפופאפ, כדי לזהות אם בוצע שינוי
+    string originalName = "";
+    int originalTime = -1;
+
+    string msg = "";
+
+    // לפי האפיון: ללא הגבלת זמן, דקה, דקה וחצי, שתי דקות
+    TimeOption[] timeOptions =
+    {
+        new TimeOption { Seconds = 0,   Label = "ללא הגבלת זמן" },
+        new TimeOption { Seconds = 60,  Label = "דקה" },
+        new TimeOption { Seconds = 90,  Label = "דקה וחצי" },
+        new TimeOption { Seconds = 120, Label = "שתי דקות" }
+    };
+
+    public class TimeOption
+    {
+        public int Seconds { get; set; }
+        public string Label { get; set; }
+    }
+
+
+    // ==========================================================
+    // טעינה
+    // ==========================================================
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (user != null && user.Id > 0)
+        {
+            var gameRes = await Http.GetAsync($"api/games/{GameId}");
+
+            if (gameRes.IsSuccessStatusCode == true)
+            {
+                game = gameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+                msg = "";
+
+                await LoadQuestions();
+            }
+            else
+            {
+                string error = gameRes.Content.ReadAsStringAsync().Result;
+                ShowError(error);
+            }
+        }
+    }
+
+
+    async Task LoadQuestions()
+    {
+        var res = await Http.GetAsync($"api/games/{GameId}/questions");
+
+        if (res.IsSuccessStatusCode == true)
+        {
+            questions = res.Content.ReadFromJsonAsync<List<QuestionToEdit>>().Result;
+        }
+        else
+        {
+            questions = new List<QuestionToEdit>();
+        }
+    }
+
+
+    // ==========================================================
+    // תנאי הפרסום
+    // ==========================================================
+
+    bool HasEnoughQuestions()
+    {
+        return questions.Count >= 3;
+    }
+
+
+    // כל השאלות תקינות אם לכל אחת יש לפחות 3 פריטים
+    bool AllQuestionsValid()
+    {
+        if (questions.Count == 0)
+        {
+            return false;
+        }
+
+        foreach (QuestionToEdit question in questions)
+        {
+            if (question.Answers.Count < 3)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+
+    // פרסום וביטול פרסום אפשריים תמיד, גם בזמן עריכת שאלה.
+    // התנאי היחיד הוא עמידה בתנאי הפרסום, והוא נבדק שוב בשרת
+    bool CanTogglePublish()
+    {
+        if (game.IsPublish == true) return true;
+
+        return game.CanPublish == true;
+    }
+
+
+    string PublishCheckClass()
+    {
+        if (game.IsPublish == true) return "is-published";
+
+        return "";
+    }
+
+
+    string PublishLabel()
+    {
+        if (game.IsPublish == true) return "מפורסם";
+
+        if (CanTogglePublish() == false) return "לא ניתן לפרסום";
+
+        return "פרסום";
+    }
+
+
+    string PublishTip()
+    {
+        if (game.CanPublish == false && game.IsPublish == false)
+        {
+            return "חובה לעמוד בתנאי הפרסום";
+        }
+
+        if (game.IsPublish == true)
+        {
+            return "המשחק מפורסם. לחיצה תסתיר אותו מהשחקנים";
+        }
+
+        return "פרסום המשחק לשחקנים";
+    }
+
+
+    async Task PublishGame()
+    {
+        var res = await Http.PutAsJsonAsync($"api/games/publishGame/{game.ID}", game.ID);
+
+        if (res.IsSuccessStatusCode == true)
+        {
+            game = res.Content.ReadFromJsonAsync<GameToTable>().Result;
+            msg = "";
+        }
+        else
+        {
+            string error = res.Content.ReadAsStringAsync().Result;
+            ShowError(error);
+        }
+    }
+
+
+    // ==========================================================
+    // רשימת השאלות
+    // ==========================================================
+
+    bool IsEditing()
+    {
+        return openQuestionId != 0;
+    }
+
+
+    string AddQuestionTip()
+    {
+        if (questions.Count >= 10)
+        {
+            return "ניתן להוסיף עד 10 שאלות במשחק";
+        }
+
+        return "הוספת שאלה חדשה למשחק";
+    }
+
+
+    bool CanAddQuestion()
+    {
+        return questions.Count < 10;
+    }
+
+
+    // האם כל השאלות פתוחות כרגע
+    bool AreAllExpanded()
+    {
+        if (questions.Count == 0) return false;
+
+        foreach (QuestionToEdit question in questions)
+        {
+            if (expanded.Contains(question.ID) == false) return false;
+        }
+
+        return true;
+    }
+
+
+    string ExpandAllTip()
+    {
+        if (AreAllExpanded() == true) return "סגירת התצוגה של כל השאלות";
+
+        return "פתיחת התצוגה של כל השאלות";
+    }
+
+
+    // כפתור אחד שמחליף בין הרחבת הכל לקיבוץ הכל
+    void ToggleExpandAll()
+    {
+        if (AreAllExpanded() == true)
+        {
+            expanded.Clear();
+            return;
+        }
+
+        foreach (QuestionToEdit question in questions)
+        {
+            expanded.Add(question.ID);
+        }
+    }
+
+
+    void ToggleExpand(int questionId)
+    {
+        if (expanded.Contains(questionId) == true)
+        {
+            expanded.Remove(questionId);
+        }
+        else
+        {
+            expanded.Add(questionId);
+        }
+    }
+
+
+    // ברירת המחדל לערכי הקיצון, לפי האפיון.
+    // הימני הוא תחילת הרצף והשמאלי הוא סופו
+    const string DefaultRightTag = "ראשון";
+    const string DefaultLeftTag = "אחרון";
+
+
+    // לפי האפיון: שאלה חדשה נפתחת עם שלושה פריטים ריקים
+    // וערכי קיצון של ברירת מחדל
+    void StartNewQuestion()
+    {
+        editedQuestion = new QuestionToEdit();
+        editedQuestion.GameId = GameId;
+        editedQuestion.Topic = "";
+        editedQuestion.RightTag = DefaultRightTag;
+        editedQuestion.LeftTag = DefaultLeftTag;
+        editedQuestion.Answers = new List<AnswerToEdit>();
+
+        openQuestionId = -1;
+    }
+
+
+    // עובדים על עותק, כדי שביטול לא ישנה את מה שמוצג ברשימה
+    void StartEditQuestion(QuestionToEdit question)
+    {
+        editedQuestion = new QuestionToEdit();
+        editedQuestion.ID = question.ID;
+        editedQuestion.GameId = question.GameId;
+        editedQuestion.Topic = question.Topic;
+        editedQuestion.RightTag = question.RightTag;
+        editedQuestion.LeftTag = question.LeftTag;
+        editedQuestion.QuestionOrder = question.QuestionOrder;
+        editedQuestion.Answers = new List<AnswerToEdit>();
+
+        foreach (AnswerToEdit answer in question.Answers)
+        {
+            AnswerToEdit copy = new AnswerToEdit();
+            copy.Content = answer.Content;
+            copy.IsImage = answer.IsImage;
+            editedQuestion.Answers.Add(copy);
+        }
+
+        openQuestionId = question.ID;
+    }
+
+
+    void CancelQuestion()
+    {
+        editedQuestion = null;
+        openQuestionId = 0;
+    }
+
+
+    // מספר השאלה שמוצג בזמן עריכה
+    int EditedQuestionNumber()
+    {
+        if (openQuestionId == -1)
+        {
+            return questions.Count + 1;
+        }
+
+        for (int i = 0; i < questions.Count; i++)
+        {
+            if (questions[i].ID == openQuestionId)
+            {
+                return i + 1;
+            }
+        }
+
+        return questions.Count;
+    }
+
+
+    // ==========================================================
+    // שמירה ומחיקה של שאלה
+    // ==========================================================
+
+    // לפי האפיון: אחרי השמירה המסך חוזר לרשימת השאלות
+    async Task SaveQuestion()
+    {
+        HttpResponseMessage res;
+
+        if (openQuestionId == -1)
+        {
+            res = await Http.PostAsJsonAsync("api/games/addQuestion/", editedQuestion);
+        }
+        else
+        {
+            res = await Http.PutAsJsonAsync("api/games/editQuestion/", editedQuestion);
+        }
+
+        if (res.IsSuccessStatusCode == true)
+        {
+            CancelQuestion();
+            await LoadQuestions();
+            await RefreshGame();
+        }
+        else
+        {
+            msg = "אירעה תקלה בשמירת השאלה";
+        }
+    }
+
+
+    void AskDeleteQuestion(QuestionToEdit question)
+    {
+        questionToDelete = question;
+    }
+
+
+    // מחיקה מתוך מצב עריכה. שאלה חדשה שטרם נשמרה פשוט מבוטלת
+    void AskDeleteEdited()
+    {
+        if (openQuestionId == -1)
+        {
+            CancelQuestion();
+            return;
+        }
+
+        foreach (QuestionToEdit question in questions)
+        {
+            if (question.ID == openQuestionId)
+            {
+                questionToDelete = question;
+                return;
+            }
+        }
+    }
+
+
+    async Task DeleteQuestion()
+    {
+        int deletedId = questionToDelete.ID;
+        var res = await Http.DeleteAsync($"api/games/deleteQuestion/{deletedId}");
+
+        questionToDelete = null;
+
+        if (res.IsSuccessStatusCode == true)
+        {
+            // אם מחקנו את השאלה שנערכה, חוזרים לרשימה
+            if (openQuestionId == deletedId)
+            {
+                CancelQuestion();
+            }
+
+            expanded.Remove(deletedId);
+
+            await LoadQuestions();
+            await RefreshGame();
+        }
+        else
+        {
+            msg = "אירעה תקלה במחיקת השאלה";
+        }
+    }
+
+
+    // ==========================================================
+    // ההגדרות הכלליות
+    // ==========================================================
+
+    void OpenSettingsPopup()
+    {
+        gameForm = new GameToEdit();
+        gameForm.ID = game.ID;
+        gameForm.GameName = game.GameName;
+        gameForm.TimePerQuestion = game.TimePerQuestion;
+
+        originalName = game.GameName;
+        originalTime = game.TimePerQuestion;
+
+        isSettingsOpen = true;
+        msg = "";
+    }
+
+
+    void CloseSettingsPopup()
+    {
+        isSettingsOpen = false;
+    }
+
+
+    int NameLength()
+    {
+        if (gameForm.GameName == null)
+        {
+            return 0;
+        }
+
+        return gameForm.GameName.Length;
+    }
+
+
+    string CounterClass()
+    {
+        if (NameLength() > NameMax)
+        {
+            return "chars-over";
+        }
+
+        if (NameLength() == 0)
+        {
+            return "chars-short";
+        }
+
+        return "chars-ok";
+    }
+
+
+    bool IsFormReady()
+    {
+        if (string.IsNullOrWhiteSpace(gameForm.GameName))
+        {
+            return false;
+        }
+
+        if (NameLength() > NameMax)
+        {
+            return false;
+        }
+
+        if (gameForm.TimePerQuestion < 0)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+
+    // לפי האפיון: עד שלא מתבצע שינוי, כפתור השמירה אינו מוצג
+    bool HasChanges()
+    {
+        if (gameForm.GameName != originalName)
+        {
+            return true;
+        }
+
+        if (gameForm.TimePerQuestion != originalTime)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+    async Task SaveSettings()
+    {
+        var editRes = await Http.PutAsJsonAsync("api/games/editGame/", gameForm);
+
+        if (editRes.IsSuccessStatusCode == true)
+        {
+            game = editRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            isSettingsOpen = false;
+            msg = "";
+        }
+        else
+        {
+            string error = editRes.Content.ReadAsStringAsync().Result;
+            ShowError(error);
+        }
+    }
+
+
+    // ==========================================================
+    // עזרה
+    // ==========================================================
+
+    async Task RefreshGame()
+    {
+        var gameRes = await Http.GetAsync($"api/games/{GameId}");
+
+        if (gameRes.IsSuccessStatusCode == true)
+        {
+            game = gameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+        }
+    }
+
+
+    void BackToList()
+    {
+        Nav.NavigateTo("GamesList");
+    }
+
+
+    string TimeText(int seconds)
+    {
+        if (seconds == 0) return "ללא הגבלת זמן";
+        if (seconds == 60) return "דקה";
+        if (seconds == 90) return "דקה וחצי";
+        if (seconds == 120) return "שתי דקות";
+
+        return seconds + " שניות";
+    }
+
+
+    void ShowError(string error)
+    {
+        switch (error)
+        {
+            case "user is not authenticated":
+                msg = "אישור אימות נכשל, לא ניתן לגשת אל המשחק";
+                break;
+            case "Game not found":
+                msg = "המשחק לא נמצא";
+                break;
+            case "Game not updated":
+                msg = "אירעה תקלה בשמירת ההגדרות";
+                break;
+            case "Game cannot be published":
+                msg = "לא ניתן לפרסם: חובה לעמוד בתנאי הפרסום";
+                break;
+            case "Publish not changed":
+                msg = "אירעה תקלה בשינוי מצב הפרסום";
+                break;
+        }
+    }
+
+}

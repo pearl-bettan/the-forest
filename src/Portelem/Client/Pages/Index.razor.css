@@ -1,0 +1,33 @@
+/* ==========================================================
+   CSS לוקאלי - חל רק על עמוד הבית
+   ========================================================== */
+
+.home-page {
+    position: relative;
+    z-index: 1;
+    padding: 60px 63px;
+    text-align: center;
+}
+
+.home-title {
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 32px;
+    color: black;
+    margin-bottom: 14px;
+}
+
+.home-text {
+    font-family: var(--font);
+    font-size: 20px;
+    color: black;
+    margin-bottom: 26px;
+}
+
+/* הקישור "המשחקים שלי" - כפתור שמוביל לעמוד */
+.home-link {
+    display: inline-block;
+    text-decoration: none;
+    line-height: 32px;
+    height: 34px;
+}

@@ -1,0 +1,73 @@
+@* ==========================================================
+   תצוגת הפריטים של שאלה, לקריאה בלבד.
+   משמשת את מסך העורך כשפותחים שאלה בעזרת החץ.
+   לפי הפיגמה כל פריט הוא כרטיס לבן שבתוכו סלע, ומשני
+   הצדדים כרטיסי היבשות עם ערכי הקיצון
+   ========================================================== *@
+
+@using AuthTemplate.Shared.Models.Games
+
+<div class="items-row">
+
+    @* ---------- יבשת ימין ---------- *@
+    <div class="item-card">
+        <div class="item-media tag-media">
+            <span class="item-text">@TagText(Question.RightTag)</span>
+        </div>
+        <div class="item-tools"></div>
+    </div>
+
+    @* ---------- הפריטים ---------- *@
+    @foreach (AnswerToEdit answer in Question.Answers)
+    {
+        <div class="item-card">
+            <div class="item-media rock-media">
+                @if (answer.IsImage == true)
+                {
+                    <img class="item-img" src="uploadedFiles/@answer.Content" alt="" />
+                }
+                else
+                {
+                    <span class="item-text">@answer.Content</span>
+                }
+            </div>
+
+            @* לפי האפיון: במצב תצוגה אין אייקוני גרירה והגדלה.
+               הם נדרשים ופעילים רק במצב עריכה *@
+            <div class="item-tools"></div>
+        </div>
+    }
+
+    @* ---------- יבשת שמאל ---------- *@
+    <div class="item-card">
+        <div class="item-media tag-media">
+            <span class="item-text">@TagText(Question.LeftTag)</span>
+        </div>
+        <div class="item-tools"></div>
+    </div>
+
+</div>
+
+
+@code {
+
+    // השאלה שאת הפריטים שלה מציגים
+    [Parameter]
+    public QuestionToEdit Question { get; set; }
+
+    // נשמר לצורך אחידות מול טופס העריכה
+    [Parameter]
+    public bool ReadOnly { get; set; } = true;
+
+
+    // כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום
+    string TagText(string tag)
+    {
+        if (string.IsNullOrWhiteSpace(tag))
+        {
+            return "ערך קיצון";
+        }
+
+        return tag;
+    }
+}

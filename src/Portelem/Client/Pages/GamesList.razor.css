@@ -1,0 +1,621 @@
+/* ==========================================================
+   CSS לוקאלי - חל רק על עמוד "המשחקים שלי".
+   כל הערכים לפי קובץ הפיגמה "Ui מחולל"
+   ========================================================== */
+
+.games-page {
+    position: relative;
+    z-index: 1;
+    padding: 0 63px;
+}
+
+
+/* ---------- כותרת וכפתור יצירה ---------- */
+
+.page-header {
+    position: relative;
+    height: 112px;
+}
+
+.page-title {
+    font-family: var(--font);
+    font-size: 32px;
+    color: black;
+    text-align: center;
+    margin: 0;
+    padding-top: 54px;
+}
+
+/* הכפתור ממוקם בפינה השמאלית, מעל הכותרת */
+.create-btn {
+    position: absolute;
+    top: 63px;
+    left: 0;
+    height: 32px;
+    width: 220px;
+    font-size: 20px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 5px 0 0 var(--gold);
+}
+
+.plus-icon {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+}
+
+
+/* ---------- מסגרת המשחקים ---------- */
+
+.games-box {
+    border: 1px solid black;
+    border-radius: 10px;
+    min-height: 490px;
+    padding: 30px 16px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* שורת הכותרות והשורות עצמן חולקות את אותה חלוקה לעמודות,
+   כדי שהערכים יישארו מיושרים מתחת לכותרת המתאימה */
+.games-head, .game-row {
+    display: flex;
+    align-items: center;
+    text-align: center;
+}
+
+/* שורת הכותרות - פס צהוב בהיר עם צל, לפי הפיגמה */
+.games-head {
+    background-color: var(--table-head);
+    box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
+    border-radius: 10px;
+    font-family: var(--font);
+    font-size: 20px;
+    color: black;
+    height: 42px;
+    padding: 0 12px;
+}
+
+/* אייקון סימן השאלה יושב צמוד לכותרת העמודה */
+.games-head .col-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+/* השורות - כרטיסים נפרדים בגוון שנהב */
+.games-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    margin-top: 7px;
+}
+
+.game-row {
+    background-color: var(--table-row);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    font-family: var(--font);
+    font-size: 18px;
+    height: 55px;
+    padding: 0 12px;
+}
+
+.game-row:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* רוחב העמודות - מבוסס על המידות באפיון.
+   הבסיס הוא הרוחב הרצוי, אבל העמודות יכולות להצטמצם
+   כדי שהטבלה לא תגלוש בחלון צר */
+.col-name   { flex: 1 1 200px; min-width: 0; }
+.col-code   { flex: 1 1 170px; min-width: 0; }
+.col-count  { flex: 1 1 170px; min-width: 0; }
+.col-action { flex: 1 1 140px; min-width: 0; }
+
+
+/* ---------- כפתורי האייקונים בשורה ---------- */
+
+.icon-btn {
+    background-color: unset;
+    border: none;
+    padding: 2px;
+    cursor: pointer;
+    line-height: 0;
+}
+
+.icon-btn img {
+    width: 27px;
+    height: 27px;
+    display: block;
+}
+
+.icon-btn:hover {
+    transform: scale(1.12);
+}
+
+
+/* ---------- כפתור הפרסום ----------
+   באפיון החדש הפרסום הוא כפתור ולא מתג */
+
+.publish-btn {
+    background-color: var(--publish);
+    border: 1px solid var(--publish-border);
+    border-radius: 6px;
+    box-shadow: 1px 2px 2px 0 var(--publish-shadow);
+    font-family: var(--font);
+    font-size: 16px;
+    color: black;
+    width: 54px;
+    height: 24px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.publish-btn:hover:not(:disabled) {
+    transform: translateY(1px);
+    box-shadow: 0 1px 1px 0 var(--publish-shadow);
+}
+
+/* משחק שכבר מפורסם - הכפתור מודגש */
+.publish-btn.is-published {
+    background-color: var(--gold);
+    border-color: var(--gold-dark);
+    font-weight: bold;
+}
+
+/* משחק שאינו עומד בתנאי הפרסום */
+.publish-btn:disabled {
+    opacity: 0.56;
+    cursor: not-allowed;
+}
+
+
+/* ---------- צ'ק בוקס הפרסום - שלושה מצבים ---------- */
+
+/* צ'ק בוקס בלבד, בלי טקסט - הקופסה צמודה סביבו */
+.publish-check {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 4px;
+    border: 1px solid var(--publish-border);
+    border-radius: 6px;
+    box-shadow: 1px 2px 2px 0 var(--publish-shadow);
+    background-color: var(--publish);
+    font-family: var(--font);
+    font-size: 15px;
+    color: black;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.publish-check input {
+    width: 17px;
+    height: 17px;
+    accent-color: var(--publish-border);
+    cursor: inherit;
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+/* מסומן ופעיל - המשחק מפורסם */
+.publish-check-on {
+    background-color: var(--gold);
+    border-color: var(--gold-dark);
+    font-weight: bold;
+}
+
+/* לא מסומן ופעיל - עומד בתנאים וניתן לפרסם */
+.publish-check-off:hover {
+    transform: translateY(1px);
+    box-shadow: 0 1px 1px 0 var(--publish-shadow);
+}
+
+/* לא מסומן ולא פעיל - לא עומד בתנאי הפרסום */
+.publish-check-disabled {
+    opacity: 0.56;
+    cursor: not-allowed;
+}
+
+.publish-check-disabled input {
+    cursor: not-allowed;
+}
+
+
+/* ---------- מצב ריק ---------- */
+
+.empty-state {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-text {
+    font-family: var(--font);
+    font-size: 20px;
+    color: black;
+    margin: 0 0 20px 0;
+}
+
+.empty-img {
+    width: 467px;
+    height: 263px;
+    object-fit: contain;
+}
+
+
+/* ---------- הודעות ---------- */
+
+.page-msg {
+    font-family: var(--font);
+    font-size: 18px;
+    color: var(--danger);
+    text-align: center;
+    margin-top: 14px;
+}
+
+
+/* ==========================================================
+   הפופאפ - יצירת משחק ומחיקה
+   ========================================================== */
+
+.popup-background {
+    background-color: rgba(0, 0, 0, .56);
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 100;
+}
+
+.popup-inner {
+    position: fixed;
+    top: 50%;
+    right: 50%;
+    transform: translateX(50%) translateY(-50%);
+
+    /* 570px השאירו 480px תוכן, וארבעת כפתורי הזמן דורשים כ-530px */
+    width: 700px;
+    background-color: var(--sky);
+    border-radius: 35px;
+    box-shadow: 0 4px 40px 0 rgba(0, 0, 0, 0.25);
+    padding: 25px 45px 35px 45px;
+    color: black;
+}
+
+.popup-small {
+    width: 470px;
+    text-align: center;
+}
+
+.popup-close {
+    background-color: unset;
+    border: none;
+    position: absolute;
+    top: 16px;
+    left: 25px;
+    cursor: pointer;
+    padding: 0;
+}
+
+.popup-close img {
+    width: 21px;
+    height: 20px;
+    display: block;
+}
+
+.popup-title {
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 30px;
+    color: black;
+    text-align: center;
+    margin: 0 0 18px 0;
+}
+
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 26px;
+}
+
+.delete-text {
+    font-family: var(--font);
+    font-size: 18px;
+    line-height: 28px;
+}
+
+
+/* ---------- שם המשחק ומונה התווים ---------- */
+
+.field-label {
+    display: block;
+    font-family: var(--font);
+    font-size: 25px;
+    color: black;
+    margin-top: 12px;
+}
+
+.game-name-input {
+    width: 100%;
+    height: 58px;
+    background-color: transparent;
+    border: 1px solid black;
+    border-radius: 7px;
+    font-family: var(--font);
+    font-size: 20px;
+    padding: 0 14px;
+    margin-top: 8px;
+}
+
+.game-name-input:focus {
+    outline: 2px solid var(--gold-dark);
+}
+
+/* מונה התווים יושב מתחת לתיבה, בפינה השמאלית.
+   באפיון הוא ירוק כשהשם תקין ואדום בחריגה */
+.chars-counter {
+    display: block;
+    text-align: left;
+    font-family: var(--font);
+    font-size: 16px;
+    margin-top: 3px;
+}
+
+.chars-counter.chars-ok    { color: var(--green-ok); }
+.chars-counter.chars-over  { color: var(--danger); }
+.chars-counter.chars-short { color: var(--gray); }
+
+
+/* ---------- כפתורי הזמן ---------- */
+
+/* ארבעת הכפתורים בשורה אחת וממורכזים */
+.time-options {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+.time-btn {
+    /* רוחב וגובה קבועים גרמו ל"ללא הגבלת זמן" להישבר ולגלוש */
+    min-width: 0;
+    min-height: 39px;
+    padding: 7px 16px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+    background-color: white;
+    border: 1px solid var(--gold-dark);
+    border-radius: 11px;
+    box-shadow: 0 4px 0 0 var(--gold-dark);
+    font-family: var(--font);
+    font-size: 19px;
+    color: black;
+    cursor: pointer;
+}
+
+/* האפשרות שנבחרה - רקע זהב מלא וצל נמוך יותר, כאילו נלחצה */
+.time-btn-selected {
+    background-color: var(--gold);
+    box-shadow: 0 2px 0 0 var(--gold-press);
+    transform: translateY(2px);
+}
+
+.time-btn:hover:not(.time-btn-selected) {
+    background-color: var(--gold-soft);
+}
+
+
+/* ==========================================================
+   רספונסיביות - טבלת המשחקים
+   העמודות כבר מוגדרות ב-flex עם בסיס גמיש, כאן רק מצמצמים
+   מרווחים וגדלים כדי שהשורה תישאר קריאה במסך צר
+   ========================================================== */
+
+@media (max-width: 1279px) {
+
+    .game-row {
+        font-size: 16px;
+        padding: 0 8px;
+    }
+
+    .col-name   { flex: 1 1 160px; }
+    .col-code   { flex: 1 1 120px; }
+    .col-count  { flex: 1 1 120px; }
+    .col-action { flex: 0 1 120px; }
+
+    .publish-check {
+        padding: 3px;
+    }
+}
+
+@media (max-width: 900px) {
+
+    /* מתחת לרוחב הזה השורה נערמת: כל שדה בשורה משלו,
+       עדיף על טבלה שנדחסת עד שאי אפשר לקרוא אותה */
+    .game-row {
+        height: auto;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 10px;
+    }
+
+    .col-name {
+        flex: 1 1 100%;
+        font-weight: bold;
+    }
+
+    .col-code,
+    .col-count {
+        flex: 1 1 45%;
+    }
+
+    .col-action {
+        flex: 0 0 auto;
+    }
+}
+
+
+/* ==========================================================
+   סרגל הסינון ומיון הטבלה
+   ========================================================== */
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 4px 4px 14px 4px;
+}
+
+.search-wrap {
+    position: relative;
+    flex: 1 1 260px;
+    max-width: 340px;
+}
+
+.search-input {
+    width: 100%;
+    height: 34px;
+    padding: 0 12px 0 30px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    font-family: var(--font);
+    font-size: 16px;
+    color: black;
+    background-color: white;
+}
+
+.search-input:focus {
+    outline: 2px solid var(--gold-dark);
+    outline-offset: -1px;
+}
+
+/* כפתור ניקוי החיפוש, בקצה השמאלי של התיבה */
+.search-clear {
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--gray);
+    cursor: pointer;
+    padding: 3px;
+}
+
+.search-clear:hover {
+    color: black;
+}
+
+.filter-chips {
+    display: flex;
+    gap: 7px;
+}
+
+.chip {
+    background-color: white;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 14px;
+    font-family: var(--font);
+    font-size: 15px;
+    color: black;
+    cursor: pointer;
+}
+
+.chip:hover {
+    background-color: var(--gold-soft);
+}
+
+.chip-on {
+    background-color: var(--gold);
+    border-color: var(--gold-dark);
+    font-weight: bold;
+}
+
+.filter-count {
+    margin-right: auto;
+    font-family: var(--font);
+    font-size: 15px;
+    color: var(--gray);
+    white-space: nowrap;
+}
+
+/* כותרת עמודה שאפשר למיין לפיה */
+.sort-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.sort-btn:hover {
+    text-decoration: underline;
+}
+
+.sort-mark {
+    font-size: 11px;
+    color: var(--gold-dark);
+}
+
+.no-results {
+    font-family: var(--font);
+    font-size: 17px;
+    color: var(--gray);
+    text-align: center;
+    padding: 26px 0;
+}
+
+
+@media (max-width: 900px) {
+
+    .filter-row {
+        gap: 8px;
+    }
+
+    .search-wrap {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+
+    .filter-count {
+        margin-right: 0;
+    }
+}
+
+
+/* במסך צר עדיף שכפתורי הזמן ירדו שורה מאשר שיגלשו */
+@media (max-width: 900px) {
+
+    .time-options {
+        flex-wrap: wrap;
+    }
+
+    .time-btn {
+        font-size: 17px;
+        padding: 6px 12px;
+    }
+}
