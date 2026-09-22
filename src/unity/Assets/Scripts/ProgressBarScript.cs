@@ -4,19 +4,22 @@ using UnityEngine;
 // ============================================================
 //  מד ההתקדמות של המשחק.
 //
-//  המד הוא שרשרת חרוזים: חרוז אחד לכל שאלה במשחק. החרוז הראשון
-//  והאחרון הם חרוזי הקצה המעוצבים (Start ו-End), ובאמצע חרוזים
-//  רגילים שמפוזרים במרווחים שווים.
+//  המד הוא שרשרת חרוזים על גבי הגבעול: חרוז אחד לכל שאלה.
+//  שלושת האובייקטים שבסצנה משמשים כעוגנים:
 //
-//  כל שאלה שנענתה הופכת חרוז אחד מאפור לירוק, לפי הסדר.
+//      StartProgressBar   - החרוז הראשון, בקצה אחד
+//      EndProgressBar     - החרוז האחרון, בקצה השני
+//      CenterProgressBar  - תבנית לחרוזים שבאמצע
+//
+//  החרוזים שבאמצע נוצרים כשכפולים של תבנית המרכז ומפוזרים
+//  במרווחים שווים על הקו שבין שני הקצוות. כך המיקום, הסיבוב
+//  והגודל נקבעים בעורך ולא בקוד.
+//
+//  כל שאלה שנענתה הופכת חרוז אחד מאפור לירוק, מהתחלה לסוף.
 //
 //  שימוש מהקוד:
 //      progressBar.Build(totalQuestions);
 //      progressBar.SetProgress(questionsAnswered);
-//
-//  הגדרה בעורך: אובייקט ריק בסצנה עם הסקריפט הזה, ושישה
-//  ספרייטים גרורים לשדות למטה. המרווח והגודל נקבעים בהתאם
-//  למקום שיש למד במסך
 // ============================================================
 public class ProgressBarScript : MonoBehaviour
 {
@@ -34,30 +37,29 @@ public class ProgressBarScript : MonoBehaviour
     [SerializeField] Sprite endGray;
     [SerializeField] Sprite endGreen;
 
-    [Header("Layout")]
+    [Header("Anchors")]
 
-    // המרחק בין מרכזי החרוזים, ביחידות עולם
-    [SerializeField] float spacing = 2.6f;
-
-    // גודל כל חרוז
-    [SerializeField] float beadScale = 1f;
-
-    // כיוון ההתקדמות. ברירת המחדל משמאל לימין
-    [SerializeField] bool rightToLeft = false;
-
-    [Header("Sorting")]
-    [SerializeField] string sortingLayerName = "Default";
-    [SerializeField] int sortingOrder = 10;
+    // שלושת האובייקטים שמסמנים את המד בסצנה. אם לא חוברו כאן,
+    // הם נמצאים לפי השם בין הילדים של האובייקט הזה
+    [SerializeField] SpriteRenderer startView;
+    [SerializeField] SpriteRenderer centerView;
+    [SerializeField] SpriteRenderer endView;
 
 
-    // החרוזים שנוצרו, לפי סדר ההתקדמות
+    // החרוזים לפי סדר ההתקדמות: ראשון, אמצעיים, אחרון
     private readonly List<SpriteRenderer> beads = new List<SpriteRenderer>();
 
-    // מספר השאלות שהמד נבנה עבורן
-    private int total = 0;
+    // השכפולים שנוצרו בזמן ריצה, כדי לנקות אותם בבנייה מחדש
+    private readonly List<GameObject> clones = new List<GameObject>();
 
-    // כמה חרוזים כבר ירוקים
+    private int total = 0;
     private int filled = 0;
+
+
+    void Awake()
+    {
+        FindAnchors();
+    }
 
 
     // ============================================================
@@ -65,27 +67,64 @@ public class ProgressBarScript : MonoBehaviour
     // ============================================================
     public void Build(int questionCount)
     {
-        Clear();
+        FindAnchors();
+        ClearClones();
 
+        beads.Clear();
         total = questionCount;
 
-        if (total <= 0) return;
-
-        for (int i = 0; i < total; i++)
+        if (total <= 0)
         {
-            GameObject bead = new GameObject("Bead_" + (i + 1));
-
-            bead.transform.SetParent(transform, false);
-            bead.transform.localPosition = PositionOf(i);
-            bead.transform.localScale = new Vector3(beadScale, beadScale, 1);
-
-            SpriteRenderer view = bead.AddComponent<SpriteRenderer>();
-            view.sortingLayerName = sortingLayerName;
-            view.sortingOrder = sortingOrder;
-
-            beads.Add(view);
+            ShowAnchors(false);
+            return;
         }
 
+        // חרוז ראשון
+        beads.Add(startView);
+        if (startView != null) startView.gameObject.SetActive(true);
+
+        // חרוזי האמצע: הראשון שבהם הוא תבנית המרכז עצמה,
+        // והשאר שכפולים שלה
+        int middleCount = total - 2;
+
+        if (middleCount > 0 && centerView != null)
+        {
+            for (int i = 0; i < middleCount; i++)
+            {
+                SpriteRenderer bead = centerView;
+
+                if (i > 0)
+                {
+                    GameObject copy = Instantiate(centerView.gameObject,
+                                                  centerView.transform.parent);
+                    copy.name = "Bead_" + (i + 2);
+                    clones.Add(copy);
+
+                    bead = copy.GetComponent<SpriteRenderer>();
+                }
+
+                bead.gameObject.SetActive(true);
+                beads.Add(bead);
+            }
+        }
+        else if (centerView != null)
+        {
+            // פחות משלוש שאלות: אין חרוזי אמצע
+            centerView.gameObject.SetActive(false);
+        }
+
+        // חרוז אחרון. כששאלה אחת בלבד אין קצה שני
+        if (total >= 2)
+        {
+            beads.Add(endView);
+            if (endView != null) endView.gameObject.SetActive(true);
+        }
+        else if (endView != null)
+        {
+            endView.gameObject.SetActive(false);
+        }
+
+        Spread();
         SetProgress(filled);
     }
 
@@ -109,19 +148,27 @@ public class ProgressBarScript : MonoBehaviour
     }
 
 
-    // מרכז השרשרת יושב על נקודת האובייקט שמחזיק אותה
-    private Vector3 PositionOf(int index)
+    // מפזר את חרוזי האמצע במרווחים שווים בין שני הקצוות.
+    // הקצוות עצמם נשארים בדיוק במקום שנקבע להם בעורך
+    private void Spread()
     {
-        float offset = (index - (total - 1) * 0.5f) * spacing;
+        if (startView == null || endView == null) return;
+        if (beads.Count < 3) return;
 
-        if (rightToLeft == true) offset = -offset;
+        Vector3 from = startView.transform.localPosition;
+        Vector3 to = endView.transform.localPosition;
 
-        return new Vector3(offset, 0, 0);
+        for (int i = 1; i < beads.Count - 1; i++)
+        {
+            if (beads[i] == null) continue;
+
+            float t = (float)i / (beads.Count - 1);
+            beads[i].transform.localPosition = Vector3.Lerp(from, to, t);
+        }
     }
 
 
-    // החרוז הראשון והאחרון הם חרוזי הקצה. כששאלה אחת בלבד,
-    // החרוז היחיד מקבל את ספרייט ההתחלה
+    // החרוז הראשון והאחרון מקבלים את ספרייטי הקצה
     private Sprite SpriteFor(int index, bool green)
     {
         if (index == 0)
@@ -138,16 +185,42 @@ public class ProgressBarScript : MonoBehaviour
     }
 
 
-    private void Clear()
+    // אם העוגנים לא חוברו ב-Inspector, מאתרים אותם לפי השם
+    private void FindAnchors()
     {
-        for (int i = 0; i < beads.Count; i++)
-        {
-            if (beads[i] == null) continue;
+        if (startView == null) startView = FindChild("StartProgressBar");
+        if (centerView == null) centerView = FindChild("CenterProgressBar");
+        if (endView == null) endView = FindChild("EndProgressBar");
+    }
 
-            Destroy(beads[i].gameObject);
+
+    private SpriteRenderer FindChild(string childName)
+    {
+        Transform found = transform.Find(childName);
+
+        if (found == null) return null;
+
+        return found.GetComponent<SpriteRenderer>();
+    }
+
+
+    private void ShowAnchors(bool on)
+    {
+        if (startView != null) startView.gameObject.SetActive(on);
+        if (centerView != null) centerView.gameObject.SetActive(on);
+        if (endView != null) endView.gameObject.SetActive(on);
+    }
+
+
+    private void ClearClones()
+    {
+        for (int i = 0; i < clones.Count; i++)
+        {
+            if (clones[i] == null) continue;
+
+            Destroy(clones[i]);
         }
 
-        beads.Clear();
-        total = 0;
+        clones.Clear();
     }
 }
