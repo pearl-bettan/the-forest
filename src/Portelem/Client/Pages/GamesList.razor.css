@@ -219,14 +219,76 @@
     box-shadow: 0 1px 1px 0 var(--publish-shadow);
 }
 
-/* לא מסומן ולא פעיל - לא עומד בתנאי הפרסום */
+/* לא מסומן ולא פעיל - לא עומד בתנאי הפרסום.
+   בפיגמה הוא אפור מלא ולא רק שקוף */
 .publish-check-disabled {
-    opacity: 0.56;
+    background-color: #e6e6e6;
+    border-color: var(--disabled);
+    box-shadow: none;
     cursor: not-allowed;
 }
 
 .publish-check-disabled input {
     cursor: not-allowed;
+    accent-color: var(--disabled);
+}
+
+
+/* ---------- מקרא מצבי הפרסום שבטולטיפ הכותרת ---------- */
+
+.publish-legend {
+    /* השורות לא נשברות, ולכן הרוחב נקבע מהן ולא ממגבלה קבועה */
+    max-width: none;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 17px;
+}
+
+/* הריבוע מימין והכיתוב לצדו, כמו בפיגמה */
+.legend-row {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 7px;
+    color: var(--gray);
+    white-space: nowrap;
+}
+
+.legend-box {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 13px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.legend-box img {
+    width: 10px;
+    height: 10px;
+    display: block;
+}
+
+.legend-on,
+.legend-off {
+    background-color: var(--table-head);
+    border: 1px solid var(--gold);
+}
+
+.legend-blocked {
+    background-color: #e6e6e6;
+    border: 1px solid var(--disabled);
+}
+
+.legend-note {
+    margin-top: 5px;
+    color: black;
+    text-align: center;
+    white-space: nowrap;
 }
 
 
@@ -364,6 +426,13 @@
     outline: 2px solid var(--gold-dark);
 }
 
+/* הגעה למקסימום התווים - מסגרת אדומה, כמו בפיגמה */
+.game-name-input.is-full,
+.game-name-input.is-full:focus {
+    border-color: var(--danger);
+    outline: 2px solid var(--danger);
+}
+
 /* מונה התווים יושב מתחת לתיבה, בפינה השמאלית.
    באפיון הוא ירוק כשהשם תקין ואדום בחריגה */
 .chars-counter {
@@ -375,7 +444,7 @@
 }
 
 .chars-counter.chars-ok    { color: var(--green-ok); }
-.chars-counter.chars-over  { color: var(--danger); }
+.chars-counter.chars-full  { color: var(--danger); }
 .chars-counter.chars-short { color: var(--gray); }
 
 
@@ -415,7 +484,7 @@
 }
 
 .time-btn:hover:not(.time-btn-selected) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
 }
 
 
@@ -540,7 +609,7 @@
 }
 
 .chip:hover {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
 }
 
 .chip-on {

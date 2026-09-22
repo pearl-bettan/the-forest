@@ -111,7 +111,7 @@
 }
 
 .pen-btn:hover:not(:disabled) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
     transform: translateY(2px);
     box-shadow: 0 2px 0 0 var(--gold);
 }
@@ -119,6 +119,8 @@
 .pen-btn:disabled {
     opacity: 0.56;
     cursor: not-allowed;
+    border-color: var(--disabled);
+    box-shadow: 0 4px 0 0 var(--disabled);
 }
 
 
@@ -148,21 +150,22 @@
 
 /* כפתור הפרסום שבכרטיס */
 .publish-btn {
-    width: 69px;
+    min-width: 69px;
     height: 38px;
+    padding: 0 10px;
+    white-space: nowrap;
     background-color: white;
     border: 1px solid var(--gold-dark);
     border-radius: 10px;
-    box-shadow: 0 4px 0 0 var(--gold);
+    box-shadow: 0 4px 0 0 var(--gold-dark);
     font-family: var(--font);
     font-size: 17px;
     color: black;
     cursor: pointer;
-    padding: 0;
 }
 
 .publish-btn:hover:not(:disabled) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
     transform: translateY(2px);
     box-shadow: 0 2px 0 0 var(--gold);
 }
@@ -173,10 +176,14 @@
     font-weight: bold;
 }
 
-/* לא עומד בתנאי הפרסום - לפי האפיון שקיפות 56% */
+/* לא עומד בתנאי הפרסום, או שאלה בעריכה - אפור לפי הפיגמה */
 .publish-btn:disabled {
     opacity: 0.56;
     cursor: not-allowed;
+    background-color: white;
+    border-color: var(--disabled);
+    box-shadow: 0 4px 0 0 var(--disabled);
+    color: var(--disabled);
 }
 
 
@@ -194,10 +201,6 @@
 }
 
 /* בזמן עריכה הכפתור עובר לצד ימין */
-.action-row.is-editing {
-    justify-content: flex-end;
-}
-
 .add-question-btn {
     height: 32px;
     font-size: 20px;
@@ -270,13 +273,6 @@
     position: relative;
     z-index: 1;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
-}
-
-/* ההודעה שמחליפה את כפתורי הפעולה בזמן עריכה */
-.editing-hint {
-    font-family: var(--font);
-    font-size: 17px;
-    color: #5c5341;
 }
 
 /* כל שורת השאלה לחיצה, לא רק החץ */
@@ -482,6 +478,13 @@
     outline: 2px solid var(--gold-dark);
 }
 
+/* הגעה למקסימום התווים - מסגרת אדומה, כמו בפיגמה */
+.game-name-input.is-full,
+.game-name-input.is-full:focus {
+    border-color: var(--danger);
+    outline: 2px solid var(--danger);
+}
+
 .chars-counter {
     display: block;
     text-align: left;
@@ -491,7 +494,7 @@
 }
 
 .chars-counter.chars-ok    { color: var(--green-ok); }
-.chars-counter.chars-over  { color: var(--danger); }
+.chars-counter.chars-full  { color: var(--danger); }
 .chars-counter.chars-short { color: var(--gray); }
 
 
@@ -531,7 +534,7 @@
 }
 
 .time-btn:hover:not(.time-btn-selected) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
 }
 
 

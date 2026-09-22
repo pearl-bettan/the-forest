@@ -90,9 +90,11 @@
     display: block;
 }
 
-/* במצב תצוגה האייקונים עמומים, כי אין בהם פעולה */
-.is-quiet {
-    opacity: 0.55;
+/* במצב תצוגה האייקונים מוצגים כבויים, כי אין בהם פעולה */
+.item-tools.is-off .tool-icon {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
 }
 
 

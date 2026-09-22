@@ -42,6 +42,14 @@
     --nav-link-hover: #1d4a1a;
     --gray: #707070;
     --line: #707070;
+
+    /* כפתור מנוטרל - בפיגמה המסגרת, הצל והטקסט אפורים ב-46% */
+    --disabled: rgba(112, 112, 112, 0.46);
+
+    /* מעבר עכבר על כפתור: בפיגמה הרקע מתמלא בצבע הכפתור ב-33%
+       והצל מתקצר מ-4px ל-2px, כך שהכפתור נראה נלחץ */
+    --gold-hover: rgba(238, 179, 17, 0.33);
+    --green-hover: rgba(124, 156, 56, 0.33);
     --link: #4da0fd;
     --danger: #e03131;
 
@@ -90,11 +98,14 @@ a, .btn-link {
    ========================================================== */
 
 /* כפתור ראשי - רקע זהב. למשל "שמירת שינויים" ו"יצירת משחק" */
+/* כפתור ראשי - בפיגמה v5 לבן עם מסגרת וצל בצבע ההקשר.
+   ברירת המחדל זהב. במסכי עריכת השאלה הוא מקבל גם btn-ctx-green
+   ואז המסגרת והצל ירוקים, כמו בפיגמה */
 .btn-main {
-    background-color: var(--gold);
+    background-color: white;
     border: 1px solid var(--gold-dark);
     border-radius: 10px;
-    box-shadow: 0 2px 0 0 var(--gold-dark);
+    box-shadow: 0 4px 0 0 var(--gold-dark);
     font-family: var(--font);
     font-weight: bold;
     font-size: 16px;
@@ -103,12 +114,17 @@ a, .btn-link {
     cursor: pointer;
 }
 
+.btn-main.btn-ctx-green {
+    border-color: var(--green);
+    box-shadow: 0 4px 0 0 var(--green);
+}
+
 /* כפתור משני - לבן עם מסגרת זהב. למשל "יצירת משחק חדש" */
 .btn-second {
     background-color: white;
     border: 1px solid var(--gold-dark);
     border-radius: 10px;
-    box-shadow: 0 4px 0 0 var(--gold);
+    box-shadow: 0 4px 0 0 var(--gold-dark);
     font-family: var(--font);
     font-size: 17px;
     color: black;
@@ -131,29 +147,40 @@ a, .btn-link {
 
 /* מצב מעבר עכבר - הכפתור "נלחץ" כלפי מטה */
 .btn-main:hover:not(:disabled) {
+    background-color: var(--gold-hover);
     transform: translateY(2px);
-    box-shadow: 0 0 0 0 var(--gold-dark);
+    box-shadow: 0 2px 0 0 var(--gold-dark);
+}
+
+.btn-main.btn-ctx-green:hover:not(:disabled) {
+    background-color: var(--green-hover);
+    box-shadow: 0 2px 0 0 var(--green);
 }
 
 .btn-second:hover:not(:disabled) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
     transform: translateY(2px);
-    box-shadow: 0 2px 0 0 var(--gold);
+    box-shadow: 0 2px 0 0 var(--gold-dark);
 }
 
 .btn-green:hover:not(:disabled) {
-    background-color: var(--green-soft);
+    background-color: var(--green-hover);
     transform: translateY(2px);
     box-shadow: 0 2px 0 0 var(--green);
 }
 
-/* כפתור מנוטרל - בפיגמה הוא מוצג בשקיפות 56% */
+/* כפתור מנוטרל - בפיגמה שקיפות 56%, ובנוסף המסגרת, הצל
+   והטקסט מתחלפים לאפור במקום לצבע של הכפתור */
 .btn-main:disabled,
 .btn-second:disabled,
 .btn-green:disabled {
     opacity: 0.56;
     cursor: not-allowed;
     transform: none;
+    background-color: white;
+    border-color: var(--disabled);
+    box-shadow: 0 4px 0 0 var(--disabled);
+    color: var(--disabled);
 }
 
 
@@ -201,6 +228,12 @@ a, .btn-link {
     visibility: visible;
 }
 
+/* טולטיפ שמשתמש ב-tip-box ולא ב-data-tip: בלי זה ה-::after
+   היה מצייר תיבה לבנה ריקה לצד התיבה האמיתית */
+.tip:not([data-tip])::after {
+    content: none;
+}
+
 /* טולטיפ ארוך - נשבר לשתי שורות במקום להיות רצועה אחת */
 .tip-wide::after {
     white-space: normal;
@@ -221,6 +254,37 @@ a, .btn-link {
     bottom: auto;
     top: calc(100% + 8px);
 }
+
+/* ----------------------------------------------------------
+   טולטיפ עם תוכן מעוצב. data-tip יודע להציג טקסט בלבד, ולכן
+   טולטיפ שיש בו אייקונים או שורות נפרדות נכתב כאלמנט בן
+   ---------------------------------------------------------- */
+.tip-box {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 50%;
+    transform: translateX(50%);
+    background-color: white;
+    border: 1px solid #282828;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    padding: 9px 14px;
+    width: max-content;
+    max-width: 340px;
+    text-align: right;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .12s ease;
+    pointer-events: none;
+    z-index: 300;
+}
+
+.tip:hover > .tip-box,
+.tip:focus-within > .tip-box {
+    opacity: 1;
+    visibility: visible;
+}
+
 
 /* אייקון סימן השאלה שליד כותרות הטבלה */
 .tip-mark {

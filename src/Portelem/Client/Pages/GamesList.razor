@@ -85,18 +85,42 @@
 
                 <span class="col-action">
                     <button class="sort-btn" title="מיון לפי מצב פרסום" @onclick='() => SortBy("publish")'>
-                        פרסם<span class="sort-mark">@SortMark("publish")</span>
+                        פרסום<span class="sort-mark">@SortMark("publish")</span>
                     </button>
-                    <span class="tip tip-wide"
-                          data-tip="כדי לפרסם צריך לפחות 3 שאלות, ובכל שאלה לפחות 3 פריטים">
+                    @* מקרא שלושת מצבי הצ'ק בוקס, לפי הפיגמה. זה טולטיפ
+                       עם תוכן מעוצב ולא data-tip, כי יש בו ריבועי צבע *@
+                    <span class="tip">
                         <img src="assets-images/question-mark.svg" alt="" class="tip-mark" />
+
+                        <span class="tip-box publish-legend">
+                            <span class="legend-row">
+                                <span class="legend-box legend-on">
+                                    <img src="assets-images/check.svg" alt="" />
+                                </span>
+                                משחק מפורסם
+                            </span>
+
+                            <span class="legend-row">
+                                <span class="legend-box legend-off"></span>
+                                משחק לא מפורסם
+                            </span>
+
+                            <span class="legend-row">
+                                <span class="legend-box legend-blocked"></span>
+                                המשחק לא עומד בתנאי הפרסום ולכן לא ניתן לפרסום
+                            </span>
+
+                            <span class="legend-note">
+                                לפרסום/ ביטול פרסום משחק יש ללחוץ על הצ'ק בוקס
+                            </span>
+                        </span>
                     </span>
                 </span>
 
                 <span class="col-action">
-                    מחק
+                    מחיקה
                     <span class="tip tip-wide"
-                          data-tip="מחיקת המשחק תמחק גם את כל השאלות והפריטים שלו">
+                          data-tip="לחיצה על פח הזבל תמחק את המשחק מטבלת המשחקים ואת כל השאלות שבתוכו.">
                         <img src="assets-images/question-mark.svg" alt="" class="tip-mark" />
                     </span>
                 </span>
@@ -196,7 +220,8 @@
                 @* ---------- שם המשחק ---------- *@
                 <label class="field-label">שם המשחק:</label>
 
-                <input class="game-name-input" maxlength="@NameMax"
+                <input class="game-name-input @(NameLength() >= NameMax ? "is-full" : "")"
+                       maxlength="@NameMax"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
                        @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
@@ -217,13 +242,13 @@
                     }
                 </div>
 
-                @* ---------- שמירה ---------- *@
-                @if (IsFormReady() == true)
-                {
-                    <div class="popup-actions">
-                        <button type="submit" class="btn-main">יצירת משחק</button>
-                    </div>
-                }
+                @* ---------- שמירה ----------
+                   לפי הפיגמה הכפתור מוצג תמיד, ומנוטרל עד שהוזן שם
+                   תקין ונבחר זמן לשאלה *@
+                <div class="popup-actions">
+                    <button type="submit" class="btn-main"
+                            disabled="@(IsFormReady() == false)">יצירת משחק</button>
+                </div>
 
             </EditForm>
         </div>
@@ -238,14 +263,21 @@
 {
     <div class="popup-background">
         <div class="popup-inner popup-small" tabindex="-1">
+
+            <button class="popup-close" @onclick="CancelDelete" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה"
+                     width="21" height="20" />
+            </button>
+
             <h2 class="popup-title">מחיקת משחק</h2>
+
             <p class="delete-text">
-                למחוק את המשחק "@gameToDelete.GameName"?
-                כל השאלות והפריטים שלו יימחקו גם הם.
+                "@gameToDelete.GameName" - @gameToDelete.QuestionsCount שאלות
             </p>
+
             <div class="popup-actions">
-                <button class="btn-main" @onclick="DeleteGame">כן, למחוק</button>
-                <button class="btn-second" @onclick="CancelDelete">ביטול</button>
+                <button class="btn-main" @onclick="DeleteGame">מחיקה</button>
+                <button class="btn-main" @onclick="CancelDelete">ביטול</button>
             </div>
         </div>
     </div>
@@ -439,9 +471,9 @@
     // צבע המונה: אפור לפני הקלדה, ירוק כשתקין ואדום בחריגה
     string CounterClass()
     {
-        if (NameLength() > NameMax)
+        if (NameLength() >= NameMax)
         {
-            return "chars-over";
+            return "chars-full";
         }
 
         if (NameLength() == 0)

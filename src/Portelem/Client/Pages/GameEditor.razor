@@ -78,7 +78,7 @@
                    שלושת המצבים באים לידי ביטוי במראה הכפתור *@
                 <span class="tip tip-below tip-wide tip-anchor-left" data-tip="@PublishTip()">
                     <button class="publish-btn @PublishCheckClass()"
-                            disabled="@(CanTogglePublish() == false)"
+                            disabled="@(IsEditing() || CanTogglePublish() == false)"
                             @onclick="PublishGame">
                         @PublishLabel()
                     </button>
@@ -88,36 +88,26 @@
         </div>
 
         @* ---------- שורת הפעולה שמעל רשימת השאלות ---------- *@
+        @* לפי הפיגמה הכפתורים לא נעלמים בזמן עריכת שאלה אלא מוצגים כבויים.
+           היציאה מהשאלה היא רק דרך "שמירה" או "ביטול" שבטופס *@
         <div class="action-row @(IsEditing() ? "is-editing" : "")">
-            @if (IsEditing() == true)
-            {
-                @* לפי האפיון אין יציאה מהשאלה עד שמסיימים לערוך אותה.
-                   היציאה היא רק דרך "שמירת שאלה" או "בטל שינויים" שבטופס *@
-                <span class="editing-hint">
-                    סיימו את עריכת השאלה כדי לחזור לרשימה
-                </span>
-            }
-            else
-            {
-                <span class="tip tip-wide" data-tip="@AddQuestionTip()">
-                    <button class="btn-second add-question-btn"
-                            disabled="@(CanAddQuestion() == false)"
-                            @onclick="StartNewQuestion">
-                        הוספת שאלה
-                        <img src="assets-images/plus.png" alt="" width="15" height="15" />
-                    </button>
-                </span>
+            <span class="tip tip-wide" data-tip="@AddQuestionTip()">
+                <button class="btn-green add-question-btn"
+                        disabled="@(IsEditing() || CanAddQuestion() == false)"
+                        @onclick="StartNewQuestion">
+                    הוספת שאלה
+                    <img src="assets-images/plus.png" alt="" width="15" height="15" />
+                </button>
+            </span>
 
-                @* הרחבה וקיבוץ של כל השאלות בבת אחת *@
-                @if (questions.Count > 0)
-                {
-                    <span class="tip tip-wide" data-tip="@ExpandAllTip()">
-                        <button class="btn-second expand-all-btn" @onclick="ToggleExpandAll">
-                            @(AreAllExpanded() ? "קבץ הכל" : "הרחב הכל")
-                        </button>
-                    </span>
-                }
-            }
+            @* הרחבה וקיבוץ של כל השאלות בבת אחת *@
+            <span class="tip tip-wide" data-tip="@ExpandAllTip()">
+                <button class="btn-green expand-all-btn"
+                        disabled="@(IsEditing() || questions.Count == 0)"
+                        @onclick="ToggleExpandAll">
+                    @(AreAllExpanded() ? "צמצום הכל" : "הרחבת הכל")
+                </button>
+            </span>
         </div>
 
         @* ---------- רשימת השאלות ---------- *@
@@ -292,7 +282,8 @@
 
                 <label class="field-label">שם המשחק:</label>
 
-                <input class="game-name-input" maxlength="@NameMax"
+                <input class="game-name-input @(NameLength() >= NameMax ? "is-full" : "")"
+                       maxlength="@NameMax"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
                        @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
@@ -312,12 +303,14 @@
                     }
                 </div>
 
-                @if (IsFormReady() == true && HasChanges() == true)
-                {
-                    <div class="popup-actions">
-                        <button type="submit" class="btn-main">שמירת שינויים</button>
-                    </div>
-                }
+                @* לפי הפיגמה הכפתור מוצג תמיד, ומנוטרל עד שהטופס מלא
+                   ונעשה בו שינוי *@
+                <div class="popup-actions">
+                    <button type="submit" class="btn-main"
+                            disabled="@(IsFormReady() == false || HasChanges() == false)">
+                        שמירת שינויים
+                    </button>
+                </div>
 
             </EditForm>
         </div>
@@ -332,13 +325,22 @@
 {
     <div class="popup-background">
         <div class="popup-inner popup-small" tabindex="-1">
+
+            <button class="popup-close" @onclick="() => questionToDelete = null" title="סגירה">
+                <img src="assets-images/close.svg" alt="סגירה" width="21" height="20" />
+            </button>
+
             <h2 class="popup-title">מחיקת שאלה</h2>
+
             <p class="delete-text">
-                למחוק את השאלה? כל הפריטים שלה יימחקו גם הם.
+                שאלה @DeleteQuestionNumber() - @questionToDelete.Answers.Count פריטים
+                <br />
+                מחיקת השאלה תמחק את כל הפריטים בה ולא יהיה ניתן לשחזרם
             </p>
+
             <div class="popup-actions">
-                <button class="btn-main" @onclick="DeleteQuestion">כן, למחוק</button>
-                <button class="btn-second" @onclick="() => questionToDelete = null">ביטול</button>
+                <button class="btn-main" @onclick="DeleteQuestion">מחיקה</button>
+                <button class="btn-main" @onclick="() => questionToDelete = null">ביטול</button>
             </div>
         </div>
     </div>
@@ -489,11 +491,11 @@
     }
 
 
+    // בפיגמה הכיתוב על הכפתור קבוע. המצב נמסר דרך הצבע והטולטיפ,
+    // ולא דרך טקסט ארוך שגולש מהכפתור
     string PublishLabel()
     {
         if (game.IsPublish == true) return "מפורסם";
-
-        if (CanTogglePublish() == false) return "לא ניתן לפרסום";
 
         return "פרסום";
     }
@@ -802,11 +804,20 @@
     }
 
 
+    // מספר השאלה ברשימה, להצגה בפופאפ המחיקה
+    int DeleteQuestionNumber()
+    {
+        if (questionToDelete == null) return 0;
+
+        return questions.IndexOf(questionToDelete) + 1;
+    }
+
+
     string CounterClass()
     {
-        if (NameLength() > NameMax)
+        if (NameLength() >= NameMax)
         {
-            return "chars-over";
+            return "chars-full";
         }
 
         if (NameLength() == 0)

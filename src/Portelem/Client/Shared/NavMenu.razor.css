@@ -55,7 +55,8 @@
     letter-spacing: 0.24px;
 }
 
-/* עיצוב כפתור "אודות" כך שייראה זהה לקומפוננטה NavLink */
+/* עיצוב כפתור "אודות" כך שייראה זהה לקומפוננטה NavLink.
+   אלה פותחים פופאפ ולא עמוד, ולכן לפי הפיגמה אין תחתם קו */
 .btn-nav {
     background-color: unset;
     border: none;
@@ -63,7 +64,7 @@
     font-family: var(--font, 'Alef', Arial, sans-serif);
     font-size: 14px;
     color: var(--nav-link, #2f6b2a);
-    text-decoration: underline;
+    text-decoration: none;
     cursor: pointer;
 }
 
@@ -109,12 +110,13 @@
     font-family: var(--font, 'Alef', Arial, sans-serif);
     font-size: 14px;
     color: var(--nav-link, #2f6b2a);
-    text-decoration: underline;
+    text-decoration: none;
 }
 
-/* המחלקה active מסמנת את העמוד הנוכחי שבו אנחנו נמצאים */
+/* לפי הפיגמה הקו התחתון מסמן את העמוד הנוכחי בלבד */
 ::deep a.nav-link.active {
     font-weight: bold;
+    text-decoration: underline;
 }
 
 ::deep a.nav-link:hover {

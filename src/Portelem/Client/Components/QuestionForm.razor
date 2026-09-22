@@ -12,22 +12,10 @@
 
 <div class="question-body">
 
-    @* ---------- נוסח השאלה ---------- *@
-    <div class="topic-row">
-        <label class="topic-label">מה השאלה?</label>
-
-        <input class="topic-input" maxlength="@TopicMax"
-               placeholder="נוסח השאלה כפי שהשחקן יראה"
-               value="@Question.Topic"
-               @oninput="(e) => Question.Topic = e.Value.ToString()" />
-
-        <span class="topic-counter">@Length(Question.Topic)/@TopicMax</span>
-    </div>
-
     @* ---------- שורת ההסבר ---------- *@
     <p class="items-hint">
         יש להזין את ערכי הקיצון ביבשות ולסדר את הפריטים בהתאם.
-        חובת 3-10 פריטים לשאלה.
+        כמות פריטים מותרת: מינימום 3, מקסימום 10.
     </p>
 
     @* ---------- שורת הפריטים ---------- *@
@@ -42,12 +30,12 @@
             </div>
 
             <div class="item-tools">
-                <span></span>
                 <span class="tip" data-tip="עריכת ערך הקיצון">
                     <button type="button" class="tool-btn" @onclick="() => OpenTagPopup(true)">
                         <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
                     </button>
                 </span>
+                <span></span>
             </div>
         </div>
 
@@ -83,8 +71,10 @@
                 </div>
 
                 <div class="item-tools">
-                    <span class="tip" data-tip="גרירה לשינוי הסדר">
-                        <img src="assets-images/all-directions.svg" alt="" class="tool-icon drag-icon" />
+                    <span class="tip" data-tip="עריכת הפריט">
+                        <button type="button" class="tool-btn" @onclick="() => OpenEditItem(pos)">
+                            <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
+                        </button>
                     </span>
 
                     @* זכוכית מגדלת - רק לפריטי תמונה, ורק במצב עריכה *@
@@ -98,10 +88,8 @@
                         </span>
                     }
 
-                    <span class="tip" data-tip="עריכת הפריט">
-                        <button type="button" class="tool-btn" @onclick="() => OpenEditItem(pos)">
-                            <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
-                        </button>
+                    <span class="tip" data-tip="גרירה לשינוי הסדר">
+                        <img src="assets-images/all-directions.svg" alt="" class="tool-icon drag-icon" />
                     </span>
                 </div>
             </div>
@@ -114,11 +102,18 @@
         {
             <div class="item-card is-empty">
                 <div class="item-media rock-media">
-                    <button type="button" class="add-item-btn" title="הוספת פריט"
-                            @onclick="OpenAddItem">+</button>
+                    <span class="tip" data-tip="הוספת פריט">
+                        <button type="button" class="add-item-btn" aria-label="הוספת פריט"
+                                @onclick="OpenAddItem"></button>
+                    </span>
                 </div>
 
-                <div class="item-tools"></div>
+                @* לפי הפיגמה האייקונים מוצגים גם בסלע ריק, אבל כבויים
+                   עד שמוזן לתוכו תוכן *@
+                <div class="item-tools is-off">
+                    <img src="assets-images/pen.svg" alt="" class="tool-icon" />
+                    <img src="assets-images/all-directions.svg" alt="" class="tool-icon" />
+                </div>
             </div>
         }
 
@@ -131,12 +126,12 @@
             </div>
 
             <div class="item-tools">
-                <span></span>
                 <span class="tip" data-tip="עריכת ערך הקיצון">
                     <button type="button" class="tool-btn" @onclick="() => OpenTagPopup(false)">
                         <img src="assets-images/pen.svg" alt="עריכה" class="tool-icon" />
                     </button>
                 </span>
+                <span></span>
             </div>
         </div>
 
@@ -147,10 +142,12 @@
         <span class="tip tip-wide" data-tip="@SaveTip()">
             <button type="button" class="btn-green"
                     disabled="@(IsReady() == false)"
-                    @onclick="OnSave">שמירת שאלה</button>
+                    @onclick="OnSave">שמירה</button>
         </span>
 
-        <button type="button" class="btn-green" @onclick="OnCancel">בטל שינויים</button>
+        <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
+            <button type="button" class="btn-green" @onclick="OnCancel">ביטול</button>
+        </span>
     </div>
 
 </div>
@@ -169,7 +166,7 @@
             </button>
 
             <h2 class="popup-title">@(editIndex < 0 ? "הוספת סלע" : "עריכת סלע")</h2>
-            <p class="popup-subtitle">יש לבחור סוג תוכן</p>
+            <p class="popup-subtitle">יש לבחור סוג תוכן בלחיצה על האייקון</p>
 
             @* הסלע הגדול שבתוכו נבחר ומוזן התוכן *@
             <div class="big-rock">
@@ -177,24 +174,26 @@
                 @if (itemType == "")
                 {
                     @* בחירת סוג התוכן *@
+                    @* בפיגמה הטקסט בימין והתמונה בשמאל. ב-RTL הראשון הוא הימני *@
                     <div class="type-choice">
+                        <button type="button" class="type-btn" @onclick='() => itemType = "text"'>
+                            <img src="assets-images/content-text.svg" alt="טקסט" />
+                        </button>
+
+                        <span class="type-or">או</span>
+
                         <span class="tip tip-wide"
-                              data-tip="ניתן להעלות קבצי png, jpg ו-jpeg בלבד, עד 5MB">
+                              data-tip="ניתן להעלות קבצי jpg, png ו-jpeg בלבד, עד 5MB">
                             <button type="button" class="type-btn" @onclick="ChooseImage">
                                 <img src="assets-images/content-image.svg" alt="תמונה" />
                             </button>
                         </span>
-
-                        <span class="type-or">או</span>
-
-                        <button type="button" class="type-btn" @onclick='() => itemType = "text"'>
-                            <img src="assets-images/content-text.svg" alt="טקסט" />
-                        </button>
                     </div>
                 }
                 else if (itemType == "text")
                 {
-                    <textarea class="rock-input" maxlength="@ItemMax"
+                    <textarea class="rock-input @(itemText.Length >= ItemMax ? "is-full" : "")"
+                              maxlength="@ItemMax" placeholder="הקלדת טקסט"
                               @bind="itemText" @bind:event="oninput"></textarea>
 
                     <span class="rock-counter @ItemCounterClass()">@itemText.Length/@ItemMax</span>
@@ -221,28 +220,32 @@
             @if (itemType != "")
             {
                 <div class="type-switch">
+                    <button type="button" class="type-btn-sm @(itemType == "text" ? "is-on" : "")"
+                            @onclick='() => itemType = "text"'>
+                        <img src="assets-images/content-text.svg" alt="טקסט" />
+                    </button>
+
                     <span class="tip tip-wide"
-                          data-tip="ניתן להעלות קבצי png, jpg ו-jpeg בלבד, עד 5MB">
+                          data-tip="ניתן להעלות קבצי jpg, png ו-jpeg בלבד, עד 5MB">
                         <button type="button" class="type-btn-sm @(itemType == "image" ? "is-on" : "")"
                                 @onclick="ChooseImage">
                             <img src="assets-images/content-image.svg" alt="תמונה" />
                         </button>
                     </span>
-
-                    <button type="button" class="type-btn-sm @(itemType == "text" ? "is-on" : "")"
-                            @onclick='() => itemType = "text"'>
-                        <img src="assets-images/content-text.svg" alt="טקסט" />
-                    </button>
                 </div>
             }
 
-            <div class="popup-actions">
-                <button type="button" class="btn-main"
-                        disabled="@(CanSaveItem() == false)"
-                        @onclick="SaveItem">
-                    @(editIndex < 0 ? "הוספה" : "שמירה")
-                </button>
-            </div>
+            @* לפי הפיגמה הכפתור מופיע רק אחרי שנבחר סוג תוכן *@
+            @if (itemType != "")
+            {
+                <div class="popup-actions">
+                    <button type="button" class="btn-main btn-ctx-green"
+                            disabled="@(CanSaveItem() == false)"
+                            @onclick="SaveItem">
+                        הוספה
+                    </button>
+                </div>
+            }
 
         </div>
     </div>
@@ -275,7 +278,7 @@
             </div>
 
             <div class="popup-actions">
-                <button type="button" class="btn-main"
+                <button type="button" class="btn-main btn-ctx-green"
                         disabled="@(CanSaveTag() == false)"
                         @onclick="SaveTag">שמירה</button>
             </div>
@@ -345,7 +348,6 @@
 
 
     // המגבלות מהאפיון
-    const int TopicMax = 50;
     const int ItemMax = 30;
     const int TagMax = 10;
     const int MinItems = 3;
@@ -486,9 +488,9 @@
     // צבע מונה התווים של הפריט: ירוק כשתקין, אדום בחריגה
     string ItemCounterClass()
     {
-        if (itemText.Length > ItemMax)
+        if (itemText.Length >= ItemMax)
         {
-            return "chars-over";
+            return "chars-full";
         }
 
         if (itemText.Length == 0)
@@ -641,9 +643,9 @@
 
     string TagCounterClass()
     {
-        if (tagText.Length > TagMax)
+        if (tagText.Length >= TagMax)
         {
-            return "chars-over";
+            return "chars-full";
         }
 
         if (tagText.Length == 0)
@@ -732,11 +734,6 @@
             return "יש להזין ערך קיצון בשתי היבשות";
         }
 
-        if (string.IsNullOrWhiteSpace(Question.Topic))
-        {
-            return "יש להזין את נוסח השאלה";
-        }
-
         return "שמירת השאלה וחזרה לרשימה";
     }
 
@@ -744,11 +741,6 @@
     // כפתור השמירה פעיל רק כששאלה מלאה
     bool IsReady()
     {
-        if (string.IsNullOrWhiteSpace(Question.Topic))
-        {
-            return false;
-        }
-
         if (string.IsNullOrWhiteSpace(Question.RightTag))
         {
             return false;
@@ -767,16 +759,6 @@
         return true;
     }
 
-
-    int Length(string text)
-    {
-        if (text == null)
-        {
-            return 0;
-        }
-
-        return text.Length;
-    }
 
 
     // כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום

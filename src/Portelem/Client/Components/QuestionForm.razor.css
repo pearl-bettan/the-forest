@@ -13,45 +13,6 @@
 }
 
 
-/* ---------- נוסח השאלה ---------- */
-
-.topic-row {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.topic-label {
-    font-family: var(--font);
-    font-weight: bold;
-    font-size: 16px;
-    color: black;
-    white-space: nowrap;
-}
-
-.topic-input {
-    flex: 1 1 420px;
-    max-width: 520px;
-    height: 34px;
-    background-color: white;
-    border: 1px solid var(--line);
-    border-radius: 7px;
-    font-family: var(--font);
-    font-size: 16px;
-    padding: 0 12px;
-}
-
-.topic-input:focus {
-    outline: 2px solid var(--green);
-}
-
-.topic-counter {
-    font-family: var(--font);
-    font-size: 14px;
-    color: var(--gray);
-}
-
-
 /* ---------- שורת ההסבר ---------- */
 
 .items-hint {
@@ -190,7 +151,7 @@
 }
 
 .item-remove:hover:not(:disabled) {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
 }
 
 /* חובה שיישארו לפחות שלושה פריטים, ולכן המחיקה חסומה */
@@ -227,19 +188,41 @@
 }
 
 /* כפתור הפלוס שבמרכז כרטיס ריק */
+/* סימן הפלוס שבתוך הסלע הריק. בפיגמה הוא צלב דק וארוך ולא
+   התו + של הפונט, ולכן הוא מצויר משני פסים */
 .add-item-btn {
     background-color: unset;
     border: none;
-    font-size: 34px;
-    line-height: 1;
-    color: #4a4a4a;
     cursor: pointer;
-    padding: 0 8px;
+    padding: 0;
+    width: 42px;
+    height: 42px;
+    position: relative;
 }
 
-.add-item-btn:hover {
-    color: var(--gold-dark);
-    transform: scale(1.1);
+.add-item-btn::before,
+.add-item-btn::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: #2b2b2b;
+    transform: translate(-50%, -50%);
+}
+
+.add-item-btn::before {
+    width: 38px;
+    height: 2px;
+}
+
+.add-item-btn::after {
+    width: 2px;
+    height: 38px;
+}
+
+.add-item-btn:hover::before,
+.add-item-btn:hover::after {
+    background-color: var(--gold-dark);
 }
 
 /* שורת האייקונים בתחתית הכרטיס */
@@ -267,6 +250,13 @@
 
 .drag-icon {
     cursor: grab;
+}
+
+/* סלע ריק: האייקונים מוצגים כבויים, ולא ניתנים ללחיצה */
+.item-tools.is-off .tool-icon {
+    opacity: 0.35;
+    cursor: default;
+    pointer-events: none;
 }
 
 .tool-btn:hover .tool-icon {
@@ -387,9 +377,8 @@
 .rock-input {
     width: 150px;
     height: 80px;
-    background-color: rgba(255, 255, 255, 0.9);
-    border: 1px solid var(--gray);
-    border-radius: 4px;
+    background-color: transparent;
+    border: none;
     font-family: var(--font);
     font-size: 16px;
     text-align: center;
@@ -397,8 +386,18 @@
     resize: none;
 }
 
+.rock-input::placeholder {
+    color: var(--gray);
+}
+
 .rock-input:focus {
-    outline: 2px solid var(--gold-dark);
+    outline: none;
+}
+
+/* הגעה למקסימום התווים - מסגרת וכיתוב אדומים, לפי הפיגמה */
+.rock-input.is-full {
+    outline: 2px solid var(--danger);
+    border-radius: 4px;
 }
 
 .rock-preview {
@@ -419,7 +418,7 @@
 }
 
 .rock-counter.chars-ok    { color: var(--green-ok); }
-.rock-counter.chars-over  { color: var(--danger); }
+.rock-counter.chars-full  { color: var(--danger); }
 .rock-counter.chars-short { color: var(--gray); }
 
 
@@ -483,7 +482,7 @@
 }
 
 .type-btn-sm.is-on {
-    background-color: var(--gold-soft);
+    background-color: var(--gold-hover);
 }
 
 
@@ -543,10 +542,6 @@
         max-width: 78px;
         max-height: 62px;
     }
-
-    .topic-input {
-        max-width: 100%;
-    }
 }
 
 @media (max-width: 900px) {
@@ -568,11 +563,6 @@
     .item-img {
         max-width: 64px;
         max-height: 50px;
-    }
-
-    .topic-row {
-        flex-wrap: wrap;
-        gap: 6px;
     }
 
     .question-actions {
