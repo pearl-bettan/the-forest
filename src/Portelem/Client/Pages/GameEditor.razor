@@ -185,11 +185,12 @@
                             <span class="strip-right">
                                 <span class="question-title">שאלה @(index + 1)</span>
 
-                                <button class="chevron-btn"
+                                <button class="chevron-btn @(isOpen ? "chevron-open" : "")"
                                         title="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")"
                                         @onclick="() => ToggleExpand(question.ID)"
                                         @onclick:stopPropagation="true">
-                                    @(isOpen ? "⌃" : "⌄")
+                                    <img src="assets-images/chevron-down.svg" alt=""
+                                         width="16" height="16" class="chevron-icon" />
                                 </button>
                             </span>
 

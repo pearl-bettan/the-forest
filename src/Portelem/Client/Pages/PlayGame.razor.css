@@ -1,5 +1,6 @@
 /* ==========================================================
    CSS לוקאלי - עמוד המשחק
+   המידות נלקחו מהפיגמה, עמוד "גרסה 5", פריימים 301:434 ו-301:455
    ========================================================== */
 
 .play-page {
@@ -13,29 +14,124 @@
     box-sizing: border-box;
 }
 
-/* הודעת הטעינה יושבת מעל המסגרת עד שהמשחק עולה */
-.play-loading {
+/* ==========================================================
+   מסכי הטעינה והשגיאה
+   ========================================================== */
+/* המסך יושב מעל המקום ששמור למסגרת המשחק. המסגרת עצמה נשארת
+   בגודלה המלא ורק מוסתרת, כדי שיוניטי תקבל את המידות הנכונות
+   של הקנבס כבר בזמן הטעינה ולא תצטרך להתאים אותן אחר כך */
+.play-state {
     position: absolute;
-    top: 45%;
-    text-align: center;
-    font-family: var(--font);
+    top: 18px;
+    right: 0;
+    left: 0;
     z-index: 2;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+    padding-top: 26px;
+    text-align: center;
 }
 
-.play-loading p {
-    font-size: 22px;
-    color: black;
+/* בפיגמה 351x234. לקובץ יש שוליים שקופים, ולכן המרווחים
+   שמתחתיו שליליים - כדי להגיע למרחק שנראה בעיצוב */
+.play-logo {
+    width: 351px;
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
 
-.play-loading-note {
-    margin-top: 6px;
-    font-size: 15px;
-    color: var(--gray);
+.play-state-title {
+    margin: -48px 0 0 0;
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 32px;
+    color: rgba(0, 0, 0, 0.82);
 }
 
-/* המשחק נבנה ל-1280x720, ומתחתיו יושב הסרגל של יוניטי בגובה 38px.
+/* ---------- פס ההתקדמות ---------- */
+.play-progress {
+    width: 318px;
+    max-width: 100%;
+    height: 32px;
+    margin-top: 19px;
+    border: 2px solid rgba(112, 112, 112, 0.93);
+    border-radius: 6px;
+    background-color: transparent;
+    overflow: hidden;
+    display: flex;
+    justify-content: flex-start; /* בתוך RTL זה הקצה הימני */
+}
+
+.play-progress-fill {
+    display: block;
+    width: 55%;
+    height: 100%;
+    border-radius: 4px;
+    background-color: #a2b4c8;
+    animation: play-progress-slide 1.6s ease-in-out infinite alternate;
+}
+
+/* טעינת iframe לא מדווחת אחוזים, ולכן הפס נע הלוך ושוב
+   במקום להעמיד פנים שהוא מודד התקדמות */
+@keyframes play-progress-slide {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-81%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .play-progress-fill {
+        animation: none;
+    }
+}
+
+/* ---------- כפתור הניסיון החוזר ---------- */
+.play-retry {
+    margin-top: -4px;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    line-height: 0;
+    border-radius: 50%;
+}
+
+.play-retry img {
+    width: 86px;
+    height: 86px;
+    display: block;
+    transition: transform .2s ease;
+}
+
+.play-retry:hover img {
+    transform: rotate(45deg);
+}
+
+.play-retry:focus-visible {
+    outline: 2px solid var(--nav-link);
+    outline-offset: 4px;
+}
+
+/* ---------- הגמדים ---------- */
+.play-dwarf {
+    width: 403px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 12px;
+}
+
+/* ==========================================================
+   מסגרת המשחק
+   המשחק נבנה ל-1280x720, ומתחתיו יושב הסרגל של יוניטי בגובה 38px.
    סה"כ 758px. יחס של 16/9 בלבד היה חותך את הסרגל ואת ראש התמונה,
-   כי תבנית יוניטי ממרכזת את התוכן בתוך המסגרת */
+   כי תבנית יוניטי ממרכזת את התוכן בתוך המסגרת
+   ========================================================== */
 .play-frame {
     width: 100%;
     max-width: 1280px;
@@ -44,6 +140,14 @@
     overflow: hidden;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.22);
     background-color: #21331f;
+}
+
+/* בזמן טעינה או שגיאה המסגרת נשארת במסמך ובגודלה המלא - אחרת
+   onload לא יגיע ויוניטי תאתחל קנבס במידות שגויות. visibility
+   מסתיר אותה בלי לשנות את הפריסה */
+.play-frame-hidden {
+    visibility: hidden;
+    box-shadow: none;
 }
 
 .play-frame iframe {

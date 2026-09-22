@@ -339,14 +339,26 @@
     background-color: unset;
     border: none;
     padding: 0 2px;
-    font-size: 18px;
-    line-height: 1;
-    color: black;
+    line-height: 0;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
 }
 
-.chevron-btn:hover {
-    color: var(--green);
+/* אייקון החץ מהפיגמה. במצב פתוח הוא מסתובב במקום להתחלף בתו אחר */
+.chevron-icon {
+    width: 16px;
+    height: 16px;
+    display: block;
+    transition: transform .15s ease, opacity .15s ease;
+}
+
+.chevron-btn.chevron-open .chevron-icon {
+    transform: rotate(180deg);
+}
+
+.chevron-btn:hover .chevron-icon {
+    opacity: .65;
 }
 
 /* גוף התצוגה של שאלה פתוחה */

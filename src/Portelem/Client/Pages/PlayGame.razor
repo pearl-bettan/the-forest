@@ -1,29 +1,68 @@
 @page "/Play"
 @page "/Play/{code:int}"
 
+@implements IDisposable
+
 @* ==========================================================
    עמוד המשחק. מטמיע את בניית היוניטי שיושבת ב-wwwroot/Game
    בתוך iframe, ומעביר לה את קוד המשחק בכתובת.
    קוד 0 פירושו שלא נשלח קוד, ואז השחקן מקליד אותו במסך הפתיחה
+
+   שלושה מצבים, לפי הפיגמה (גרסה 5):
+     Loading - לוגו, "עוד רגע יוצאים לדרך...", פס התקדמות וגמד ממתין
+     Error   - לוגו, "אוי לא משהו השתבש...", כפתור ניסיון חוזר וגמד מודאג
+     Ready   - המשחק עצמו
    ========================================================== *@
 
 <PageTitle>יער הידע - משחק</PageTitle>
 
 <div class="play-page">
 
-    @if (loading == true)
+    @if (state == PlayState.Loading)
     {
-        <div class="play-loading">
-            <p>המשחק נטען...</p>
-            <p class="play-loading-note">הטעינה הראשונה עשויה לקחת כמה שניות</p>
+        <div class="play-state">
+            <img src="assets-images/logo-forest-big.png" alt="יער הידע"
+                 class="play-logo" width="351" height="234" />
+
+            <p class="play-state-title">עוד רגע יוצאים לדרך...</p>
+
+            @* הטעינה של iframe לא מדווחת אחוזים, ולכן הפס נע בלי
+               לטעון שהוא מייצג התקדמות אמיתית *@
+            <div class="play-progress" role="progressbar"
+                 aria-label="המשחק נטען" aria-busy="true">
+                <span class="play-progress-fill"></span>
+            </div>
+
+            <img src="assets-images/dwarf-waiting.png" alt=""
+                 class="play-dwarf" width="403" height="227" />
+        </div>
+    }
+    else if (state == PlayState.Error)
+    {
+        <div class="play-state" role="alert">
+            <img src="assets-images/logo-forest-big.png" alt="יער הידע"
+                 class="play-logo" width="351" height="234" />
+
+            <p class="play-state-title">אוי לא משהו השתבש...</p>
+
+            <button class="play-retry" type="button"
+                    title="ניסיון חוזר" @onclick="Retry">
+                <img src="assets-images/refresh.png" alt="ניסיון חוזר" />
+            </button>
+
+            <img src="assets-images/dwarf-error.png" alt=""
+                 class="play-dwarf" width="391" height="220" />
         </div>
     }
 
-    <div class="play-frame">
-        <iframe title="יער הידע"
+    @* המסגרת נשארת במסמך גם בזמן הטעינה, אחרת האירוע onload
+       לא יגיע אף פעם. היא רק מוסתרת *@
+    <div class="play-frame @(state == PlayState.Ready ? "" : "play-frame-hidden")">
+        <iframe @key="attempt"
+                title="יער הידע"
                 width="1280" height="758" scrolling="no"
                 src="@GameUrl()"
-                @onload="() => loading = false"></iframe>
+                @onload="GameLoaded"></iframe>
     </div>
 
 </div>
@@ -35,7 +74,23 @@
     [Parameter]
     public int code { get; set; }
 
-    bool loading = true;
+    private enum PlayState { Loading, Ready, Error }
+
+    private PlayState state = PlayState.Loading;
+
+    // מזהה הניסיון. שינוי שלו מכריח את Blazor לבנות iframe חדש,
+    // וכך האירוע onload נורה שוב בניסיון חוזר
+    private int attempt = 0;
+
+    // אחרי כמה שניות בלי onload מוצג מסך השגיאה
+    private const int TimeoutSeconds = 30;
+
+    private CancellationTokenSource timeoutSource;
+
+    protected override void OnInitialized()
+    {
+        StartTimeout();
+    }
 
     // בלי קוד תקין לא מוסיפים ?code= בכלל. אחרת המשחק היה שולח
     // code=0 לשרת, מקבל "קוד המשחק חייב להיות מספר חיובי",
@@ -45,5 +100,64 @@
         if (code <= 0) return "Game/index.html";
 
         return $"Game/index.html?code={code}";
+    }
+
+    private void GameLoaded()
+    {
+        if (state != PlayState.Loading) return;
+
+        state = PlayState.Ready;
+        CancelTimeout();
+    }
+
+    private void Retry()
+    {
+        attempt = attempt + 1;
+        state = PlayState.Loading;
+        StartTimeout();
+    }
+
+    private void StartTimeout()
+    {
+        CancelTimeout();
+
+        timeoutSource = new CancellationTokenSource();
+
+        // לא ממתינים כאן. המתודה חוזרת ב-await הראשון,
+        // והמשך הריצה קורה רק אם הזמן עבר בלי onload
+        _ = WatchTimeout(timeoutSource.Token);
+    }
+
+    private async Task WatchTimeout(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(TimeoutSeconds), token);
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+
+        if (token.IsCancellationRequested == true) return;
+        if (state != PlayState.Loading) return;
+
+        state = PlayState.Error;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void CancelTimeout()
+    {
+        if (timeoutSource == null) return;
+
+        timeoutSource.Cancel();
+        timeoutSource.Dispose();
+        timeoutSource = null;
+    }
+
+    public void Dispose()
+    {
+        CancelTimeout();
     }
 }
