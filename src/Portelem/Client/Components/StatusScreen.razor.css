@@ -1,0 +1,91 @@
+/* ==========================================================
+   CSS לוקאלי - מסך הטעינה והשגיאה
+   המידות נלקחו מהפיגמה, עמוד "גרסה 5", פריימים 301:434 ו-301:455
+   ========================================================== */
+
+.status-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    padding: 10px 12px 20px 12px;
+    box-sizing: border-box;
+}
+
+/* בפיגמה 351x234. לקובץ יש שוליים שקופים, ולכן המרווח
+   שמתחתיו שלילי - כדי להגיע למרחק שנראה בעיצוב */
+.status-logo {
+    width: 351px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.status-title {
+    margin: -46px 0 0 0;
+    font-family: var(--font);
+    font-weight: bold;
+    font-size: 20px;
+    line-height: 32px;
+    color: rgba(0, 0, 0, 0.82);
+}
+
+/* ---------- פס ההתקדמות ---------- */
+.status-progress {
+    width: 318px;
+    max-width: 100%;
+    height: 32px;
+    margin-top: 19px;
+    border: 2px solid rgba(112, 112, 112, 0.93);
+    border-radius: 6px;
+    background-color: transparent;
+    overflow: hidden;
+    display: flex;
+    justify-content: flex-start; /* בתוך RTL זה הקצה הימני */
+}
+
+.status-progress-fill {
+    display: block;
+    width: 55%;
+    height: 100%;
+    border-radius: 4px;
+    background-color: #a2b4c8;
+    animation: status-progress-slide 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes status-progress-slide {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-81%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .status-progress-fill {
+        animation: none;
+    }
+}
+
+/* ---------- הגמד ---------- */
+.status-dwarf {
+    width: 403px;
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 12px;
+}
+
+@media (max-width: 900px) {
+
+    .status-logo {
+        width: 260px;
+    }
+
+    .status-title {
+        margin-top: -34px;
+        font-size: 18px;
+    }
+
+    .status-dwarf {
+        width: 300px;
+    }
+}

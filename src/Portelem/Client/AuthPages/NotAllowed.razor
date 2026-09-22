@@ -1,32 +1,69 @@
-﻿@inject NavigationManager nav
+@inject NavigationManager nav
 @inject IConfiguration _config
 
+@* ==========================================================
+   מסך ההתחברות לפורטל"מ.
+   בזמן הבדיקה מוצג מסך הטעינה, ואם ההתחברות נכשלה מוצג מסך
+   השגיאה של הפיגמה: לוגו, "אוי לא משהו השתבש...", כפתור
+   ניסיון חוזר והגמד המודאג
+   ========================================================== *@
+
 <PageTitle>התחברות</PageTitle>
-@if (!auth)
+
+@if (checking == true)
 {
-    <h2>שגיאת התחברות</h2>
-    <p>ההתחברות למערכת לא הצליחה.</p>
-    <p>אם השגיאה חוזרת ניתן לפנות לצוות התמיכה של הפורטל"מ.</p>
-    <a href="@_config["portelem:mainurl"]">מעבר לפורטל"מ</a>
+    <div class="auth-screen">
+        <StatusScreen Title="רגע, בודקים את ההתחברות..." />
+    </div>
 }
+else if (auth == false)
+{
+    <div class="auth-screen" role="alert">
+
+        <StatusScreen Title="אוי לא משהו השתבש..."
+                      Image="assets-images/dwarf-error.png">
+            <button class="auth-retry" type="button"
+                    title="ניסיון חוזר" @onclick="Retry">
+                <img src="assets-images/refresh.png" alt="ניסיון חוזר" />
+            </button>
+        </StatusScreen>
+
+        @* דרך המילוט היחידה כשההתחברות לא מצליחה שוב ושוב *@
+        <a class="auth-portal" href="@_config["portelem:mainurl"]">מעבר לפורטל"מ</a>
+
+    </div>
+}
+
 
 @code {
     [Inject]
     public IAuthenticationService _AuthService { get; set; }
-    
+
     //משתמש ניסה להגיע למקום שאין לו הרשאות
     bool auth = true;
 
+    // בזמן הבדיקה מוצג מסך הטעינה ולא מסך השגיאה
+    bool checking = true;
+
     protected override async Task OnInitializedAsync()
+    {
+        await CheckLogin();
+    }
+
+    private async Task Retry()
+    {
+        checking = true;
+        auth = true;
+
+        await CheckLogin();
+    }
+
+    private async Task CheckLogin()
     {
         bool isAuth = await _AuthService.LoginWithPortelem();
         await Task.Delay(1000);
+
         auth = isAuth;
+        checking = false;
     }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-
-    }
-
 }

@@ -36,60 +36,6 @@
     text-align: center;
 }
 
-/* בפיגמה 351x234. לקובץ יש שוליים שקופים, ולכן המרווחים
-   שמתחתיו שליליים - כדי להגיע למרחק שנראה בעיצוב */
-.play-logo {
-    width: 351px;
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-
-.play-state-title {
-    margin: -48px 0 0 0;
-    font-family: var(--font);
-    font-weight: bold;
-    font-size: 20px;
-    line-height: 32px;
-    color: rgba(0, 0, 0, 0.82);
-}
-
-/* ---------- פס ההתקדמות ---------- */
-.play-progress {
-    width: 318px;
-    max-width: 100%;
-    height: 32px;
-    margin-top: 19px;
-    border: 2px solid rgba(112, 112, 112, 0.93);
-    border-radius: 6px;
-    background-color: transparent;
-    overflow: hidden;
-    display: flex;
-    justify-content: flex-start; /* בתוך RTL זה הקצה הימני */
-}
-
-.play-progress-fill {
-    display: block;
-    width: 55%;
-    height: 100%;
-    border-radius: 4px;
-    background-color: #a2b4c8;
-    animation: play-progress-slide 1.6s ease-in-out infinite alternate;
-}
-
-/* טעינת iframe לא מדווחת אחוזים, ולכן הפס נע הלוך ושוב
-   במקום להעמיד פנים שהוא מודד התקדמות */
-@keyframes play-progress-slide {
-    from { transform: translateX(0); }
-    to   { transform: translateX(-81%); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .play-progress-fill {
-        animation: none;
-    }
-}
-
 /* ---------- כפתור הניסיון החוזר ---------- */
 .play-retry {
     margin-top: -4px;
@@ -115,15 +61,6 @@
 .play-retry:focus-visible {
     outline: 2px solid var(--nav-link);
     outline-offset: 4px;
-}
-
-/* ---------- הגמדים ---------- */
-.play-dwarf {
-    width: 403px;
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin-top: 12px;
 }
 
 /* ==========================================================

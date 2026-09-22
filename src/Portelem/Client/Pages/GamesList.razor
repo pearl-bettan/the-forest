@@ -26,21 +26,28 @@
 
     <div class="games-box">
 
-        @if (MyGamesList != null && MyGamesList.Count > 0)
-        {
-            @* מחושב פעם אחת ומשמש גם למונה, גם לבדיקה הריקה וגם ללולאה *@
-            List<GameToTable> visible = VisibleGames();
+        @{
+            bool hasGames = MyGamesList != null && MyGamesList.Count > 0;
 
-            @* ---------- סינון ---------- *@
-            <div class="filter-row">
+            // מחושב פעם אחת ומשמש גם למונה, גם לבדיקה הריקה וגם ללולאה
+            List<GameToTable> visible = hasGames ? VisibleGames() : new List<GameToTable>();
+        }
+
+        @* ---------- סינון ----------
+           לפי הפיגמה השורה מוצגת תמיד. כשאין משחקים היא מנוטרלת
+           ולא נעלמת *@
+        @if (isLoaded == true)
+        {
+            <div class="filter-row @(hasGames ? "" : "is-off")">
 
                 <div class="search-wrap">
                     <input class="search-input"
                            placeholder="חיפוש לפי שם משחק או קוד"
+                           disabled="@(hasGames == false)"
                            value="@searchText"
                            @oninput="(e) => searchText = e.Value.ToString()" />
 
-                    @if (searchText != "")
+                    @if (hasGames == true && searchText != "")
                     {
                         <button class="search-clear" title="ניקוי החיפוש"
                                 @onclick='() => searchText = ""'>✕</button>
@@ -49,17 +56,27 @@
 
                 <div class="filter-chips">
                     <button class="chip @(publishFilter == "all" ? "chip-on" : "")"
+                            disabled="@(hasGames == false)"
                             @onclick='() => publishFilter = "all"'>הכל</button>
 
                     <button class="chip @(publishFilter == "published" ? "chip-on" : "")"
+                            disabled="@(hasGames == false)"
                             @onclick='() => publishFilter = "published"'>מפורסמים</button>
 
                     <button class="chip @(publishFilter == "draft" ? "chip-on" : "")"
+                            disabled="@(hasGames == false)"
                             @onclick='() => publishFilter = "draft"'>לא מפורסמים</button>
                 </div>
 
-                <span class="filter-count">@visible.Count מתוך @MyGamesList.Count</span>
+                @if (hasGames == true)
+                {
+                    <span class="filter-count">@visible.Count מתוך @MyGamesList.Count</span>
+                }
             </div>
+        }
+
+        @if (hasGames == true)
+        {
 
             @* ---------- כותרות העמודות ---------- *@
             <div class="games-head">
@@ -185,6 +202,13 @@
             <div class="empty-state">
                 <p class="empty-text">לא נוצרו עדיין משחקים ...</p>
                 <img src="assets-images/dwarf.png" alt="" class="empty-img" />
+            </div>
+        }
+        else
+        {
+            @* בזמן הטעינה מוצג מסך הטעינה של הפיגמה *@
+            <div class="loading-wrap">
+                <StatusScreen />
             </div>
         }
 

@@ -30,7 +30,7 @@
 .create-btn {
     position: absolute;
     top: 63px;
-    left: 0;
+    right: 0;
     height: 32px;
     width: 220px;
     font-size: 20px;
@@ -234,6 +234,33 @@
 }
 
 
+/* שורת הסינון כשאין עדיין משחקים: מוצגת אך מנוטרלת */
+.filter-row.is-off {
+    opacity: 0.5;
+}
+
+.filter-row.is-off .search-input,
+.filter-row.is-off .chip {
+    cursor: not-allowed;
+    color: var(--disabled);
+    border-color: var(--disabled);
+    background-color: white;
+    box-shadow: none;
+}
+
+.filter-row.is-off .search-input::placeholder {
+    color: var(--disabled);
+}
+
+/* אזור מסך הטעינה שבתוך תיבת המשחקים */
+.loading-wrap {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
 /* ---------- מקרא מצבי הפרסום שבטולטיפ הכותרת ---------- */
 
 .publish-legend {
@@ -309,10 +336,21 @@
     margin: 0 0 20px 0;
 }
 
+/* הקובץ נגזר משוליו השקופים, ולכן היחס הוא 174:168.
+   height: auto שומר על היחס לבד, והגמד מתמרכז מעצמו */
 .empty-img {
-    width: 467px;
-    height: 263px;
+    width: 250px;
+    max-width: 100%;
+    height: auto;
+    display: block;
     object-fit: contain;
+}
+
+@media (max-width: 900px) {
+
+    .empty-img {
+        width: 300px;
+    }
 }
 
 
