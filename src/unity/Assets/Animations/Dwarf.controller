@@ -142,7 +142,7 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Skipping
+  m_Name: Jumping
   m_Speed: 1
   m_CycleOffset: 0
   m_Transitions:
@@ -156,7 +156,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: c4f53e52acb9e6b46be4f32d363be3d3, type: 2}
+  m_Motion: {fileID: 7400000, guid: 325e85788efa44f4e921806448f2237a, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

@@ -75,8 +75,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] TMP_Text rightTagText;
     [SerializeField] TMP_Text messageText;
 
-    //מראה באיזו שאלה השחקן נמצא מתוך סך השאלות, למשל 1 / 10
-    [SerializeField] TMP_Text progressText;
+    // מד ההתקדמות: שרשרת חרוזים, חרוז לכל שאלה
+    [SerializeField] ProgressBarScript progressBar;
 
     [Header("Screens")]
     [SerializeField] GameObject messagePanel;
@@ -326,7 +326,7 @@ public class GameManager : MonoBehaviour
         if (messagePanel == null) missing = missing + "Message Panel, ";
         if (redFlash == null) missing = missing + "Red Flash, ";
         if (hearts == null || hearts.Count == 0) missing = missing + "Hearts, ";
-        if (progressText == null) missing = missing + "Progress Text, ";
+        if (progressBar == null) missing = missing + "Progress Bar, ";
 
         if (missing != "")
         {
@@ -1126,24 +1126,24 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // מיקום השאלה הנוכחית מתוך סך השאלות, למשל 1 / 10
+    // מספר השאלות שהמד כבר נבנה עבורן, כדי לא לבנות אותו בכל קריאה
+    private int progressBuiltFor = 0;
+
+    // המד מייצג את שאלות המשחק: חרוז לכל שאלה, וכל שאלה שנענתה
+    // הופכת חרוז אחד מאפור לירוק
     private void UpdateProgressBar()
     {
-        if (progressText == null) return;
+        if (progressBar == null) return;
 
-        if (totalQuestions <= 0)
+        if (totalQuestions <= 0) return;
+
+        if (progressBuiltFor != totalQuestions)
         {
-            progressText.text = "";
-            return;
+            progressBar.Build(totalQuestions);
+            progressBuiltFor = totalQuestions;
         }
 
-        // השאלה שהשחקן נמצא בה עכשיו
-        int position = questionsAnswered + 1;
-        if (position > totalQuestions) position = totalQuestions;
-
-        progressText.gameObject.SetActive(true);
-        progressText.isRightToLeftText = false;
-        progressText.text = position + " / " + totalQuestions;
+        progressBar.SetProgress(questionsAnswered);
     }
 
     // מציב טקסט שעלול להישבר ליותר משורה אחת (נושא השאלה ותגיות הקצה)
