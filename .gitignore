@@ -1,7 +1,38 @@
-/[Ss]rc/[Ll]ibrary/
-src/Library/
-src/Temp/
-src/Logs/
-src/UserSettings/
+# ---------------------------------------------------------------- Unity ---
+# פרויקט היוניטי יושב ב-src/unity
+src/unity/[Ll]ibrary/
+src/unity/[Tt]emp/
+src/unity/[Oo]bj/
+src/unity/[Bb]uild/
+src/unity/[Bb]uilds/
+src/unity/[Ll]ogs/
+src/unity/[Uu]ser[Ss]ettings/
+src/unity/[Mm]emoryCaptures/
+src/unity/[Rr]ecordings/
+src/unity/Assets/AssetStoreTools*
+src/unity/Assets/Plugins/Editor/JetBrains*
 
+# קבצי פרויקט שיוניטי מייצרת מחדש
+src/unity/*.csproj
+src/unity/*.sln
+src/unity/*.unityproj
+src/unity/*.user
+src/unity/.vsconfig
+
+# פלט בנייה של game-ci / build-all.sh
+/build/
+build-logs/
+
+# ------------------------------------------------------------- .NET ------
+[Bb]in/
+[Oo]bj/
+/publish/
+*.user
+
+# ה-DB המקומי - לא נדחף, בשרת יש עותק חי
+src/Portelem/Server/FinalProjectDB.db
+
+# ------------------------------------------------------------ מערכת -----
 .DS_Store
+.vs/
+.idea/
