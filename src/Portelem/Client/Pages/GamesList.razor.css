@@ -333,25 +333,9 @@
     font-family: var(--font);
     font-size: 20px;
     color: black;
-    margin: 0 0 20px 0;
+    margin: 0;
 }
 
-/* הקובץ נגזר משוליו השקופים, ולכן היחס הוא 174:168.
-   height: auto שומר על היחס לבד, והגמד מתמרכז מעצמו */
-.empty-img {
-    width: 250px;
-    max-width: 100%;
-    height: auto;
-    display: block;
-    object-fit: contain;
-}
-
-@media (max-width: 900px) {
-
-    .empty-img {
-        width: 300px;
-    }
-}
 
 
 /* ---------- הודעות ---------- */
