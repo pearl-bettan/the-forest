@@ -207,6 +207,11 @@
                                 <span class="items-count">
                                     מספר פריטים: @question.Answers.Count/10
                                 </span>
+
+                                @if (question.Answers.Count < 3)
+                                {
+                                    <span class="draft-badge">טיוטה</span>
+                                }
                             </span>
                         </div>
 

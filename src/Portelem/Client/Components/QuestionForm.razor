@@ -15,7 +15,7 @@
     @* ---------- שורת ההסבר ---------- *@
     <p class="items-hint">
         יש להזין את ערכי הקיצון ביבשות ולסדר את הפריטים בהתאם.
-        כמות פריטים מותרת: מינימום 3, מקסימום 10.
+        אפשר לשמור שאלה כטיוטה בכל שלב. לפרסום המשחק צריך 3 עד 10 פריטים בכל שאלה.
     </p>
 
     @* ---------- שורת הפריטים ---------- *@
@@ -142,7 +142,7 @@
         <span class="tip tip-wide" data-tip="@SaveTip()">
             <button type="button" class="btn-green"
                     disabled="@(IsReady() == false)"
-                    @onclick="OnSave">שמירה</button>
+                    @onclick="HandleSave">שמירה</button>
         </span>
 
         <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
@@ -582,7 +582,7 @@
     // ולכן אי אפשר למחוק את השלישי
     bool CanRemove()
     {
-        return Question.Answers.Count > MinItems;
+        return Question.Answers.Count > 0;
     }
 
 
@@ -590,7 +590,7 @@
     {
         if (CanRemove() == false)
         {
-            return "חובה שיישארו לפחות 3 פריטים בשאלה";
+            return "חובה שיישאר לפחות פריט אחד בשאלה";
         }
 
         return "מחיקת הפריט";
@@ -721,17 +721,29 @@
     // עזרה
     // ==========================================================
 
+    // ערך קיצון לא נשמר ריק - אם רוקן, חוזר לברירת המחדל
+    async Task HandleSave()
+    {
+        if (string.IsNullOrWhiteSpace(Question.RightTag))
+        {
+            Question.RightTag = "ראשון";
+        }
+
+        if (string.IsNullOrWhiteSpace(Question.LeftTag))
+        {
+            Question.LeftTag = "אחרון";
+        }
+
+        await OnSave.InvokeAsync();
+    }
+
+
     // הטקסט שמופיע בטולטיפ של כפתור השמירה
     string SaveTip()
     {
         if (Question.Answers.Count < MinItems)
         {
-            return "ניתן לשמור שאלה בתנאי שיש לפחות 3 פריטים";
-        }
-
-        if (string.IsNullOrWhiteSpace(Question.RightTag) || string.IsNullOrWhiteSpace(Question.LeftTag))
-        {
-            return "יש להזין ערך קיצון בשתי היבשות";
+            return "השאלה תישמר כטיוטה. לפרסום צריך לפחות 3 פריטים";
         }
 
         return "שמירת השאלה וחזרה לרשימה";
@@ -747,11 +759,6 @@
         }
 
         if (string.IsNullOrWhiteSpace(Question.LeftTag))
-        {
-            return false;
-        }
-
-        if (Question.Answers.Count < MinItems)
         {
             return false;
         }

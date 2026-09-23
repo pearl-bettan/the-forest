@@ -634,3 +634,15 @@
         font-size: 14px;
     }
 }
+
+/* תגית "טיוטה" לשאלה עם פחות מ-3 פריטים */
+.draft-badge {
+    display: inline-block;
+    margin-inline-start: 8px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    background: #f3d27a;
+    color: #5a4300;
+    font-size: 0.8rem;
+    font-weight: 600;
+}

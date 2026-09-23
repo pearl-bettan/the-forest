@@ -355,9 +355,9 @@ namespace AuthTemplate.Server.Controllers
                     return BadRequest("Game not found");
                 }
 
-                if (question.Answers == null || question.Answers.Count < 3)
+                if (question.Answers == null)
                 {
-                    return BadRequest("Not enough answers");
+                    question.Answers = new List<AnswerToEdit>();
                 }
 
                 //בסצנת היוניטי יש 10 אבנים, ולכן זו המגבלה
@@ -391,8 +391,8 @@ namespace AuthTemplate.Server.Controllers
                     GameId = question.GameId,
                     //העמודה אינה מקבלת null, ולכן שדה ריק נשמר כמחרוזת ריקה
                     Topic = question.Topic ?? "",
-                    LeftTag = question.LeftTag,
-                    RightTag = question.RightTag,
+                    LeftTag = string.IsNullOrWhiteSpace(question.LeftTag) ? "אחרון" : question.LeftTag,
+                    RightTag = string.IsNullOrWhiteSpace(question.RightTag) ? "ראשון" : question.RightTag,
                     StageTime = game.TimePerQuestion,
                     StageOrder = questionOrder
                 };
@@ -411,6 +411,9 @@ namespace AuthTemplate.Server.Controllers
 
                 question.ID = questionId;
                 question.QuestionOrder = questionOrder;
+
+                //אחרי הוספת שאלה - עדכון מצב הפרסום (טיוטה מורידה מפרסום)
+                await SyncPublishState(question.GameId);
 
                 return Ok(question);
             }
@@ -434,9 +437,9 @@ namespace AuthTemplate.Server.Controllers
                     return BadRequest("Question not found");
                 }
 
-                if (question.Answers == null || question.Answers.Count < 3)
+                if (question.Answers == null)
                 {
-                    return BadRequest("Not enough answers");
+                    question.Answers = new List<AnswerToEdit>();
                 }
 
                 if (question.Answers.Count > 10)
@@ -448,8 +451,8 @@ namespace AuthTemplate.Server.Controllers
                 {
                     ID = question.ID,
                     Topic = question.Topic ?? "",
-                    LeftTag = question.LeftTag,
-                    RightTag = question.RightTag
+                    LeftTag = string.IsNullOrWhiteSpace(question.LeftTag) ? "אחרון" : question.LeftTag,
+                    RightTag = string.IsNullOrWhiteSpace(question.RightTag) ? "ראשון" : question.RightTag
                 };
 
                 string updateQuery = "UPDATE Stages SET Topic = @Topic, LeftTag = @LeftTag, " +
@@ -469,6 +472,9 @@ namespace AuthTemplate.Server.Controllers
                 //תמונה שהוחלפה או שהפריט שלה נמחק - הקובץ שלה מיותר עכשיו.
                 //מוחקים אותו כדי שתיקיית התמונות תישאר מסונכרנת עם בסיס הנתונים
                 DeleteUnusedImages(oldImages, question.Answers);
+
+                //אחרי עריכת שאלה - עדכון מצב הפרסום (טיוטה מורידה מפרסום)
+                await SyncPublishState(question.GameId);
 
                 return Ok(question);
             }
@@ -495,10 +501,21 @@ namespace AuthTemplate.Server.Controllers
                 //אוספים את שמות הקבצים לפני המחיקה, אחריה כבר אי אפשר לשלוף אותם
                 List<string> images = await GetQuestionImages(questionId);
 
+                //שומרים את מזהה המשחק לפני המחיקה, לצורך עדכון מצב הפרסום
+                var gameIds = await _db.GetRecordsAsync<int>(
+                    "SELECT GameId FROM Stages WHERE Id = @ID", new { ID = questionId });
+                int ownerGameId = gameIds == null ? 0 : gameIds.FirstOrDefault();
+
                 await _db.SaveDataAsync("DELETE FROM Stages WHERE Id = @ID", new { ID = questionId });
 
                 //מחיקת השאלה מוחקת גם את קבצי התמונות שלה
                 _files.DeleteFiles(images, "uploadedFiles");
+
+                //אחרי מחיקת שאלה - עדכון מצב הפרסום
+                if (ownerGameId > 0)
+                {
+                    await SyncPublishState(ownerGameId);
+                }
 
                 return Ok(questionId);
             }
@@ -717,6 +734,34 @@ namespace AuthTemplate.Server.Controllers
             }
 
             return counts.FirstOrDefault() > 0;
+        }
+
+
+        //סנכרון מצב הפרסום אחרי שינוי בשאלות.
+        //אם משחק מפורסם כבר לא עומד בתנאים (למשל נוצרה טיוטה) - מורידים אותו מפרסום
+        private async Task SyncPublishState(int gameId)
+        {
+            bool canPublish = await CheckCanPublish(gameId);
+            GameToTable game = await GetGameById(gameId);
+
+            //ברירת מחדל - נשארים במצב הנוכחי, אלא אם אי אפשר לפרסם יותר
+            bool isPublish = game.IsPublish;
+
+            if (canPublish == false)
+            {
+                isPublish = false;
+            }
+
+            object param = new
+            {
+                ID = gameId,
+                IsPublish = isPublish,
+                CanPublish = canPublish
+            };
+
+            await _db.SaveDataAsync(
+                "UPDATE Games SET IsPublish = @IsPublish, CanPublish = @CanPublish WHERE Id = @ID",
+                param);
         }
 
 
