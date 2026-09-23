@@ -46,7 +46,9 @@ namespace UsersManager.Server
                     Email = email
                 };
                 //שליפת פרטי המשתמש
-                string query = "SELECT Id, FirstName, LastName, Email FROM Users WHERE Email = @Email";
+                //COLLATE NOCASE כדי ששינוי אותיות גדולות/קטנות במייל
+                //שמגיע מהפורטל"מ לא ייצור משתמש חדש
+                string query = "SELECT Id, FirstName, LastName, Email FROM Users WHERE Email = @Email COLLATE NOCASE";
                 UserFromDB userFromDB = (await _db.GetRecordsAsync<UserFromDB>(query, user)).FirstOrDefault();
 
                 //אם המשתמש לא קיים
@@ -78,16 +80,64 @@ namespace UsersManager.Server
 
             try
             {
-                //בדיקה האם קיים משתמש במייל זה
-                int existId = (await _db.GetRecordsAsync<int>("SELECT Id FROM Users WHERE Email=@Email", newUser))
+                //הזהות שמגיעה מהפורטל"מ היא PortelemId, לא המייל. לטבלה יש
+                //אילוץ ייחודיות על שני השדות, ולכן אם המייל בפורטל"מ השתנה
+                //ההכנסה הייתה נכשלת על PortelemId והמשתמש היה ננעל בחוץ:
+                //ההתחברות לא מוצאת אותו לפי המייל החדש, וההרשמה לא יכולה
+                //ליצור אותו כי המזהה כבר תפוס.
+                //לכן קודם מחפשים לפי המזהה, ואם הוא קיים מרעננים את הפרטים
+                UserFromDB byPortelemId = (await _db.GetRecordsAsync<UserFromDB>(
+                        "SELECT Id, FirstName, LastName, Email FROM Users WHERE PortelemId = @PortelemId",
+                        newUser))
                     .FirstOrDefault();
-                if (existId > 0)
+
+                if (byPortelemId != null)
                 {
-                    _logger.LogWarning("Signup: User already exists with email {Email}", newUser.Email);
-                    return AuthConstants.UserExists;
+                    await _db.SaveDataAsync(
+                        "UPDATE Users SET Email = @Email, FirstName = @FirstName, LastName = @LastName " +
+                        "WHERE PortelemId = @PortelemId", newUser);
+
+                    byPortelemId.Email = newUser.Email;
+                    byPortelemId.FirstName = newUser.FirstName;
+                    byPortelemId.LastName = newUser.LastName;
+
+                    _logger.LogInformation(
+                        "Signup: existing user {UserId} matched by PortelemId, details refreshed", byPortelemId.Id);
+
+                    return CreateToken(byPortelemId);
                 }
 
-                //הכנסה לDB
+                //שורה עם אותו מייל אבל בלי המזהה - משלימים לה אותו.
+                //אין סכנת התנגשות, כי כבר ווידאנו שאף שורה לא מחזיקה במזהה
+                UserFromDB byEmail = (await _db.GetRecordsAsync<UserFromDB>(
+                        "SELECT Id, FirstName, LastName, Email FROM Users WHERE Email = @Email COLLATE NOCASE",
+                        newUser))
+                    .FirstOrDefault();
+
+                if (byEmail != null)
+                {
+                    object fix = new
+                    {
+                        ID = byEmail.Id,
+                        PortelemId = newUser.PortelemId,
+                        FirstName = newUser.FirstName,
+                        LastName = newUser.LastName
+                    };
+
+                    await _db.SaveDataAsync(
+                        "UPDATE Users SET PortelemId = @PortelemId, FirstName = @FirstName, " +
+                        "LastName = @LastName WHERE Id = @ID", fix);
+
+                    byEmail.FirstName = newUser.FirstName;
+                    byEmail.LastName = newUser.LastName;
+
+                    _logger.LogInformation(
+                        "Signup: existing user {UserId} matched by email, PortelemId filled in", byEmail.Id);
+
+                    return CreateToken(byEmail);
+                }
+
+                //משתמש חדש לגמרי - הכנסה לDB
                 string query =
                     "INSERT INTO Users (Email,FirstName,LastName,PortelemId) VALUES (@Email,@FirstName,@LastName,@PortelemId)";
 
