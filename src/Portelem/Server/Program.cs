@@ -71,21 +71,6 @@ app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 
-//תוכן דחוס מראש אינו ניתן להגשה בחלקים: פיסה מתוך זרם ברוטלי
-//אינה זרם ברוטלי תקין, והדפדפן נכשל ב-ERR_CONTENT_DECODING_FAILED.
-//כותרת Accept-Ranges בתשובה אינה מונעת את זה - היא רק מכריזה.
-//הסרת Range מהבקשה לפני שכבת הקבצים הסטטיים מחייבת תשובה מלאה
-app.Use(async (context, next) =>
-{
-    if (context.Request.Path.StartsWithSegments("/Game"))
-    {
-        context.Request.Headers.Remove("Range");
-        context.Request.Headers.Remove("If-Range");
-    }
-
-    await next();
-});
-
 //כל מה שתחת /Game הוא תוצר הבנייה של יוניטי. הפריסה דורסת אותו
 //תחת אותם שמות קבצים בדיוק, ולכן דפדפן ששמר גרסה קודמת מרכיב
 //ערבוב של ישן וחדש ונכשל בטעינה.
@@ -114,42 +99,17 @@ app.UseStaticFiles(new StaticFileOptions
     OnPrepareResponse = gameFiles
 });
 
-//Brotli files
-//בניית ה-WebGL של יוניטי מייצרת קבצי .br דחוסים מראש. השרת מגיש
-//אותם כמו שהם ומצהיר על הדחיסה, והדפדפן מפענח
+//קבצי הבנייה של יוניטי
+//הבנייה מוגדרת Brotli + Decompression Fallback, ולכן הקבצים הכבדים
+//נשמרים כ-.unityweb ויוניטי מפענחת אותם בעצמה בדפדפן.
+//חשוב לא להצהיר Content-Encoding עליהם: הדפדפן היה מפענח אותם
+//בעצמו ויוניטי הייתה מקבלת תוכן שכבר פוענח. בנוסף, כרום מקבל
+//Content-Encoding: br רק ב-https או ב-localhost, והשרת מוגש ב-http
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true,
-    OnPrepareResponse = ctx =>
-    {
-        gameFiles(ctx);
-
-        string name = ctx.File.Name;
-
-        if (name.EndsWith(".br", StringComparison.OrdinalIgnoreCase) == false) return;
-
-        if (name.EndsWith(".js.br", StringComparison.OrdinalIgnoreCase))
-        {
-            ctx.Context.Response.ContentType = "application/javascript";
-        }
-        else if (name.EndsWith(".wasm.br", StringComparison.OrdinalIgnoreCase))
-        {
-            ctx.Context.Response.ContentType = "application/wasm";
-        }
-        else
-        {
-            ctx.Context.Response.ContentType = "application/octet-stream";
-        }
-
-        //השמה ולא Append. Append מוסיף ערך נוסף, וכותרת
-        //"Content-Encoding: br, br" גורמת לדפדפן לנסות לפענח
-        //ברוטלי פעמיים ולהיכשל ב-ERR_CONTENT_DECODING_FAILED
-        ctx.Context.Response.Headers["Content-Encoding"] = "br";
-
-        //תוכן דחוס מראש לא ניתן להגשה בחלקים: טווח בייטים מתוך
-        //זרם ברוטלי אינו זרם ברוטלי תקין, והפענוח בדפדפן נכשל
-        ctx.Context.Response.Headers["Accept-Ranges"] = "none";
-    }
+    DefaultContentType = "application/octet-stream",
+    OnPrepareResponse = gameFiles
 });
 
 app.UseRouting();
