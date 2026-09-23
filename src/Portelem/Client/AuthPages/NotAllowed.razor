@@ -3,32 +3,29 @@
 
 @* ==========================================================
    מסך ההתחברות לפורטל"מ.
-   בזמן הבדיקה מוצג מסך הטעינה, ואם ההתחברות נכשלה מוצג מסך
-   השגיאה של הפיגמה: לוגו, "אוי לא משהו השתבש...", כפתור
-   ניסיון חוזר והגמד המודאג
+
+   הלוגיקה כאן זהה לחלוטין למקור, בכוונה: בזמן שהבדיקה רצה
+   הקומפוננטה לא מרנדרת כלום, בדיוק כמו קודם. LoginWithPortelem
+   מפנה את הדפדפן לפורטל"מ כשאין טוקן, וההשהיה של השנייה נותנת
+   להפניה הזאת לקרות לפני שמשהו מוצג. רק אם ההתחברות באמת
+   נכשלה מוצג מסך השגיאה של הפיגמה
    ========================================================== *@
 
 <PageTitle>התחברות</PageTitle>
 
-@if (checking == true)
-{
-    <div class="auth-screen">
-        <StatusScreen Title="רגע, בודקים את ההתחברות..." />
-    </div>
-}
-else if (auth == false)
+@if (!auth)
 {
     <div class="auth-screen" role="alert">
 
         <StatusScreen Title="אוי לא משהו השתבש..."
                       Image="assets-images/dwarf-error.png">
             <button class="auth-retry" type="button"
-                    title="ניסיון חוזר" @onclick="Retry">
+                    title="ניסיון חוזר" @onclick="Reload">
                 <img src="assets-images/refresh.png" alt="ניסיון חוזר" />
             </button>
         </StatusScreen>
 
-        @* דרך המילוט היחידה כשההתחברות לא מצליחה שוב ושוב *@
+        @* דרך המילוט כשההתחברות לא מצליחה שוב ושוב *@
         <a class="auth-portal" href="@_config["portelem:mainurl"]">מעבר לפורטל"מ</a>
 
     </div>
@@ -42,28 +39,22 @@ else if (auth == false)
     //משתמש ניסה להגיע למקום שאין לו הרשאות
     bool auth = true;
 
-    // בזמן הבדיקה מוצג מסך הטעינה ולא מסך השגיאה
-    bool checking = true;
-
     protected override async Task OnInitializedAsync()
-    {
-        await CheckLogin();
-    }
-
-    private async Task Retry()
-    {
-        checking = true;
-        auth = true;
-
-        await CheckLogin();
-    }
-
-    private async Task CheckLogin()
     {
         bool isAuth = await _AuthService.LoginWithPortelem();
         await Task.Delay(1000);
-
         auth = isAuth;
-        checking = false;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+
+    }
+
+    // טעינה מחדש של העמוד. לא מריץ את ההתחברות שוב מתוך
+    // הקומפוננטה, כדי לא להתערב בזרימת האימות
+    private void Reload()
+    {
+        nav.NavigateTo(nav.Uri, forceLoad: true);
     }
 }
