@@ -71,6 +71,21 @@ app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
 
+//תוכן דחוס מראש אינו ניתן להגשה בחלקים: פיסה מתוך זרם ברוטלי
+//אינה זרם ברוטלי תקין, והדפדפן נכשל ב-ERR_CONTENT_DECODING_FAILED.
+//כותרת Accept-Ranges בתשובה אינה מונעת את זה - היא רק מכריזה.
+//הסרת Range מהבקשה לפני שכבת הקבצים הסטטיים מחייבת תשובה מלאה
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/Game"))
+    {
+        context.Request.Headers.Remove("Range");
+        context.Request.Headers.Remove("If-Range");
+    }
+
+    await next();
+});
+
 //כל מה שתחת /Game הוא תוצר הבנייה של יוניטי. הפריסה דורסת אותו
 //תחת אותם שמות קבצים בדיוק, ולכן דפדפן ששמר גרסה קודמת מרכיב
 //ערבוב של ישן וחדש ונכשל בטעינה.
