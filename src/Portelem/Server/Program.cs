@@ -82,31 +82,38 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 //Brotli files
+//בניית ה-WebGL של יוניטי מייצרת קבצי .br דחוסים מראש. השרת מגיש
+//אותם כמו שהם ומצהיר על הדחיסה, והדפדפן מפענח
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true,
     OnPrepareResponse = ctx =>
     {
-        var path = ctx.File.Name;
+        string name = ctx.File.Name;
 
+        if (name.EndsWith(".br", StringComparison.OrdinalIgnoreCase) == false) return;
 
-        if (path.EndsWith(".br", StringComparison.OrdinalIgnoreCase))
+        if (name.EndsWith(".js.br", StringComparison.OrdinalIgnoreCase))
         {
-            if (path.EndsWith(".js.br"))
-            {
-                ctx.Context.Response.ContentType = "application/javascript";
-            }
-            else if (path.EndsWith(".wasm.br"))
-            {
-                ctx.Context.Response.ContentType = "application/wasm";
-            }
-            else if (path.EndsWith(".data.br"))
-            {
-                ctx.Context.Response.ContentType = "application/octet-stream";
-            }
-
-            ctx.Context.Response.Headers.Append("Content-Encoding", "br");
+            ctx.Context.Response.ContentType = "application/javascript";
         }
+        else if (name.EndsWith(".wasm.br", StringComparison.OrdinalIgnoreCase))
+        {
+            ctx.Context.Response.ContentType = "application/wasm";
+        }
+        else
+        {
+            ctx.Context.Response.ContentType = "application/octet-stream";
+        }
+
+        //השמה ולא Append. Append מוסיף ערך נוסף, וכותרת
+        //"Content-Encoding: br, br" גורמת לדפדפן לנסות לפענח
+        //ברוטלי פעמיים ולהיכשל ב-ERR_CONTENT_DECODING_FAILED
+        ctx.Context.Response.Headers["Content-Encoding"] = "br";
+
+        //תוכן דחוס מראש לא ניתן להגשה בחלקים: טווח בייטים מתוך
+        //זרם ברוטלי אינו זרם ברוטלי תקין, והפענוח בדפדפן נכשל
+        ctx.Context.Response.Headers["Accept-Ranges"] = "none";
     }
 });
 
