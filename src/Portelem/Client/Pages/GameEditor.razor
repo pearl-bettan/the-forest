@@ -37,19 +37,29 @@
         <div class="cards-row">
 
             @* כרטיס ההגדרות הכלליות - הרחב, מימין *@
+            @* הכותרת דו-שורתית כמו "תנאי פרסום": "הגדרות" מעל "כלליות".
+               מימין הכותרת, ומשמאלה שתי שורות - שם המשחק למעלה,
+               זמן לשאלה והעיפרון בשורה מתחת, מיושרות לשורות הכותרת *@
             <div class="head-card settings-card">
-                <h2 class="card-title">הגדרות כלליות</h2>
+                <h2 class="card-title">הגדרות<br />כלליות</h2>
 
-                <span class="card-item">שם המשחק: @game.GameName</span>
-                <span class="card-item">זמן לשאלה: @TimeText(game.TimePerQuestion)</span>
+                <div class="settings-info">
+                    <div class="settings-line">
+                        <span class="card-item">שם המשחק: @game.GameName</span>
+                    </div>
 
-                <span class="tip tip-below" data-tip="עריכת ההגדרות הכלליות">
-                    <button class="pen-btn"
-                            disabled="@IsEditing()"
-                            @onclick="OpenSettingsPopup">
-                        <img src="assets-images/pen.svg" alt="עריכה" width="25" height="25" />
-                    </button>
-                </span>
+                    <div class="settings-line">
+                        <span class="card-item">זמן לשאלה: @TimeText(game.TimePerQuestion)</span>
+
+                        <span class="tip tip-below" data-tip="עריכת ההגדרות הכלליות">
+                            <button class="pen-btn"
+                                    disabled="@IsEditing()"
+                                    @onclick="OpenSettingsPopup">
+                                <img src="assets-images/pen.svg" alt="עריכה" width="25" height="25" />
+                            </button>
+                        </span>
+                    </div>
+                </div>
             </div>
 
             @* כרטיס תנאי הפרסום - הצר, משמאל *@
