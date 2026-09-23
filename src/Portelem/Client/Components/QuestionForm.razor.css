@@ -345,6 +345,7 @@
 .popup-actions {
     display: flex;
     justify-content: center;
+    gap: 16px;
     margin-top: 22px;
 }
 
