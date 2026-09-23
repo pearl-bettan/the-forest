@@ -70,7 +70,24 @@ else
 app.UseHttpsRedirection();
 
 app.UseBlazorFrameworkFiles();
-app.UseStaticFiles();
+
+//כל מה שתחת /Game הוא תוצר הבנייה של יוניטי. הפריסה דורסת אותו
+//תחת אותם שמות קבצים בדיוק, ולכן דפדפן ששמר גרסה קודמת מרכיב
+//ערבוב של ישן וחדש ונכשל בטעינה.
+//no-cache אינו מבטל קאש אלא מחייב אימות מול השרת: קובץ שלא
+//השתנה מוחזר כ-304 ולא יורד שוב, וקובץ שהתחלף יורד מחדש
+Action<StaticFileResponseContext> gameFiles = ctx =>
+{
+    if (ctx.Context.Request.Path.StartsWithSegments("/Game"))
+    {
+        ctx.Context.Response.Headers["Cache-Control"] = "no-cache";
+    }
+};
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = gameFiles
+});
 
 //Special Files
 var provider = new FileExtensionContentTypeProvider();
@@ -78,7 +95,8 @@ provider.Mappings[".data"] = "application/json";
 provider.Mappings[".svg"] = "image/svg";
 app.UseStaticFiles(new StaticFileOptions
 {
-    ContentTypeProvider = provider
+    ContentTypeProvider = provider,
+    OnPrepareResponse = gameFiles
 });
 
 //Brotli files
@@ -89,6 +107,8 @@ app.UseStaticFiles(new StaticFileOptions
     ServeUnknownFileTypes = true,
     OnPrepareResponse = ctx =>
     {
+        gameFiles(ctx);
+
         string name = ctx.File.Name;
 
         if (name.EndsWith(".br", StringComparison.OrdinalIgnoreCase) == false) return;
