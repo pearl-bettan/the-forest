@@ -11,6 +11,17 @@ using Microsoft.Extensions.Logging;
 
 namespace AuthTemplate.Server.Controllers
 {
+    // ============================================================
+    // בקר ההתחברות מול פורטלם.
+    //
+    // המחולל אינו מנהל סיסמאות משלו. המשתמש מגיע מפורטלם עם
+    // טוקן SSO, השרת מוודא אותו מול פורטלם, ורק אז מנפיק טוקן
+    // משלו שישמש את שאר הבקשות במערכת.
+    //
+    // כלומר יש כאן שני טוקנים שונים ואסור לבלבל ביניהם:
+    //   ssoToken - הטוקן של פורטלם, נכנס פעם אחת בהתחברות
+    //   token    - הטוקן של המחולל, שמוחזר ללקוח ומלווה אותו
+    // ============================================================
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
@@ -21,6 +32,9 @@ namespace AuthTemplate.Server.Controllers
         private readonly TokenService _tokenService;
         private readonly ILogger<AuthController> _logger;
 
+        // ה-HttpClient נוצר דרך מפעל ולא ב-new, כדי שחיבורי הרשת
+        // ימוחזרו. יצירה ידנית חוזרת של HttpClient מרוקנת את
+        // מאגר החיבורים של המערכת
         public AuthController(AuthRepository authRepository, IHttpClientFactory httpClientFactory, IConfiguration configuration, TokenService tokenService, ILogger<AuthController> logger)
         {
             _authRepository = authRepository;
@@ -30,6 +44,9 @@ namespace AuthTemplate.Server.Controllers
             _logger = logger;
         }
 
+        // מחזיר את פרטי המשתמש המחובר: GET api/Auth/user
+        // המזהה נלקח מהטוקן שבבקשה, ולא מפרמטר, כדי שלא יהיה
+        // אפשר לבקש פרטים של משתמש אחר
         //קבלת פרטי משתמש
         [HttpGet("user")]
         public async Task<ActionResult> GetUser()
@@ -39,6 +56,22 @@ namespace AuthTemplate.Server.Controllers
         }
         
 
+        // ============================================================
+        // ההתחברות עצמה: POST api/Auth/portelemLogin
+        //
+        // מקבל את טוקן ה-SSO של פורטלם ועובר את השלבים:
+        //   1. בדיקת מבנה בסיסית של הטוקן
+        //   2. פנייה לפורטלם עם מזהה השירות והסוד, לאימות
+        //   3. שליפת הדוא"ל מתוך תביעות הטוקן
+        //   4. ניסיון התחברות לפי הדוא"ל
+        //   5. אם המשתמש אינו מוכר - רישום אוטומטי
+        //
+        // תשובה "false" מפורטלם אינה שגיאת רשת אלא תשובה תקינה
+        // שמשמעותה שהמשתמש אינו מורשה, ולכן היא נבדקת בנפרד.
+        //
+        // אין כאן מסך הרשמה: משתמש שנכנס בפעם הראשונה נרשם
+        // מאליו מתוך הפרטים שבטוקן
+        // ============================================================
         //התחברות
         [HttpPost("portelemLogin")]
         public async Task<IActionResult> PortelemLogin([FromBody] string ssoToken)
@@ -114,6 +147,20 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
+        // ============================================================
+        // רישום משתמש חדש מתוך תביעות טוקן פורטלם.
+        //
+        // פרטית ונקראת רק מ-PortelemLogin. מחלצת את המזהה
+        // מפורטלם (sub), הדוא"ל והשם, ומעבירה ל-Repository.
+        //
+        // sub והדוא"ל הם חובה - בלעדיהם אי אפשר לזהות את המשתמש
+        // בכניסה הבאה. השם הפרטי ושם המשפחה אינם חובה ומוחלפים
+        // במחרוזת ריקה אם הם חסרים.
+        //
+        // מחזירה טוקן של המחולל בהצלחה, או ErrorSignup בכישלון.
+        // הענף של UserExists נשאר מהגרסה הקודמת ואינו מגיע יותר,
+        // מאז שהרישום הפך לעדכון-או-הוספה לפי המזהה מפורטלם
+        // ============================================================
         async Task<string> SignUp(string jwt)
         {
             try
@@ -172,6 +219,9 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
+        // מחדש את הטוקן של המחולל לפני שהוא פג: GET api/Auth/refresh
+        // הלקוח קורא לכאן ברקע, כדי שמשתמש באמצע עבודה לא
+        // יימצא פתאום מנותק
         //מרענן את הטוקן שעומד לפוג
         [HttpGet("refresh")]
         public async Task<IActionResult> refreshToken()
@@ -200,6 +250,9 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
+        // התנתקות: GET api/Auth/logout
+        // הטוקן הנוכחי נכנס לרשימה השחורה, ולכן הוא נפסל מיד
+        // ולא רק נמחק מהדפדפן
         //התנתקות
         [HttpGet("logout")]
         public async Task<IActionResult> Logout()

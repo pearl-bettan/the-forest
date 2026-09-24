@@ -3,9 +3,21 @@ using System.Text.Json;
 
 namespace UsersManager.Client
 {
-    //לא לגעת
+    // ============================================================
+    // פענוח תביעות מתוך טוקן JWT, בצד הלקוח.
+    //
+    // הפענוח כאן הוא קריאה בלבד ולא אימות: הלקוח אינו מחזיק את
+    // מפתח החתימה ולכן אינו יכול לוודא את הטוקן. האימות האמיתי
+    // נעשה בשרת בכל בקשה. מה שקורה כאן הוא רק שליפת השם והדוא"ל
+    // לצורך התצוגה, ולכן אין להסתמך עליו כהחלטת אבטחה.
+    //
+    // לא לגעת
+    // ============================================================
     public static class JwtParser
     {
+        // מחלץ את התביעות מהחלק האמצעי של הטוקן.
+        // טוקן בנוי משלושה חלקים מופרדים בנקודה: כותרת, מטען
+        // וחתימה. רק המטען מכיל את פרטי המשתמש
         public static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)
         {
             var claims = new List<Claim>();
@@ -25,6 +37,8 @@ namespace UsersManager.Client
 
             return claims;
         }
+        // JWT משתמש ב-base64 בלי תווי ריפוד, ו-Convert דורש
+        // שהאורך יתחלק בארבע. כאן מוסיפים את הריפוד החסר
         private static byte[] ParseBase64WithoutPadding(string base64)
         {
             switch (base64.Length % 4)

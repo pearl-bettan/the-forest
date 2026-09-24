@@ -10,6 +10,17 @@ using Microsoft.Extensions.Logging;
 
 namespace UsersManager.Server
 {
+    // ============================================================
+    // מסנן פעולה שמוודא שהבקשה הגיעה ממשתמש מחובר.
+    //
+    // נרשם על Controller או על פעולה בעזרת [ServiceFilter], ורץ
+    // לפני גוף הפעולה. בסוף בדיקה מוצלחת הוא מזריק את מזהה
+    // המשתמש לתוך ארגומנטי הפעולה תחת השם authUserId, וכך כל
+    // פעולה מקבלת את המזהה בלי לפענח את הטוקן בעצמה.
+    //
+    // זו נקודת האכיפה המרכזית: משחק שייך למשתמש, וללא המזהה
+    // הזה אי אפשר לוודא שמי שמבקש לערוך משחק הוא אכן הבעלים
+    // ============================================================
     public class AuthCheck : IAsyncActionFilter
     {
         private const string AuthUserIdKey = "authUserId";
@@ -17,6 +28,9 @@ namespace UsersManager.Server
         private readonly TokenService _tokenService;
         private readonly ILogger<AuthCheck> _logger;
 
+        // כל התלויות מוזרקות, ואף אחת מהן אינה רשאית להיות ריקה.
+        // בדיקת null בבנאי מבטיחה שתקלת הרשמה ב-Program.cs תתגלה
+        // בעליית השרת ולא בבקשה הראשונה
         public AuthCheck(
             ITokenBlacklistService tokenBlacklistService,
             TokenService tokenService,
@@ -28,6 +42,17 @@ namespace UsersManager.Server
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        // ============================================================
+        // הבדיקה עצמה, לפי הסדר:
+        //   1. יש טוקן בכלל
+        //   2. הטוקן חתום ובתוקף
+        //   3. יש בו מזהה משתמש מספרי
+        //   4. הטוקן לא נפסל בהתנתקות
+        //
+        // סדר הבדיקות אינו מקרי: אימות החתימה זול יותר מפנייה
+        // לבסיס הנתונים, ולכן הרשימה השחורה נבדקת אחרונה.
+        // כל כישלון מחזיר 401 ועוצר את הבקשה בלי לקרוא ל-next
+        // ============================================================
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
             var token = ExtractToken(context.HttpContext.Request);
@@ -65,10 +90,17 @@ namespace UsersManager.Server
                 return;
             }
 
+            // הזרקת המזהה לפעולה. הפרמטר בחתימת הפעולה חייב
+            // להיקרא בדיוק authUserId כדי שההשמה הזו תתפוס
             context.ActionArguments[AuthUserIdKey] = userIdInt;
+
+            // רק כאן הבקשה ממשיכה לגוף הפעולה
             await next();
         }
 
+        // שולף את הטוקן מכותרת Authorization.
+        // מקבל גם כותרת בלי התחילית "Bearer ", כדי שלקוח שלא
+        // הוסיף אותה לא ייכשל סתם
         private static string ExtractToken(HttpRequest request)
         {
             var authHeader = request.Headers["Authorization"].ToString();

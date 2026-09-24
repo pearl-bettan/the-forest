@@ -1,4 +1,15 @@
-﻿@inject IAuthenticationService _Auth
+﻿@* ==========================================================
+   סרגל הניווט העליון, מופיע בכל עמודי האתר דרך MainLayout.
+
+   מכיל שלושה חלקים: הלוגו ושם המשתמש בצד ימין, קישורי
+   הניווט בצד שמאל, ושתי חלוניות - "איך משחקים" ו"אודות" -
+   שמוגדרות בתוך הקובץ הזה ונפתחות מעל העמוד.
+
+   פרטי המשתמש מגיעים כערך מדורג מ-App.razor, ולכן הסרגל
+   אינו פונה לשרת בעצמו
+   ========================================================== *@
+
+@inject IAuthenticationService _Auth
 @inject NavigationManager Nav
 
 <nav class="top-nav">
@@ -141,24 +152,30 @@
 
 
 @code {
+    // המשתמש המחובר, מגיע מ-App.razor. עשוי להיות null
+    // בזמן הטעינה או כשאיש אינו מחובר
     [CascadingParameter] private User user { get; set; }
 
     // איזו חלונית פתוחה כרגע
     bool isHowToOpen = false;
     bool isAboutOpen = false;
 
+    // פותח או סוגר את חלונית ההסבר. סוגר קודם את האודות,
+    // כדי ששתי החלוניות לא יוצגו זו מעל זו
     void ShowHowTo()
     {
         isAboutOpen = false;
         isHowToOpen = !isHowToOpen;
     }
 
+    // פותח או סוגר את חלונית האודות, וסוגר את ההסבר
     void ShowAbout()
     {
         isHowToOpen = false;
         isAboutOpen = !isAboutOpen;
     }
 
+    // סוגר הכול. נקרא גם מכפתור הסגירה וגם מלחיצה על הרקע
     void CloseAll()
     {
         isHowToOpen = false;

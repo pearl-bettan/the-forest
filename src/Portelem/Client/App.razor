@@ -1,13 +1,22 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
 @using AuthTemplate.Client.AuthPages
 
+@* ==========================================================
+   רכיב השורש של האפליקציה.
+   אחראי על שני דברים: הניתוב בין העמודים, ואספקת פרטי
+   המשתמש לכל המסכים כערך מדורג.
+   כל עמוד במערכת יושב בתוך העץ שנבנה כאן
+   ========================================================== *@
+
 @inject IAuthenticationService _Auth
 
 
+@* מספק את מצב ההזדהות לכל העץ. בלעדיו AuthorizeView לא יעבוד *@
 <CascadingAuthenticationState>
 
     <!-- פרטי המשתמש - משותפים לכולם -->
     <CascadingValue Value="user">
+    @* הראוטר סורק את ההרכבה ומוצא את העמודים לפי @page שלהם *@
         <Router AppAssembly="@typeof(Program).Assembly">
             <Found Context="routeData">
                 <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -37,9 +46,12 @@
 
 @code {
 
+    // פרטי המשתמש המחובר. מועברים כערך מדורג, ולכן כל מסך
+    // יכול לקבל אותם בלי לשלוף אותם בעצמו
     //המשתמש עצמו
     User? user;
 
+    // נרשם לאירוע שינוי ההזדהות וטוען את פרטי המשתמש הראשוניים
     protected override async Task OnInitializedAsync()
     {
         //קבלת פרטי המשתמש
@@ -47,6 +59,8 @@
         user = await _Auth.GetUserFromClaimAsync();
     }
 
+    // מרענן את פרטי המשתמש בכל כניסה או יציאה, וקורא
+    // ל-StateHasChanged כי האירוע מגיע מחוץ למחזור העדכון
     //בכל פעם שמשהו בהזדהות משתנה
     private async void HandleAuthenticationStateChanged()
     {
@@ -54,6 +68,8 @@
         StateHasChanged(); // רענון הקומפוננטה
     }
 
+    // ניתוק מהאירוע. בלעדיו הרכיב היה נשאר מוחזק בזיכרון
+    // על ידי השירות גם אחרי שהוסר
     public void Dispose()
     {
         _Auth.OnAuthenticationStateChanged -= HandleAuthenticationStateChanged;

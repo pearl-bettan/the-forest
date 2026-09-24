@@ -69,6 +69,8 @@
 
     private CancellationTokenSource timeoutSource;
 
+    // מפעיל את שעון העצר כבר בטעינת העמוד, כדי שמשחק שלא
+    // נטען כלל לא ישאיר את השחקן במסך טעינה לנצח
     protected override void OnInitialized()
     {
         StartTimeout();
@@ -84,6 +86,9 @@
         return $"Game/index.html?code={code}";
     }
 
+    // נקרא מאירוע onload של המסגרת. מעביר למצב "מוכן" ומבטל
+    // את שעון העצר. הבדיקה בתחילתו מונעת מ-onload חוזר לשנות
+    // מצב אחרי שכבר הוצגה שגיאה
     private void GameLoaded()
     {
         if (state != PlayState.Loading) return;
@@ -92,6 +97,9 @@
         CancelTimeout();
     }
 
+    // ניסיון חוזר: קידום מזהה הניסיון בונה iframe חדש לגמרי,
+    // כי @key השתנה. בלי זה הדפדפן היה משאיר את המסגרת הקיימת
+    // ו-onload לא היה נורה שוב
     private void Retry()
     {
         attempt = attempt + 1;
@@ -99,6 +107,8 @@
         StartTimeout();
     }
 
+    // מאתחל את שעון העצר. מבטל קודם כל שעון קיים, כדי ששני
+    // ניסיונות רצופים לא יריצו שתי המתנות במקביל
     private void StartTimeout()
     {
         CancelTimeout();
@@ -110,6 +120,9 @@
         _ = WatchTimeout(timeoutSource.Token);
     }
 
+    // ממתין למשך הפסק זמן, ואם המשחק עדיין לא נטען מציג שגיאה.
+    // StateHasChanged נקרא דרך InvokeAsync כי ההמשך רץ מחוץ
+    // לחוט הרינדור של Blazor
     private async Task WatchTimeout(CancellationToken token)
     {
         try
@@ -129,6 +142,7 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    // מבטל ומשחרר את שעון העצר, אם קיים
     private void CancelTimeout()
     {
         if (timeoutSource == null) return;
@@ -138,6 +152,8 @@
         timeoutSource = null;
     }
 
+    // ביטול שעון העצר ביציאה מהעמוד. בלעדיו ההמתנה הייתה
+    // ממשיכה לרוץ וניגשת למצב של עמוד שכבר נסגר
     public void Dispose()
     {
         CancelTimeout();

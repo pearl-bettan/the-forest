@@ -5,12 +5,22 @@ using System.Text;
 
 namespace UsersManager.Server
 {
-    //לא לגעת - ניהול טוקנים
+    // ============================================================
+    // ייצור ואימות של טוקני JWT.
+    //
+    // הטוקן נחתם במפתח סימטרי שיושב ב-appsettings, ולכן השרת
+    // יכול לאמת אותו בלי לשמור שום מצב. כל המידע על המשתמש
+    // יושב בתוך הטוקן עצמו, בתביעות.
+    //
+    // לא לגעת - ניהול טוקנים
+    // ============================================================
     public class TokenService
     {
         private readonly IConfiguration _configuration;
         private readonly string _securityKey;
         private readonly string _validIssuer;
+        // המפתח והמנפיק נקראים פעם אחת מקובץ ההגדרות.
+        // שינוי המפתח פוסל מיידית את כל הטוקנים הקיימים
         public TokenService(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -18,6 +28,8 @@ namespace UsersManager.Server
             _validIssuer = _configuration["JWTSettings:validIssuer"];
         }
 
+        // בונה טוקן חתום מרשימת תביעות, בתוקף ליומיים.
+        // מוחזר ללקוח בהתחברות ונשלח בכל בקשה בכותרת Authorization
         public string GenerateToken(List<Claim> claims)
         {
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_securityKey));
@@ -33,6 +45,17 @@ namespace UsersManager.Server
         }
 
 
+        // ============================================================
+        // מאמת טוקן ומחזיר את זהות המשתמש שבו, או null אם נכשל.
+        //
+        // נבדקים המנפיק, תוקף החתימה ותאריך התפוגה. הקהל אינו
+        // נבדק כי לשרת הזה יש צרכן אחד בלבד.
+        // ClockSkew אופס: ברירת המחדל מאפשרת חמש דקות חריגה,
+        // וכאן רוצים שתוקף שפג ייפסל מיד.
+        //
+        // כל חריגה נבלעת ומוחזר null, כי מבחינת הקורא כישלון
+        // אימות הוא תוצאה ולא תקלה
+        // ============================================================
         public ClaimsPrincipal ValidateToken(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -70,12 +93,16 @@ namespace UsersManager.Server
             }
         }
 
+        // בודק אם תוקף הטוקן פג, בלי לבדוק את החתימה
         public bool IsTokenExpired(string token)
         {
             var jwtToken = new JwtSecurityTokenHandler().ReadToken(token) as JwtSecurityToken;
             return jwtToken.ValidTo < DateTime.UtcNow;
         }
 
+        // מחדש טוקן שעומד לפוג בחמש הדקות הקרובות, ומחזיר אותו
+        // כמות שהוא אם עוד יש לו זמן. טוקן לא תקין מחזיר null.
+        // התביעות מועתקות כפי שהן, ולכן המשתמש נשאר אותו משתמש
         public string RefreshToken(string token)
         {
             var principal = ValidateToken(token);
@@ -98,6 +125,14 @@ namespace UsersManager.Server
             return token; 
         }
 
+        // ============================================================
+        // שולף את התביעות מתוך טוקן בלי לאמת אותו.
+        //
+        // משמש לקריאת הטוקן של פורטלם, שנחתם במפתח של פורטלם
+        // ולא במפתח של המחולל ולכן אינו עובר כאן אימות חתימה.
+        // רשימה ריקה מוחזרת על כל תקלה, כדי שהקורא לא יצטרך
+        // לטפל בחריגות
+        // ============================================================
         public List<Claim> GetClaims(string jwt)
         {
             if (string.IsNullOrWhiteSpace(jwt))

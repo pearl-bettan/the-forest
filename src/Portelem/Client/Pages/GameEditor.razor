@@ -1,4 +1,4 @@
-@attribute [Authorize]
+﻿@attribute [Authorize]
 @page "/GameEditor/{GameId:int}"
 
 @using AuthTemplate.Shared.Models.Games
@@ -366,9 +366,12 @@
 
 @code {
 
+    // מזהה המשחק, מגיע מהכתובת. הבעלות עליו נבדקת בשרת ולא כאן
     [Parameter]
     public int GameId { get; set; }
 
+    // המשתמש המחובר, ערך מדורג מ-App.razor. הטעינה מותנית בו
+    // ולכן יושבת ב-OnParametersSetAsync ולא ב-OnInitializedAsync
     [CascadingParameter]
     private User user { get; set; }
 
@@ -395,12 +398,15 @@
 
     // ההגדרות הכלליות
     GameToEdit gameForm = new GameToEdit();
+
+    // האם פופאפ ההגדרות פתוח
     bool isSettingsOpen = false;
 
     // הערכים שהיו בפתיחת הפופאפ, כדי לזהות אם בוצע שינוי
     string originalName = "";
     int originalTime = -1;
 
+    // הודעת השגיאה שמוצגת. ריקה = אין שגיאה
     string msg = "";
 
     // לפי האפיון: ללא הגבלת זמן, דקה, דקה וחצי, שתי דקות
@@ -412,6 +418,7 @@
         new TimeOption { Seconds = 120, Label = "שתי דקות" }
     };
 
+    // אפשרות אחת ברשימת הזמנים: הערך שנשמר, והכיתוב שמוצג
     public class TimeOption
     {
         public int Seconds { get; set; }
@@ -423,6 +430,8 @@
     // טעינה
     // ==========================================================
 
+    // טוען את המשחק ואת השאלות שלו. שתי קריאות נפרדות, כי
+    // רשימת המשחקים אינה נושאת את השאלות עמה
     protected override async Task OnParametersSetAsync()
     {
         if (user != null && user.Id > 0)
@@ -445,6 +454,9 @@
     }
 
 
+    // טוען מחדש את השאלות מהשרת. נקרא אחרי כל שמירה או מחיקה,
+    // כדי שהמזהים והסדר יהיו אלה שבבסיס הנתונים ולא ניחוש מקומי.
+    // כישלון מציב רשימה ריקה ולא משאיר את הקודמת, שכבר אינה נכונה
     async Task LoadQuestions()
     {
         var res = await Http.GetAsync($"api/games/{GameId}/questions");
@@ -464,6 +476,7 @@
     // תנאי הפרסום
     // ==========================================================
 
+    // התנאי הראשון לפרסום: לפחות שלוש שאלות במשחק
     bool HasEnoughQuestions()
     {
         return questions.Count >= 3;
@@ -500,6 +513,7 @@
     }
 
 
+    // מחלקת ה-CSS של סימון הפרסום
     string PublishCheckClass()
     {
         if (game.IsPublish == true) return "is-published";
@@ -518,6 +532,7 @@
     }
 
 
+    // הטקסט בטולטיפ של כפתור הפרסום, לפי שלושת המצבים
     string PublishTip()
     {
         if (game.CanPublish == false && game.IsPublish == false)
@@ -534,6 +549,8 @@
     }
 
 
+    // מחליף את מצב הפרסום. המשחק מוחלף בזה שחזר מהשרת, ולכן
+    // גם CanPublish מתעדכן ולא רק IsPublish
     async Task PublishGame()
     {
         var res = await Http.PutAsJsonAsync($"api/games/publishGame/{game.ID}", game.ID);
@@ -555,12 +572,15 @@
     // רשימת השאלות
     // ==========================================================
 
+    // האם שאלה כלשהי פתוחה בעריכה כרגע
     bool IsEditing()
     {
         return openQuestionId != 0;
     }
 
 
+    // הטקסט בטולטיפ של כפתור הוספת שאלה. מסביר למה הוא כבוי
+    // כשכבר יש 10 שאלות, במקום להשאיר כפתור אפור בלי הסבר
     string AddQuestionTip()
     {
         if (questions.Count >= 10)
@@ -572,6 +592,7 @@
     }
 
 
+    // מגבלת 10 שאלות למשחק, לפי האפיון
     bool CanAddQuestion()
     {
         return questions.Count < 10;
@@ -592,6 +613,7 @@
     }
 
 
+    // הטקסט בטולטיפ של כפתור פתיחת הכל, לפי מצבו הנוכחי
     string ExpandAllTip()
     {
         if (AreAllExpanded() == true) return "סגירת התצוגה של כל השאלות";
@@ -616,6 +638,7 @@
     }
 
 
+    // פותח או סוגר שאלה בודדת לתצוגה
     void ToggleExpand(int questionId)
     {
         if (expanded.Contains(questionId) == true)
@@ -674,6 +697,8 @@
     }
 
 
+    // יציאה ממצב עריכה בלי לשמור. העותק הנערך נזרק, ולכן
+    // מה שמוצג ברשימה נשאר כפי שהיה
     void CancelQuestion()
     {
         editedQuestion = null;
@@ -732,6 +757,7 @@
     }
 
 
+    // מסמן שאלה כממתינה לאישור מחיקה, ובכך פותח את הפופאפ
     void AskDeleteQuestion(QuestionToEdit question)
     {
         questionToDelete = question;
@@ -758,6 +784,13 @@
     }
 
 
+    // ============================================================
+    // מוחק את השאלה שממתינה לאישור.
+    //
+    // הפריטים שלה נמחקים בשרת דרך המחיקה המדורגת.
+    // אחרי המחיקה נטענות השאלות מחדש וגם המשחק עצמו, כי מחיקת
+    // שאלה עשויה לשנות את CanPublish ולהוריד את המשחק מפרסום
+    // ============================================================
     async Task DeleteQuestion()
     {
         int deletedId = questionToDelete.ID;
@@ -804,12 +837,14 @@
     }
 
 
+    // סוגר את פופאפ ההגדרות בלי לשמור
     void CloseSettingsPopup()
     {
         isSettingsOpen = false;
     }
 
 
+    // אורך השם שהוזן, עבור מונה התווים
     int NameLength()
     {
         if (gameForm.GameName == null)
@@ -830,6 +865,7 @@
     }
 
 
+    // צבע המונה: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה
     string CounterClass()
     {
         if (NameLength() >= NameMax)
@@ -846,6 +882,7 @@
     }
 
 
+    // כפתור השמירה מוצג רק כשהשם תקין ונבחר זמן
     bool IsFormReady()
     {
         if (string.IsNullOrWhiteSpace(gameForm.GameName))
@@ -884,6 +921,8 @@
     }
 
 
+    // שומר את ההגדרות הכלליות. המשחק מוחלף בזה שחזר מהשרת,
+    // כדי שהמסך יציג את מה שנשמר בפועל
     async Task SaveSettings()
     {
         var editRes = await Http.PutAsJsonAsync("api/games/editGame/", gameForm);
@@ -906,6 +945,8 @@
     // עזרה
     // ==========================================================
 
+    // טוען מחדש רק את המשחק, בלי השאלות. נקרא אחרי כל שינוי
+    // בשאלות, כי הוא זה שמביא את CanPublish ואת IsPublish המעודכנים
     async Task RefreshGame()
     {
         var gameRes = await Http.GetAsync($"api/games/{GameId}");
@@ -917,12 +958,14 @@
     }
 
 
+    // חזרה לרשימת המשחקים
     void BackToList()
     {
         Nav.NavigateTo("GamesList");
     }
 
 
+    // מתרגם שניות לכיתוב בעברית, להצגה במסך
     string TimeText(int seconds)
     {
         if (seconds == 0) return "ללא הגבלת זמן";
@@ -934,6 +977,9 @@
     }
 
 
+    // מתרגם את הודעת השגיאה שחזרה מהשרת להודעה בעברית.
+    // השרת מחזיר מחרוזות באנגלית, והתרגום מרוכז כאן כדי שכל
+    // המסך ידבר בשפה אחת
     void ShowError(string error)
     {
         switch (error)

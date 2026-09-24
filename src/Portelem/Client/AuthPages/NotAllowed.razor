@@ -36,9 +36,14 @@
     [Inject]
     public IAuthenticationService _AuthService { get; set; }
 
+    // מתחיל כ-true בכוונה: כל עוד הבדיקה רצה לא מוצג כלום,
+    // ורק כישלון ממשי הופך אותו ל-false ומציג את מסך השגיאה.
+    // ערך התחלתי false היה מבהב את מסך השגיאה בכל כניסה
     //משתמש ניסה להגיע למקום שאין לו הרשאות
     bool auth = true;
 
+    // מריץ את ההתחברות. ההשהיה של שנייה נותנת להפניה לפורטל"מ
+    // להתרחש בפועל לפני שמשהו מוצג על המסך
     protected override async Task OnInitializedAsync()
     {
         bool isAuth = await _AuthService.LoginWithPortelem();
@@ -46,6 +51,8 @@
         auth = isAuth;
     }
 
+    // נשארת ריקה בכוונה. היא הייתה קיימת במקור, והוצאתה
+    // משנה את סדר מחזור החיים של הקומפוננטה
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
 

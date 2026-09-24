@@ -6,6 +6,16 @@ using System.Text;
 using Data;
 using Microsoft.AspNetCore.StaticFiles;
 
+// ============================================================
+// נקודת הכניסה של השרת.
+//
+// הקובץ בנוי בשני חלקים שסדרם קריטי:
+//   1. רישום שירותים ב-builder.Services - מה זמין להזרקה
+//   2. בניית צינור הבקשות ב-app.Use... - מה רץ על כל בקשה,
+//      לפי הסדר שבו הוא נכתב כאן
+//
+// שינוי סדר השורות בחלק השני משנה את התנהגות השרת
+// ============================================================
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,12 +23,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
+// גישה לבסיס הנתונים. Scoped - מופע אחד לכל בקשה, כדי
+// שחיבור לא ישותף בין בקשות מקבילות
 //DB
 builder.Services.AddScoped<DbRepository>();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddHttpClient();
 
+// ---------- ניהול משתמשים ----------
+// AuthCheck ו-AuthRepository תלויים בבקשה הנוכחית ולכן Scoped.
+// TokenService ו-PasswordService חסרי מצב ולכן Singleton -
+// מופע אחד לכל חיי השרת
 //User management
 builder.Services.AddScoped<AuthCheck>();
 builder.Services.AddScoped<AuthRepository>();
@@ -29,6 +45,10 @@ builder.Services.AddSingleton<PasswordService>();
 //Files
 builder.Services.AddScoped<FilesManage>();
 
+// ---------- הגדרות אימות הטוקן ----------
+// ההגדרות כאן חלות על [Authorize] של המערכת. AuthCheck מבצע
+// אימות משלו באותם פרמטרים, ולכן שינוי כאן מחייב בדיקה גם שם.
+// הקהל אינו נבדק כי לשרת יש צרכן אחד בלבד
 //JWT
 var jwtSettings = builder.Configuration.GetSection("JWTSettings");
 builder.Services.AddAuthentication(options =>
@@ -51,6 +71,7 @@ builder.Services.AddAuthentication(options =>
         };
     });
 
+// שירות רקע לניקוי הרשימה השחורה, רץ כל עוד השרת פועל
 builder.Services.AddHostedService<TokenCleanupBackgroundService>();
 
 var app = builder.Build();
@@ -114,6 +135,9 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseRouting();
 
+// ---------- שכבות האימות ----------
+// הסדר מחייב: פסילת טוקנים לפני האימות, כדי שטוקן שנפסל
+// בהתנתקות ייחסם עוד לפני שהמערכת מקבלת אותו כתקף
 //user management
 app.UseMiddleware<TokenBlacklistMiddleware>();
 app.UseAuthentication();
@@ -122,6 +146,10 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
+
+// כל כתובת שלא נתפסה על ידי בקר או קובץ מוחזרת אל index.html,
+// כדי שהניווט הפנימי של Blazor יטפל בה. בלי זה רענון עמוד
+// בכתובת פנימית היה מחזיר 404
 app.MapFallbackToFile("index.html");
 
 app.Run();

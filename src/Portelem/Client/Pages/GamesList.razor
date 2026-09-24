@@ -310,6 +310,9 @@
 
 @code {
 
+    // המשתמש המחובר, מגיע כערך מדורג מ-App.razor.
+    // הטעינה מהשרת מותנית בו, ולכן היא יושבת ב-OnParametersSetAsync
+    // ולא ב-OnInitializedAsync: הערך המדורג עדיין לא זמין באתחול
     [CascadingParameter]
     private User user { get; set; }
 
@@ -327,7 +330,10 @@
     // all / published / draft
     string publishFilter = "all";
 
+    // עמודת המיון הנוכחית: name / code / count / publish
     string sortColumn = "name";
+
+    // כיוון המיון. לחיצה חוזרת על אותה כותרת הופכת אותו
     bool sortAsc = true;
 
 
@@ -361,6 +367,13 @@
     }
 
 
+    // ============================================================
+    // ההשוואה בין שני משחקים, לפי העמודה הנבחרת.
+    //
+    // שובר השוויון לפי המזהה אינו קישוט: בלעדיו שני משחקים בעלי
+    // אותו שם היו יכולים להחליף מקומות בין רינדור לרינדור, והשורות
+    // היו קופצות מול המשתמשת בלי סיבה נראית לעין
+    // ============================================================
     int CompareGames(GameToTable a, GameToTable b)
     {
         int cmp = 0;
@@ -403,6 +416,7 @@
     }
 
 
+    // החץ שמופיע ליד כותרת העמודה הממוינת, ומחרוזת ריקה לשאר
     string SortMark(string column)
     {
         if (sortColumn != column) return "";
@@ -413,6 +427,7 @@
     // המופע שמקושר לטופס יצירת המשחק
     GameToAdd gameForm = new GameToAdd();
 
+    // האם פופאפ יצירת המשחק פתוח
     bool isPopupOpen = false;
 
     // האם הטעינה מהשרת הסתיימה. עד אז לא מציגים את המצב הריק
@@ -421,6 +436,7 @@
     // המשחק שממתין לאישור מחיקה
     GameToTable gameToDelete;
 
+    // הודעת השגיאה שמוצגת למשתמשת. ריקה = אין שגיאה
     string msg = "";
 
     // אפשרויות הזמן לשאלה. 0 = ללא הגבלה
@@ -433,6 +449,7 @@
         new TimeOption { Seconds = 120, Label = "שתי דקות" }
     };
 
+    // אפשרות אחת ברשימת הזמנים: הערך שנשמר, והכיתוב שמוצג
     public class TimeOption
     {
         public int Seconds { get; set; }
@@ -474,6 +491,8 @@
     }
 
 
+    // סוגר את פופאפ היצירה בלי לשמור. הטופס עצמו אינו מאופס
+    // כאן אלא בפתיחה הבאה, ב-OpenAddPopup
     void ClosePopup()
     {
         isPopupOpen = false;
@@ -553,6 +572,7 @@
     }
 
 
+    // מעבר לעמוד עריכת המשחק
     void OpenEditor(int gameId)
     {
         Nav.NavigateTo($"GameEditor/{gameId}");
@@ -589,6 +609,7 @@
     }
 
 
+    // מחלקת ה-CSS של סימון הפרסום: כבוי, דלוק או לא זמין
     string PublishCheckClass(GameToTable game)
     {
         if (CanTogglePublish(game) == false) return "publish-check-disabled";
@@ -599,6 +620,7 @@
     }
 
 
+    // הכיתוב ליד הסימון, לפי שלושת המצבים האפשריים
     string PublishLabel(GameToTable game)
     {
         if (game.IsPublish == true) return "מפורסם";
@@ -639,12 +661,21 @@
     }
 
 
+    // ביטול אישור המחיקה. ניקוי המשחק הממתין סוגר את הפופאפ
     void CancelDelete()
     {
         gameToDelete = null;
     }
 
 
+    // ============================================================
+    // מוחק את המשחק שממתין לאישור.
+    //
+    // המשחק מוסר מהרשימה המקומית במקום לטעון מחדש את כל הטבלה
+    // מהשרת, כדי שהמסך יגיב מיד.
+    // המשחק הממתין מנוקה בשני המסלולים, גם בכישלון, אחרת הפופאפ
+    // היה נשאר פתוח מעל הודעת השגיאה
+    // ============================================================
     async Task DeleteGame()
     {
         var deleteRes = await Http.DeleteAsync($"api/games/deleteGame/{gameToDelete.ID}");
