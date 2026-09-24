@@ -13,8 +13,9 @@ using UnityEngine;
 // המחולל מטמיע אותה ב-iframe ומעביר את קוד המשחק בכתובת:
 //     Game/index.html?code=1001
 //
-// ההגדרות כאן הן בדיוק אלה שבמצגת: דחיסת Brotli ו-Data Caching כבוי,
-// בתוספת Decompression Fallback - כי השרת מוגש ב-http ולא ב-https.
+// ההגדרות כאן הן בדיוק אלה שבמצגת: דחיסת Brotli ו-Data Caching כבוי.
+// Brotli דורש שהשרת יחזיר Content-Encoding, וזה מטופל ב-Program.cs
+// של צד ה-Server.
 //
 // שתי דרכים להריץ:
 //   1. מהתפריט   ForestGame > Export game to Web   (Ctrl+Shift+W)
@@ -112,7 +113,7 @@ public class WebGLExport : EditorWindow
         EditorGUILayout.Space(10);
 
         EditorGUILayout.LabelField("הגדרות שיוחלו", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField("  דחיסה", "Brotli + Decompression Fallback");
+        EditorGUILayout.LabelField("  דחיסה", "Brotli");
         EditorGUILayout.LabelField("  Data Caching", "כבוי");
         EditorGUILayout.LabelField("  חריגות", "Explicitly Thrown Only");
         EditorGUILayout.LabelField("  גודל הבמה", "1280 x 720");
@@ -275,21 +276,6 @@ public class WebGLExport : EditorWindow
         // Brotli, ו-Data Caching מכובה
         PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
         PlayerSettings.WebGL.dataCaching = false;
-
-        //דפדפנים מקבלים Content-Encoding: br רק בחיבור מאובטח -
-        //HTTPS או localhost. השרת שלנו מוגש ב-http על פורט 5000,
-        //ולכן כרום דוחה את הקבצים הדחוסים ב-ERR_CONTENT_DECODING_FAILED.
-        //Decompression Fallback מצרף לבנייה מפענח ברוטלי משלה:
-        //הקבצים נשמרים כ-.unityweb, השרת מגיש אותם בלי להצהיר על דחיסה,
-        //והפענוח קורה בדפדפן. הגודל נשאר קטן והעבודה על http תקינה
-        PlayerSettings.WebGL.decompressionFallback = true;
-
-        //UnityWebRequest חוסם מברירת מחדל כל פנייה ב-http.
-        //המשחק פונה ל-API של המחולל בכתובת יחסית, והמחולל מוגש
-        //ב-http על פורט 5000, ולכן הבקשה נחסמת ב-
-        //InvalidOperationException: Insecure connection not allowed.
-        //ברגע שהשרת יעבור ל-https אפשר להחזיר את זה ל-NotAllowed
-        PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed;
 
         // חריגות מלאות מנפחות את הבנייה. מספיק מה שנזרק במפורש
         PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;

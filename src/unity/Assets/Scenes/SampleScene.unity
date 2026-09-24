@@ -632,11 +632,6 @@ MonoBehaviour:
   startView: {fileID: 725345855}
   centerView: {fileID: 491281380}
   endView: {fileID: 642741197}
-  spacing: 2.6
-  beadScale: 1
-  rightToLeft: 0
-  sortingLayerName: Default
-  sortingOrder: 10
 --- !u!1 &441529527 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7551264930349279039, guid: 38367ba5c725b4932b812d6b789de425, type: 3}
@@ -2164,7 +2159,7 @@ Transform:
   m_GameObject: {fileID: 725345853}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -15.48743, y: 0, z: 0}
+  m_LocalPosition: {x: -14.86, y: 0, z: 0}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2670,12 +2665,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 5
-  m_Sprite: {fileID: -6150384008709971305, guid: 1f9230939640d495893b09f9a2aa980d, type: 3}
+  m_Sprite: {fileID: 7780428649939741356, guid: 36d8eb53be7027d41a226374232e469c, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 3.87, y: 4.95}
+  m_Size: {x: 1.5203712, y: 3.86}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -2754,13 +2749,18 @@ MonoBehaviour:
     m_RotationOrder: 4
   reactionTime: 0.8
   sideSpriteLooksRight: 1
-  skipSpriteLooksRight: 1
+  skipSpriteLooksRight: 0
   skipAlwaysFacesLeft: 1
   skipStartDistance: 1.2
-  skipSpeed: 6
-  skipHeight: 1.1
+  skipHeight: 2.2
+  skipStoneOffsetY: 1.5
   skipEndPause: 0.6
   skipBoolName: IsSkipping
+  jumpStateName: Jump
+  clipTakeOffTime: 0.6
+  clipAirTime: 1
+  clipLandTime: 0.5333
+  jumpCycleTime: 0.9
   allowFreeWalk: 1
   gameManager: {fileID: 520055043}
   gameCamera: {fileID: 519420033}

@@ -64,17 +64,39 @@ public class DwarfScript : MonoBehaviour
     // עד הנקודה הזאת הוא הולך באנימציית ההליכה הרגילה
     [SerializeField] float skipStartDistance = 1.2f;
 
-    // מהירות הדילוג על אבני האגם בסיום שאלה מוצלחת
-    [SerializeField] float skipSpeed = 6;
-
     // גובה הקפיצה בין אבן לאבן
     [SerializeField] float skipHeight = 1.1f;
+
+    // כמה להרים את הגמד מעל נקודת האבן.
+    // נקודות ה-Slots הן המקום שאליו האבנים עפות, והן יושבות
+    // באמצע הסלע. נקודת האחיזה של הגמד היא באמצע הגוף ולא ברגליים,
+    // ולכן בלי ההרמה הזאת הוא נראה שקוע בתוך הסלע
+    [SerializeField] float skipStoneOffsetY = 1.5f;
 
     // כמה זמן הגמד עומד על האבן האחרונה לפני שממשיכים
     [SerializeField] float skipEndPause = 0.6f;
 
     // שם הפרמטר של אנימציית הדילוג ב-Animator
     [SerializeField] string skipBoolName = "IsSkipping";
+
+    // שם מצב הקפיצה ב-Animator. משמש כדי להתחיל את הקליפ
+    // מההתחלה בכל קפיצה, כך שהתנועה והציור לא מתפצלים
+    [SerializeField] string jumpStateName = "Jump";
+
+    [Header("Jump Clip Phases")]
+    // מבנה הקליפ Jump בשניות, כפי שהוא מצויר:
+    //   0     - 0.10    התכופפות והתנתקות מהאבן
+    //   0.10  - 1.10    באוויר
+    //   1.10  - 2.1333  נחיתה והתייצבות על האבן הבאה
+    // הקוד מזיז את הגמד לפי החלוקה הזאת, ולכן הרגליים עוזבות
+    // את האבן ונוחתות עליה בדיוק כשהציור עושה את זה
+    [SerializeField] float clipTakeOffTime = 0.10f;
+    [SerializeField] float clipAirTime = 1.00f;
+    [SerializeField] float clipLandTime = 1.0333f;
+
+    // כמה זמן תימשך קפיצה שלמה במשחק. הקליפ נמתח או מתכווץ
+    // לזמן הזה, ושלושת השלבים נשארים ביחס המקורי ביניהם
+    [SerializeField] float jumpCycleTime = 0.7f;
 
     [Header("Free Walk")]
     // האם מותר לשחקן לשלוח את הגמד לטייל על הדשא
@@ -109,9 +131,14 @@ public class DwarfScript : MonoBehaviour
     private List<Vector2> skipPath;
     private int skipIndex;
     private Vector2 skipFrom;
-    private float skipProgress;
     private float skipEndTimer;
     private System.Action skipFinished;
+
+    // כמה זמן עבר מתחילת הקפיצה הנוכחית
+    private float hopTimer;
+
+    // המזהה של מצב הקפיצה ב-Animator
+    private int jumpStateHash;
 
     void Awake()
     {
@@ -351,34 +378,115 @@ public class DwarfScript : MonoBehaviour
     {
         skipIndex = 0;
         skipFrom = transform.position;
-        skipProgress = 0;
 
         StopWalkAnimation();
         StartSkipAnimation();
 
+        jumpStateHash = Animator.StringToHash(jumpStateName);
+
+        // **לא** נותנים ל-Animator להריץ את הקליפ בעצמו.
+        // speed = 0 מקפיא אותו, ואנחנו מזיזים אותו ידנית בכל פריים
+        // לפי התקדמות הקפיצה. ככה הציור והתנועה לא יכולים להיפרד,
+        // בלי תלות במהירויות של המצב או של המעברים
+        if (animator != null) animator.speed = 0;
+
+        StartHop();
+
         state = "skip";
+
+        Debug.Log("Skip started: stones=" + skipPath.Count +
+                  "  hopTime=" + HopTime() + "s  clip=" + ClipLength() + "s");
+    }
+
+    // אורך הקליפ, לפי שלושת השלבים שהוגדרו
+    private float ClipLength()
+    {
+        float total = clipTakeOffTime + clipAirTime + clipLandTime;
+
+        if (total <= 0) return 1;
+
+        return total;
+    }
+
+    // כמה זמן לוקחת קפיצה אחת. הגנה מערך לא הגיוני באינספקטור,
+    // שהיה מקפיא את הגמד או מדלג על כל הקליפ
+    private float HopTime()
+    {
+        if (jumpCycleTime < 0.1f) return 0.7f;
+
+        return jumpCycleTime;
+    }
+
+    // מתחילים קפיצה חדשה
+    private void StartHop()
+    {
+        hopTimer = 0;
+        ShowJumpFrame(0);
+    }
+
+    // מציב את הקליפ באחוז ההתקדמות של הקפיצה.
+    // 0 = תחילת ההתכופפות, 1 = סוף הנחיתה
+    private void ShowJumpFrame(float progress)
+    {
+        if (animator == null) return;
+        if (jumpStateHash == 0) return;
+
+        if (progress < 0) progress = 0;
+        if (progress > 1) progress = 1;
+
+        animator.Play(jumpStateHash, 0, progress);
+    }
+
+    // המקום שעליו הגמד באמת עומד: נקודת האבן, מורמת כך
+    // שהרגליים ינחתו על ראש הסלע
+    private Vector2 StonePoint(Vector2 point)
+    {
+        return new Vector2(point.x, point.y + skipStoneOffsetY);
     }
 
     private void UpdateSkipping()
     {
-        Vector2 target = skipPath[skipIndex];
+        Vector2 target = StonePoint(skipPath[skipIndex]);
 
-        float distance = Vector2.Distance(skipFrom, target);
-        if (distance < 0.01f) distance = 0.01f;
+        hopTimer = hopTimer + Time.deltaTime;
 
-        skipProgress = skipProgress + (skipSpeed * Time.deltaTime) / distance;
+        float cycle = HopTime();
 
-        if (skipProgress > 1) skipProgress = 1;
+        // הקליפ נגרר יד ביד עם הקפיצה - אותו אחוז התקדמות בשניהם
+        ShowJumpFrame(hopTimer / cycle);
 
-        // קפיצה בקשת בין אבן לאבן
-        Vector2 flat = Vector2.Lerp(skipFrom, target, skipProgress);
-        float hop = Mathf.Sin(skipProgress * Mathf.PI) * skipHeight;
+        // השלבים בזמן המשחק, ביחס המקורי של הקליפ
+        float scale = cycle / ClipLength();
+        float takeOff = clipTakeOffTime * scale;
+        float air = clipAirTime * scale;
 
-        transform.position = new Vector3(flat.x, flat.y + hop, transform.position.z);
+        // ---- שלב 1: מתכופף על האבן, עוד לא זז ----
+        if (hopTimer < takeOff)
+        {
+            transform.position = new Vector3(skipFrom.x, skipFrom.y, transform.position.z);
+        }
+
+        // ---- שלב 2: באוויר, בקשת, עד האבן הבאה ----
+        else if (hopTimer < takeOff + air)
+        {
+            float t = (hopTimer - takeOff) / air;
+
+            Vector2 flat = Vector2.Lerp(skipFrom, target, t);
+            float hop = Mathf.Sin(t * Mathf.PI) * skipHeight;
+
+            transform.position = new Vector3(flat.x, flat.y + hop, transform.position.z);
+        }
+
+        // ---- שלב 3: נחת. עומד על האבן ומתייצב ----
+        else
+        {
+            transform.position = new Vector3(target.x, target.y, transform.position.z);
+        }
 
         LookWhileSkipping(target);
 
-        if (skipProgress >= 1)
+        // הקפיצה הסתיימה - ממשיכים לאבן הבאה
+        if (hopTimer >= cycle)
         {
             transform.position = new Vector3(target.x, target.y, transform.position.z);
 
@@ -393,7 +501,7 @@ public class DwarfScript : MonoBehaviour
             }
 
             skipFrom = target;
-            skipProgress = 0;
+            StartHop();
         }
     }
 
@@ -408,6 +516,10 @@ public class DwarfScript : MonoBehaviour
     private void StopSkipAnimation()
     {
         if (animator == null) return;
+
+        // מחזירים את המהירות הרגילה, אחרת גם ההליכה תרוץ מהר
+        animator.speed = 1;
+
         if (skipBoolName == "") return;
 
         animator.SetBool(skipBoolName, false);
