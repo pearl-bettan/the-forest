@@ -30,7 +30,7 @@ public class MenuScript : MonoBehaviour
     // אם לא חובר בעורך, הקוד מחפש אותו לבד לפי שם
     [SerializeField] GameObject timeTitle;
 
-    // מספר השגיאות בכל המשחק
+    // מספר הפסילות בכל המשחק
     [SerializeField] TMP_Text mistakesText;
 
     // כמה שאלות נענו נכון מתוך הסך הכל
@@ -223,7 +223,7 @@ public class MenuScript : MonoBehaviour
         // הפיכה של החלק העברי בלבד מקפיצה את המספרים לצד הלא נכון
         lines = lines + HebrewText.Fix("זמן כולל: " + DataPass.TimeText()) + "\n";
         lines = lines + HebrewText.Fix("ציון: " + DataPass.score) + "\n";
-        lines = lines + HebrewText.Fix("שגיאות: " + DataPass.mistakes) + "\n";
+        lines = lines + HebrewText.Fix("פסילות: " + DataPass.mistakes) + "\n";
         lines = lines + HebrewText.Fix("שאלות שנענו: " +
                 DataPass.questionsAnswered + " / " + DataPass.questionsTotal);
 

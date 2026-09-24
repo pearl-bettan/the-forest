@@ -2,16 +2,6 @@
 
 namespace UsersManager.Client;
 
-// ============================================================
-// גישה ל-localStorage של הדפדפן מתוך קוד C#.
-//
-// Blazor WebAssembly אינו יכול לגעת ב-localStorage ישירות, ולכן
-// כל פעולה עוברת דרך קריאת JavaScript. הממשק מופרד מהמימוש כדי
-// שאפשר יהיה להחליף את מקום האחסון בלי לגעת בקוד שמשתמש בו.
-//
-// כאן נשמר טוקן ההתחברות, וזו הסיבה שהמשתמש נשאר מחובר
-// גם אחרי רענון העמוד
-// ============================================================
 public interface ILocalStorageService
 {
     Task SetItemAsync(string key, string value);
@@ -19,7 +9,6 @@ public interface ILocalStorageService
     Task RemoveItemAsync(string key);
 }
 
-// המימוש בפועל, מעל IJSRuntime
 public class LocalStorageService : ILocalStorageService
 {
     private readonly IJSRuntime _jsRuntime;

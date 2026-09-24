@@ -11,20 +11,6 @@ using UsersManager.Shared;
 
 namespace UsersManager.Client
 {
-    // ============================================================
-    // מימוש ההתחברות בצד הלקוח, מול פורטלם ומול השרת.
-    //
-    // תהליך הכניסה המלא:
-    //   1. המשתמש מגיע למחולל בלי טוקן בכתובת
-    //   2. מפנים אותו לעמוד ההתחברות של פורטלם
-    //   3. פורטלם מחזיר אותו לכאן עם ?token=... בכתובת
-    //   4. הטוקן נשלח לשרת, שמוודא אותו מול פורטלם
-    //   5. השרת מחזיר טוקן משלו, שנשמר ב-localStorage
-    //   6. הכתובת מנוקה מהפרמטר, כדי שהטוקן לא יישאר בהיסטוריה
-    //
-    // הערה על שם הקובץ: יש בו רווח לפני הסיומת. זה עובד, אבל
-    // שובר פקודות וסקריפטים שמתייחסים אליו
-    // ============================================================
     public class AuthenticationService : IAuthenticationService
     {
         private readonly HttpClient _httpClient;
@@ -45,17 +31,7 @@ namespace UsersManager.Client
             _navigationManager = navigationManager;
             _configuration = configuration;
         }
-
-        // ============================================================
-        // התנתקות מלאה, בשלושה שלבים:
-        //   1. פסילת הטוקן בשרת, כדי שלא יהיה שמיש גם אם הועתק
-        //   2. מחיקתו מ-localStorage ועדכון מצב ההזדהות
-        //   3. חזרה לעמוד הראשי של פורטלם
-        //
-        // רק הראשון מספיק כדי לנטרל את הטוקן. השניים האחרים
-        // דואגים לכך שהממשק יתעדכן ושהמשתמש לא יישאר במסך ריק
-        // ============================================================
-        //התנתקות 
+        
         public async Task Logout()
         {
             var get = await _httpClient.GetAsync("api/auth/logout");
@@ -63,26 +39,11 @@ namespace UsersManager.Client
             OnAuthenticationStateChanged?.Invoke();
             _navigationManager.NavigateTo($"{_configuration["portelem:mainUrl"]}");
         }
-
-
-        // ============================================================
-        // ההתחברות עצמה.
-        //
-        // אין טוקן בכתובת - מפנים לפורטלם ומחזירים false. כלומר
-        // false כאן אינו בהכרח כישלון, אלא גם "עוד לא סיימנו".
-        //
-        // כתובת ההפניה שונה בין סביבת פיתוח לסביבת ייצור: בפיתוח
-        // מעבירים לפורטלם גם את הכתובת לחזור אליה, כי היא משתנה
-        // בין מפתחים.
-        //
-        // בסוף הכתובת מנוקה מהפרמטר, בלי טעינה מחדש. אחרת הטוקן
-        // של פורטלם היה נשאר בשורת הכתובת ובהיסטוריה
-        // ============================================================
+        
         public async Task<bool> LoginWithPortelem()
         {
             if (string.IsNullOrEmpty(GetQueryParm("token")))
             {
-                // תוספת לתמיכה במערכות בפיתוח
                 if (_configuration["portelem:type"] == "inDevelop")
                 {
                     var baseUri = _navigationManager.Uri;
@@ -90,7 +51,6 @@ namespace UsersManager.Client
                         $"{_configuration["portelem:loginUrl"]}?id={_configuration["portelem:serviceId"]}&link={baseUri}");
                     return false;
                 }
-                // מערכות ספציפיות לא בפיתוח
                 _navigationManager.NavigateTo(
                     $"{_configuration["portelem:loginUrl"]}{_configuration["portelem:serviceId"]}");
                 return false;
@@ -119,16 +79,11 @@ namespace UsersManager.Client
             return true;
         }
         
-        // מבנה תשובת השרת ל-portelemLogin. השרת מחזיר עטיפה
-        // { token: "..." } ולא מחרוזת חשופה
-        // Add this class to hold the response
         public class TokenResponse
         {
             public string Token { get; set; }
         }
 
-        // שולף פרמטר משורת הכתובת. מחזיר מחרוזת ריקה ולא null
-        // כשהפרמטר חסר, כדי שהקורא לא יצטרך לבדוק null
         string GetQueryParm(string parmName)
         {
             var uriBuilder = new UriBuilder(_navigationManager.Uri);
@@ -136,15 +91,11 @@ namespace UsersManager.Client
             return q[parmName] ?? "";
         }
 
-        // מרכיב אובייקט משתמש מתוך תביעות הטוקן השמור.
-        // המידע מגיע מהטוקן ולא מפנייה לשרת, ולכן זה מיידי
-        //קבלת פרטי המשתמש
         public async Task<User> GetUserFromClaimAsync()
         {
             var authenticationState = await _authStateProvider.GetAuthenticationStateAsync();
             var user = authenticationState.User;
 
-            //אם המשתמש מחובר
             if (user.Identity.IsAuthenticated)
             {
                 var userDto = new User
@@ -157,7 +108,6 @@ namespace UsersManager.Client
 
                 return userDto;
             }
-            //אם לא 
             else
             {
                 return null;

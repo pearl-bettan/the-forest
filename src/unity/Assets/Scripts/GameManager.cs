@@ -500,9 +500,9 @@ public class GameManager : MonoBehaviour
         timerRunning = false;
         canAnswer = false;
 
-        // השאלה נספרת כשגויה בסיכום
-        totalMistakes = totalMistakes + 1;
-
+        // **לא** מוסיפים פסילה כאן. פסילה היא לב שירד, וסיום הזמן
+        // לא מוריד לב. הספירה נשארת זהה למה שהשחקן ראה על המסך.
+        // השאלה עדיין מסומנת כשגויה לצורך מאגר השאלות
         if (currentStage != null) currentStage.markedWrong = true;
 
         EndGame("timeout", "נגמר הזמן");
@@ -1005,6 +1005,11 @@ public class GameManager : MonoBehaviour
         DataPass.score = Mathf.RoundToInt(scoreSoFar);
         DataPass.totalTime = gameTime;
         DataPass.mistakes = totalMistakes;
+
+        // כמה פסילות נשארו. בלי השורה הזאת מסכי הסיום מציגים
+        // את הערך של המשחק הקודם, או 0
+        DataPass.livesLeft = livesLeft;
+
         DataPass.questionsAnswered = questionsAnswered;
         DataPass.questionsTotal = totalQuestions;
 
