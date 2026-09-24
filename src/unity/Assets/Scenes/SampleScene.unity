@@ -585,7 +585,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 436743310}
-  - component: {fileID: 436743311}
   m_Layer: 0
   m_Name: ProgressBar
   m_TagString: Untagged
@@ -611,27 +610,6 @@ Transform:
   - {fileID: 642741196}
   m_Father: {fileID: 1086628524}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &436743311
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 436743309}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7b3c41d9e05f4a1d9c2e86f4b1a70d35, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ProgressBarScript
-  startGray: {fileID: -5985655378023461265, guid: 125920611cdb644329aec4f8e1d974f6, type: 3}
-  startGreen: {fileID: -7252103344488981074, guid: 1a47d7bbe2533447c9bfd5968fc944df, type: 3}
-  middleGray: {fileID: -6022337359400110510, guid: 822be20dbcc4644f9a52501351e25d8d, type: 3}
-  middleGreen: {fileID: -4987337320017983735, guid: 0db73bbdba2dc4ad0883852c8c448bcc, type: 3}
-  endGray: {fileID: -1687646268539553309, guid: aa551084c7d1641d795d5b9f8dcd451a, type: 3}
-  endGreen: {fileID: 4583309671817075828, guid: 91609f176ec224cb38825b15e615876c, type: 3}
-  startView: {fileID: 725345855}
-  centerView: {fileID: 491281380}
-  endView: {fileID: 642741197}
 --- !u!1 &441529527 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7551264930349279039, guid: 38367ba5c725b4932b812d6b789de425, type: 3}
@@ -1225,7 +1203,7 @@ MonoBehaviour:
   - {fileID: 2014156754}
   - {fileID: 912192668}
   - {fileID: 2097806207}
-  timer: {fileID: 1952564248}
+  gameStatus: {fileID: 1952564248}
   zoomPanel: {fileID: 0}
   magnifiers:
   - {fileID: 441529527}
@@ -1245,7 +1223,6 @@ MonoBehaviour:
   leftTagText: {fileID: 1117579519}
   rightTagText: {fileID: 1886959928}
   messageText: {fileID: 0}
-  progressBar: {fileID: 436743311}
   messagePanel: {fileID: 0}
   redFlash: {fileID: 0}
   redFlashTime: 0.4
@@ -2159,7 +2136,7 @@ Transform:
   m_GameObject: {fileID: 725345853}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -14.86, y: 0, z: 0}
+  m_LocalPosition: {x: -13.81, y: 0, z: 0}
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3364,6 +3341,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1086628524}
+  - component: {fileID: 1952564248}
   m_Layer: 0
   m_Name: Menu
   m_TagString: Untagged
@@ -6290,7 +6268,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1952564247}
   - component: {fileID: 1952564246}
-  - component: {fileID: 1952564248}
   m_Layer: 0
   m_Name: TimerSun
   m_TagString: Untagged
@@ -6377,15 +6354,16 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1952564245}
+  m_GameObject: {fileID: 1086628523}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71e208a0e7832452abfcc853492a23ea, type: 3}
+  m_Script: {fileID: 11500000, guid: 41c713af304f482d86535ea6ab28de3f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TimerScript
+  m_EditorClassIdentifier: Assembly-CSharp::GameStatus
   sunImage: {fileID: 1952564246}
   timerText: {fileID: 899200666}
   emptyRock: {fileID: 0}
+  pulseTarget: {fileID: 1952564247}
   sunSprites:
   - {fileID: -8197322718469206310, guid: 9e364b589c7304147b51060ef96a68be, type: 3}
   - {fileID: -6740114713094635470, guid: 55121f0de0d5c45b19dd7fed3f13e5fa, type: 3}
@@ -6406,6 +6384,15 @@ MonoBehaviour:
   frozenColor: {r: 0.65, g: 0.65, b: 0.65, a: 0.75}
   frozenSunAlpha: 0.45
   unlimitedText: "\u221E"
+  startGray: {fileID: -5985655378023461265, guid: 125920611cdb644329aec4f8e1d974f6, type: 3}
+  startGreen: {fileID: -7252103344488981074, guid: 1a47d7bbe2533447c9bfd5968fc944df, type: 3}
+  middleGray: {fileID: -6022337359400110510, guid: 822be20dbcc4644f9a52501351e25d8d, type: 3}
+  middleGreen: {fileID: -4987337320017983735, guid: 0db73bbdba2dc4ad0883852c8c448bcc, type: 3}
+  endGray: {fileID: -1687646268539553309, guid: aa551084c7d1641d795d5b9f8dcd451a, type: 3}
+  endGreen: {fileID: 4583309671817075828, guid: 91609f176ec224cb38825b15e615876c, type: 3}
+  startView: {fileID: 725345855}
+  centerView: {fileID: 491281380}
+  endView: {fileID: 642741197}
 --- !u!1 &1960523819 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 7551264930349279039, guid: 38367ba5c725b4932b812d6b789de425, type: 3}

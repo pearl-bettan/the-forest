@@ -44,8 +44,8 @@ public class GameManager : MonoBehaviour
     //ה-Slots על האגם
     [SerializeField] List<Transform> slots;
 
-    //הטיימר עם תמונת השמש
-    [SerializeField] TimerScript timer;
+    // תצוגת מצב המשחק: הטיימר עם השמש, ומד ההתקדמות
+    [SerializeField] GameStatus gameStatus;
 
     //מסך שמציג תמונת תשובה בגדול
     [SerializeField] ZoomPanelScript zoomPanel;
@@ -74,9 +74,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] TMP_Text leftTagText;
     [SerializeField] TMP_Text rightTagText;
     [SerializeField] TMP_Text messageText;
-
-    // מד ההתקדמות: שרשרת חרוזים, חרוז לכל שאלה
-    [SerializeField] ProgressBarScript progressBar;
 
     [Header("Screens")]
     [SerializeField] GameObject messagePanel;
@@ -204,7 +201,7 @@ public class GameManager : MonoBehaviour
         // קודם נותנים לשחקן לראות את המסך הראשון, ורק אחר כך המצלמה יוצאת לאגם
         canAnswer = false;
         timerRunning = false;
-        if (timer != null) timer.SetFrozen(true);
+        if (gameStatus != null) gameStatus.SetFrozen(true);
 
         introDelayTimer = introStartDelay;
         introTimer = introStartDelay + introLakeTime + 1;
@@ -215,7 +212,7 @@ public class GameManager : MonoBehaviour
     private void StartTimer()
     {
         timerRunning = true;
-        if (timer != null) timer.SetFrozen(false);
+        if (gameStatus != null) gameStatus.SetFrozen(false);
 
         if (gameOver == false) canAnswer = true;
 
@@ -317,7 +314,7 @@ public class GameManager : MonoBehaviour
         if (dwarf == null) missing = missing + "Dwarf, ";
         if (rocks == null || rocks.Count == 0) missing = missing + "Rocks, ";
         if (slots == null || slots.Count == 0) missing = missing + "Slots, ";
-        if (timer == null) missing = missing + "Timer, ";
+        if (gameStatus == null) missing = missing + "Game Status, ";
         if (magnifiers == null || magnifiers.Count == 0) missing = missing + "Magnifiers, ";
         if (topicText == null) missing = missing + "Topic Text, ";
         if (leftTagText == null) missing = missing + "Left Tag Text, ";
@@ -326,7 +323,6 @@ public class GameManager : MonoBehaviour
         if (messagePanel == null) missing = missing + "Message Panel, ";
         if (redFlash == null) missing = missing + "Red Flash, ";
         if (hearts == null || hearts.Count == 0) missing = missing + "Hearts, ";
-        if (progressBar == null) missing = missing + "Progress Bar, ";
 
         if (missing != "")
         {
@@ -432,12 +428,12 @@ public class GameManager : MonoBehaviour
             {
                 stageTimer -= Time.deltaTime;
 
-                if (timer != null) timer.ShowTime(stageTimer, currentStage.stageTime);
+                if (gameStatus != null) gameStatus.ShowTime(stageTimer, currentStage.stageTime);
 
                 if (stageTimer <= 0)
                 {
                     stageTimer = 0;
-                    if (timer != null) timer.ShowTime(0, currentStage.stageTime);
+                    if (gameStatus != null) gameStatus.ShowTime(0, currentStage.stageTime);
 
                     TimeIsUp();
                 }
@@ -571,10 +567,10 @@ public class GameManager : MonoBehaviour
         // מסכי הסיום צריכים לדעת אם היה זמן בכלל
         DataPass.unlimitedTime = noTimeLimit;
 
-        if (timer != null)
+        if (gameStatus != null)
         {
-            timer.SetUnlimited(noTimeLimit);
-            timer.ShowTime(stageTimer, currentStage.stageTime);
+            gameStatus.SetUnlimited(noTimeLimit);
+            gameStatus.ShowTime(stageTimer, currentStage.stageTime);
         }
 
         // ניקוד השאלה מתחיל מחדש
@@ -1138,17 +1134,17 @@ public class GameManager : MonoBehaviour
     // הופכת חרוז אחד מאפור לירוק
     private void UpdateProgressBar()
     {
-        if (progressBar == null) return;
+        if (gameStatus == null) return;
 
         if (totalQuestions <= 0) return;
 
         if (progressBuiltFor != totalQuestions)
         {
-            progressBar.Build(totalQuestions);
+            gameStatus.Build(totalQuestions);
             progressBuiltFor = totalQuestions;
         }
 
-        progressBar.SetProgress(questionsAnswered);
+        gameStatus.SetProgress(questionsAnswered);
     }
 
     // מציב טקסט שעלול להישבר ליותר משורה אחת (נושא השאלה ותגיות הקצה)

@@ -1,9 +1,4 @@
-@*
-   טופס עריכת שאלה, לפי הפיגמה.
-   הפריטים מוצגים ככרטיסי סלע בשורה אחת, בין שתי היבשות.
-   כרטיס ריק עם סימן פלוס פותח את פופאפ "הוספת סלע",
-   אייקון העיפרון שבתחתית הכרטיס פותח אותו לעריכה,
-   ואייקון ההזזה מאפשר לגרור ולשנות את הסדר*@
+@*טופס עריכת שאלה*@
 
 @using AuthTemplate.Shared.Models.Games
 @inject HttpClient Http
@@ -11,16 +6,16 @@
 
 <div class="question-body">
 
-    @* ---------- שורת ההסבר ---------- *@
+    @*  שורת ההסבר לפרטי מינימום ומקסימום בשאלה *@
     <p class="items-hint">
         יש להזין את ערכי הקיצון ביבשות ולסדר את הפריטים בהתאם.
         אפשר לשמור שאלה כטיוטה בכל שלב. לפרסום המשחק צריך 3 עד 10 פריטים בכל שאלה.
     </p>
 
-    @* ---------- שורת הפריטים ---------- *@
+    @*  שורת הפריטים  *@
     <div class="items-row">
 
-        @* ---------- יבשת ימין ---------- *@
+        @* תגית קצה ימינית  *@
         <div class="item-card">
             <div class="item-media tag-media">
                 <span class="item-text @(string.IsNullOrWhiteSpace(Question.RightTag) ? "is-placeholder" : "")">
@@ -38,7 +33,7 @@
             </div>
         </div>
 
-        @* ---------- הפריטים שהוזנו ---------- *@
+        @*  הפריטים שהוזנו *@
         @for (int i = 0; i < Question.Answers.Count; i++)
         {
             int pos = i;
@@ -61,8 +56,7 @@
                         <span class="item-text">@answer.Content</span>
                     }
 
-                    @* אייקון המחיקה מופיע רק במעבר עכבר על הכרטיס.
-                       לפי האפיון אי אפשר לרדת מתחת לשלושה פריטים *@
+                    @* אייקון המחיקה מופיע רק במעבר עכבר *@
                     <button type="button" class="item-remove"
                             title="@RemoveTitle()"
                             disabled="@(CanRemove() == false)"
@@ -76,7 +70,7 @@
                         </button>
                     </span>
 
-                    @* זכוכית מגדלת - רק לפריטי תמונה, ורק במצב עריכה *@
+                    @* זכוכית מגדלת- רק לפריטי תמונה, ורק במצב עריכה *@
                     @if (answer.IsImage == true)
                     {
                         <span class="tip" data-tip="הצגת התמונה בגדול">
@@ -94,9 +88,7 @@
             </div>
         }
 
-        @* ---------- כרטיסים ריקים להוספה ----------
-           לפי האפיון תמיד מוצגים לפחות שלושה פריטים,
-           וכשיש כבר שלושה מתווסף כרטיס הכנה אחד *@
+        @* פריטים ריקים להוספה *@
         @for (int i = 0; i < EmptySlots(); i++)
         {
             <div class="item-card is-empty">
@@ -107,8 +99,7 @@
                     </span>
                 </div>
 
-                @* לפי הפיגמה האייקונים מוצגים גם בסלע ריק, אבל כבויים
-                   עד שמוזן לתוכו תוכן *@
+                @*  אייקוני העריכה מוצגים גם בסלע ריק, אבל כבויים עד שמוזן לתוכו תוכן *@
                 <div class="item-tools is-off">
                     <img src="assets-images/pen.svg" alt="" class="tool-icon" />
                     <img src="assets-images/all-directions.svg" alt="" class="tool-icon" />
@@ -116,7 +107,7 @@
             </div>
         }
 
-        @* ---------- יבשת שמאל ---------- *@
+        @*  תג קיצון שמאל  *@
         <div class="item-card">
             <div class="item-media tag-media">
                 <span class="item-text @(string.IsNullOrWhiteSpace(Question.LeftTag) ? "is-placeholder" : "")">
@@ -136,7 +127,7 @@
 
     </div>
 
-    @* ---------- שמירה וביטול ---------- *@
+    @*שמירה וביטול *@
     <div class="question-actions">
         <span class="tip tip-wide" data-tip="@SaveTip()">
             <button type="button" class="btn-green"
@@ -152,9 +143,7 @@
 </div>
 
 
-@* ==========================================================
-   פופאפ הוספת ועריכת פריט
-   ========================================================== *@
+@*פופאפ הוספת ועריכת פריט*@
 @if (isItemPopupOpen == true)
 {
     <div class="popup-background">
@@ -163,13 +152,12 @@
             <h2 class="popup-title">@(editIndex < 0 ? "הוספת סלע" : "עריכת סלע")</h2>
             <p class="popup-subtitle">יש לבחור סוג תוכן בלחיצה על האייקון</p>
 
-            @* הסלע הגדול שבתוכו נבחר ומוזן התוכן *@
+            @* הסלע שנבחר ומוזן בו תוכן *@
             <div class="big-rock">
 
                 @if (itemType == "")
                 {
                     @* בחירת סוג התוכן *@
-                    @* בפיגמה הטקסט בימין והתמונה בשמאל. ב-RTL הראשון הוא הימני *@
                     <div class="type-choice">
                         <button type="button" class="type-btn" @onclick='() => itemType = "text"'>
                             <img src="assets-images/content-text.svg" alt="טקסט" />
@@ -206,7 +194,7 @@
                     }
                 }
 
-                @* פקד ההעלאה מוסתר, וכפתור התמונה מפעיל אותו *@
+                @* כפתור ההעלאה מוסתר, וכפתור התמונה מפעיל אותו *@
                 <InputFile id="itemFileInput" OnChange="UploadImage"
                            accept=".png,.jpg,.jpeg" hidden />
             </div>
@@ -230,7 +218,7 @@
                 </div>
             }
 
-            @* כפתור ההוספה מופיע רק אחרי שנבחר סוג תוכן; כפתור הביטול תמיד מוצג *@
+            @* כפתור ההוספה מופיע רק אחרי שנבחר סוג תוכן, כפתור הביטול תמיד מוצג *@
             <div class="popup-actions">
                 @if (itemType != "")
                 {
@@ -253,9 +241,7 @@
 }
 
 
-@* ==========================================================
-   פופאפ עריכת ערך קיצון
-   ========================================================== *@
+@* פופאפ עריכת ערך קיצון*@
 @if (isTagPopupOpen == true)
 {
     <div class="popup-background">
@@ -291,9 +277,7 @@
 }
 
 
-@* ==========================================================
-   הגדלת תמונת פריט
-   ========================================================== *@
+@*הגדלת תמונת פריט*@
 @if (zoomFile != "")
 {
     <div class="popup-background" @onclick="CloseZoom">
@@ -314,9 +298,7 @@
 }
 
 
-@* ==========================================================
-   אישור מחיקת פריט
-   ========================================================== *@
+@* אישור מחיקת פריט *@
 @if (removeIndex >= 0)
 {
     <div class="popup-background">
@@ -335,34 +317,24 @@
 
 @code {
 
-    // השאלה שנערכת. מגיעה מהעמוד ומתעדכנת ישירות
     [Parameter]
     public QuestionToEdit Question { get; set; }
-
-    // נקרא בלחיצה על שמירה. העמוד הוא שמדבר עם השרת,
-    // הטופס רק מודיע לו שהמשתמשת סיימה
     [Parameter]
     public EventCallback OnSave { get; set; }
-
-    // נקרא בלחיצה על ביטול. העמוד זורק את העותק הנערך
     [Parameter]
     public EventCallback OnCancel { get; set; }
-
-    // מודיע לעמוד שרשימת הפריטים השתנתה, כדי שהמונה בכותרת יתעדכן
     [Parameter]
     public EventCallback OnItemsChanged { get; set; }
 
-
-    // המגבלות מהאפיון
     const int ItemMax = 30;
     const int TagMax = 10;
     const int MinItems = 3;
     const int MaxItems = 10;
 
-    // ---------- פופאפ הפריט ----------
+    // פופאפ הפריט 
     bool isItemPopupOpen = false;
 
-    // 1- פירושו הוספת פריט חדש, אחרת המיקום של הפריט הנערך
+    // 1- פירושו הוספת פריט חדש
     int editIndex = -1;
 
     // סוג התוכן שנבחר: ריק לפני בחירה, אחרת text או image
