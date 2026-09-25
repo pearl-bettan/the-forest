@@ -499,6 +499,7 @@
     bool itemBlink = false;
     bool tagBlink = false;
 
+    // הבהוב אדום של מונה הפריט כשמנסים לחרוג מ-30 התווים
     async Task OnItemKeyDown(KeyboardEventArgs e)
     {
         if (itemText.Length >= ItemMax && IsTypingKey(e))
@@ -510,6 +511,7 @@
         }
     }
 
+    // הבהוב אדום של מונה ערך הקיצון כשמנסים לחרוג מ-10 התווים
     async Task OnTagKeyDown(KeyboardEventArgs e)
     {
         if (tagText.Length >= TagMax && IsTypingKey(e))
@@ -529,6 +531,7 @@
     }
 
 
+    // צבע מונה התווים של הפריט: ירוק כשתקין, אדום במגבלה
     string ItemCounterClass()
     {
         if (itemText.Length == 0)

@@ -228,8 +228,8 @@ a, .btn-link {
     right: 50%;
     transform: translateX(50%);
     background-color: white;
-    border: 1px solid #282828;
-    border-radius: 10px;
+    border: 1px solid var(--gold-dark);
+    border-radius: 11px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
     padding: 9px 14px;
     width: max-content;
@@ -406,4 +406,13 @@ select {
     -moz-user-drag: none;
     user-drag: none;
     user-select: none;
+}
+
+
+/* צבע כפתור העט (הגדרות כלליות) זהה לכפתור "חזור למשחקים שלי" (btn-second) */
+.pen-btn {
+    box-shadow: 0 4px 0 0 var(--gold-dark) !important;
+}
+.pen-btn:hover:not(:disabled) {
+    box-shadow: 0 2px 0 0 var(--gold-dark) !important;
 }

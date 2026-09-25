@@ -16,6 +16,8 @@ namespace UsersManager.Server
         private readonly DbRepository _db;
         private readonly ILogger<DbTokenBlacklistService> _logger;
 
+        // הגישה לבסיס הנתונים והיומן מוזרקות, כדי שהמחלקה
+        // לא תיצור חיבור משלה
         public DbTokenBlacklistService(DbRepository db, ILogger<DbTokenBlacklistService> logger)
         {
             _db = db;

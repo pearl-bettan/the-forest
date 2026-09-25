@@ -103,7 +103,7 @@
     background-color: white;
     border: 1px solid var(--gold-dark);
     border-radius: 10px;
-    box-shadow: 0 4px 0 0 var(--gold);
+    box-shadow: 0 4px 0 0 var(--gold-dark);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -113,7 +113,7 @@
 .pen-btn:hover:not(:disabled) {
     background-color: var(--gold-hover);
     transform: translateY(2px);
-    box-shadow: 0 2px 0 0 var(--gold);
+    box-shadow: 0 2px 0 0 var(--gold-dark);
 }
 
 .pen-btn:disabled {
@@ -167,7 +167,7 @@
 .publish-btn:hover:not(:disabled) {
     background-color: var(--gold-hover);
     transform: translateY(2px);
-    box-shadow: 0 2px 0 0 var(--gold);
+    box-shadow: 0 2px 0 0 var(--gold-dark);
 }
 
 /* משחק שכבר מפורסם */

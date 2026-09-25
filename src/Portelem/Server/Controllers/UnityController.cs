@@ -24,6 +24,8 @@ namespace AuthTemplate.Server.Controllers
         //מספר הפסילות הקבוע של המשחק, לפי האפיון
         private const int FixedLives = 3;
 
+        // הבקר צריך רק את בסיס הנתונים - אין כאן העלאות קבצים
+        // ואין אימות משתמש
         public UnityController(DbRepository db)
         {
             _db = db;

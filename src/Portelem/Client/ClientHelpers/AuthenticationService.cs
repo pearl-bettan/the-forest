@@ -11,6 +11,17 @@ using UsersManager.Shared;
 
 namespace UsersManager.Client
 {
+    // ============================================================
+    // מימוש ההתחברות בצד הלקוח, מול פורטל"מ ומול השרת.
+    //
+    // תהליך הכניסה המלא:
+    //   1. המשתמש מגיע למחולל בלי טוקן בכתובת
+    //   2. מפנים אותו לעמוד ההתחברות של פורטל"מ
+    //   3. פורטל"מ מחזיר אותו לכאן עם ?token=... בכתובת
+    //   4. הטוקן נשלח לשרת, שמוודא אותו מול פורטל"מ
+    //   5. השרת מחזיר טוקן משלו, שנשמר ב-localStorage
+    //   6. הכתובת מנוקה מהפרמטר, כדי שהטוקן לא יישאר בהיסטוריה
+    // ============================================================
     public class AuthenticationService : IAuthenticationService
     {
         private readonly HttpClient _httpClient;
@@ -32,6 +43,15 @@ namespace UsersManager.Client
             _configuration = configuration;
         }
         
+        // ============================================================
+        // התנתקות מלאה, בשלושה שלבים:
+        //   1. פסילת הטוקן בשרת, כדי שלא יהיה שמיש גם אם הועתק
+        //   2. מחיקתו מ-localStorage ועדכון מצב ההזדהות
+        //   3. חזרה לעמוד הראשי של פורטל"מ
+        //
+        // רק הראשון מנטרל את הטוקן באמת. השניים האחרים דואגים
+        // לכך שהממשק יתעדכן ושהמשתמש לא יישאר במסך ריק
+        // ============================================================
         public async Task Logout()
         {
             var get = await _httpClient.GetAsync("api/auth/logout");
@@ -40,6 +60,19 @@ namespace UsersManager.Client
             _navigationManager.NavigateTo($"{_configuration["portelem:mainUrl"]}");
         }
         
+        // ============================================================
+        // ההתחברות עצמה.
+        //
+        // אין טוקן בכתובת - מפנים לפורטל"מ ומחזירים false. כלומר
+        // false כאן אינו בהכרח כישלון, אלא גם "עוד לא סיימנו".
+        //
+        // כתובת ההפניה שונה בין סביבת פיתוח לסביבת ייצור: בפיתוח
+        // מעבירים לפורטל"מ גם את הכתובת לחזור אליה, כי היא משתנה
+        // בין מפתחים.
+        //
+        // בסוף הכתובת מנוקה מהפרמטר, בלי טעינה מחדש. אחרת הטוקן
+        // של פורטל"מ היה נשאר בשורת הכתובת ובהיסטוריה
+        // ============================================================
         public async Task<bool> LoginWithPortelem()
         {
             if (string.IsNullOrEmpty(GetQueryParm("token")))
@@ -79,11 +112,15 @@ namespace UsersManager.Client
             return true;
         }
         
+        // מבנה תשובת השרת ל-portelemLogin. השרת מחזיר עטיפה
+        // { token: "..." } ולא מחרוזת חשופה
         public class TokenResponse
         {
             public string Token { get; set; }
         }
 
+        // שולף פרמטר משורת הכתובת. מחזיר מחרוזת ריקה ולא null
+        // כשהפרמטר חסר, כדי שהקורא לא יצטרך לבדוק null
         string GetQueryParm(string parmName)
         {
             var uriBuilder = new UriBuilder(_navigationManager.Uri);
@@ -91,6 +128,8 @@ namespace UsersManager.Client
             return q[parmName] ?? "";
         }
 
+        // מרכיב אובייקט משתמש מתוך תביעות הטוקן השמור.
+        // המידע מגיע מהטוקן ולא מפנייה לשרת, ולכן זה מיידי
         public async Task<User> GetUserFromClaimAsync()
         {
             var authenticationState = await _authStateProvider.GetAuthenticationStateAsync();

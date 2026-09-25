@@ -37,6 +37,7 @@ namespace AuthTemplate.Server.Controllers
         //שמירת קבצי תמונה בשרת
         private readonly FilesManage _files;
 
+        // שתי התלויות של הבקר: בסיס הנתונים וניהול קבצי התמונות
         public GamesController(DbRepository db, FilesManage files)
         {
             _db = db;

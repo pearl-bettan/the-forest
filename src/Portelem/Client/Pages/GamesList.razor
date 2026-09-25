@@ -81,29 +81,37 @@
             @* ---------- כותרות העמודות ---------- *@
             <div class="games-head">
                 <span class="col-name">
-                    <button class="sort-btn" title="מיון לפי שם" @onclick='() => SortBy("name")'>
-                        שם המשחק<span class="sort-mark">@SortMark("name")</span>
-                    </button>
+                    <span class="tip tip-below" data-tip="מיון לפי שם">
+                        <button class="sort-btn" @onclick='() => SortBy("name")'>
+                            שם המשחק<span class="sort-mark">@SortMark("name")</span>
+                        </button>
+                    </span>
                 </span>
 
                 <span class="col-code">
-                    <button class="sort-btn" title="מיון לפי קוד" @onclick='() => SortBy("code")'>
-                        קוד<span class="sort-mark">@SortMark("code")</span>
-                    </button>
+                    <span class="tip tip-below" data-tip="מיון לפי קוד">
+                        <button class="sort-btn" @onclick='() => SortBy("code")'>
+                            קוד<span class="sort-mark">@SortMark("code")</span>
+                        </button>
+                    </span>
                 </span>
 
                 <span class="col-count">
-                    <button class="sort-btn" title="מיון לפי מספר שאלות" @onclick='() => SortBy("count")'>
-                        מס' שאלות<span class="sort-mark">@SortMark("count")</span>
-                    </button>
+                    <span class="tip tip-below" data-tip="מיון לפי מספר שאלות">
+                        <button class="sort-btn" @onclick='() => SortBy("count")'>
+                            מס' שאלות<span class="sort-mark">@SortMark("count")</span>
+                        </button>
+                    </span>
                 </span>
 
                 <span class="col-action">עריכה</span>
 
                 <span class="col-action">
-                    <button class="sort-btn" title="מיון לפי מצב פרסום" @onclick='() => SortBy("publish")'>
-                        פרסום<span class="sort-mark">@SortMark("publish")</span>
-                    </button>
+                    <span class="tip tip-below" data-tip="מיון לפי מצב פרסום">
+                        <button class="sort-btn" @onclick='() => SortBy("publish")'>
+                            פרסום<span class="sort-mark">@SortMark("publish")</span>
+                        </button>
+                    </span>
                     @* מקרא שלושת מצבי הצ'ק בוקס, לפי הפיגמה. זה טולטיפ
                        עם תוכן מעוצב ולא data-tip, כי יש בו ריבועי צבע *@
                     <span class="tip">
@@ -158,12 +166,10 @@
                         <span class="col-count">@game.QuestionsCount</span>
 
                         <span class="col-action">
-                            <span class="tip" data-tip="עריכת המשחק">
-                                <button class="icon-btn" @onclick="() => OpenEditor(game.ID)">
-                                    <img src="assets-images/pen.svg" alt="עריכה"
-                                         width="27" height="27" />
-                                </button>
-                            </span>
+                            <button class="icon-btn" @onclick="() => OpenEditor(game.ID)">
+                                <img src="assets-images/pen.svg" alt="עריכה"
+                                     width="27" height="27" />
+                            </button>
                         </span>
 
                         @* צ'ק בוקס פרסום בשלושה מצבים:
@@ -184,12 +190,10 @@
                         </span>
 
                         <span class="col-action">
-                            <span class="tip" data-tip="מחיקת המשחק">
-                                <button class="icon-btn" @onclick="() => AskDelete(game)">
-                                    <img src="assets-images/bin.svg" alt="מחיקה"
-                                         width="27" height="27" />
-                                </button>
-                            </span>
+                            <button class="icon-btn" @onclick="() => AskDelete(game)">
+                                <img src="assets-images/bin.svg" alt="מחיקה"
+                                     width="27" height="27" />
+                            </button>
                         </span>
                     </div>
                 }
@@ -265,10 +269,8 @@
                    לפי הפיגמה הכפתור מוצג תמיד, ומנוטרל עד שהוזן שם
                    תקין ונבחר זמן לשאלה *@
                 <div class="popup-actions">
-                    <span class="tip tip-wide" data-tip="שמירת שינויים">
-                        <button type="submit" class="btn-main"
-                                disabled="@(IsFormReady() == false)">יצירת משחק</button>
-                    </span>
+                    <button type="submit" class="btn-main"
+                            disabled="@(IsFormReady() == false)">יצירת משחק</button>
 
                     <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
                         <button type="button" class="btn-main" @onclick="ClosePopup">ביטול</button>
@@ -516,6 +518,9 @@
     // הבהוב מסגרת אדום כשמנסים לחרוג ממגבלת התווים של שם המשחק
     bool nameBlink = false;
 
+    // הבהוב אדום של המונה כשמנסים להקליד מעבר למגבלה.
+    // maxlength חוסם את התו בשקט, ובלי חיווי המשתמשת הייתה
+    // חושבת שהמקלדת תקועה
     async Task OnNameKeyDown(KeyboardEventArgs e)
     {
         if (NameLength() >= NameMax && IsTypingKey(e))
@@ -535,6 +540,7 @@
     }
 
 
+    // צבע מונה התווים: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה
     string CounterClass()
     {
         if (NameLength() == 0)

@@ -315,12 +315,10 @@
                 @* לפי הפיגמה הכפתור מוצג תמיד, ומנוטרל עד שהטופס מלא
                    ונעשה בו שינוי *@
                 <div class="popup-actions">
-                    <span class="tip tip-wide" data-tip="שמירת שינויים">
-                        <button type="submit" class="btn-main"
-                                disabled="@(IsFormReady() == false || HasChanges() == false)">
-                            שמירת שינויים
-                        </button>
-                    </span>
+                    <button type="submit" class="btn-main"
+                            disabled="@(IsFormReady() == false || HasChanges() == false)">
+                        שמירת שינויים
+                    </button>
 
                     <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
                         <button type="button" class="btn-main" @onclick="CloseSettingsPopup">ביטול</button>
@@ -661,6 +659,8 @@
     // בפתיחת שאלה (חדשה או עריכה) גוללים כדי שאזור השאלה ייכנס לתצוגה
     bool scrollToEdit = false;
 
+    // רץ אחרי כל ציור של העמוד. משמש להחזרת המיקוד לשדה אחרי
+    // פתיחת פופאפ, כדי שאפשר יהיה להקליד בלי ללחוץ עליו קודם
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (scrollToEdit == true)
@@ -675,6 +675,8 @@
     }
 
 
+    // פותחת שאלה חדשה לעריכה: שלושה פריטים ריקים וערכי קיצון
+    // של ברירת מחדל, לפי האפיון
     void StartNewQuestion()
     {
         editedQuestion = new QuestionToEdit();
@@ -886,6 +888,9 @@
     // הבהוב מסגרת אדום כשמנסים לחרוג ממגבלת התווים של שם המשחק
     bool nameBlink = false;
 
+    // הבהוב אדום של המונה כשמנסים להקליד מעבר למגבלה.
+    // maxlength חוסם את התו בשקט, ובלי חיווי המשתמשת הייתה
+    // חושבת שהמקלדת תקועה
     async Task OnNameKeyDown(KeyboardEventArgs e)
     {
         if (NameLength() >= NameMax && IsTypingKey(e))
@@ -905,6 +910,7 @@
     }
 
 
+    // צבע מונה התווים: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה
     string CounterClass()
     {
         if (NameLength() == 0)

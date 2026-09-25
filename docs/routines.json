@@ -1,0 +1,2558 @@
+[
+ {
+  "layer": "שרת",
+  "file": "AuthCheck.cs",
+  "sig": "public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)",
+  "doc": "הבדיקה עצמה, לפי הסדר: 1. יש טוקן בכלל 2. הטוקן חתום ובתוקף 3. יש בו מזהה משתמש מספרי 4. הטוקן לא נפסל בהתנתקות סדר הבדיקות אינו מקרי: אימות החתימה זול יותר מפנייה לבסיס הנתונים, ולכן הרשימה השחורה נבדקת אחרונה. כל כישלון מחזיר 401 ועוצר את הבקשה בלי לקרוא ל-next"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthCheck.cs",
+  "sig": "private static string ExtractToken(HttpRequest request)",
+  "doc": "שולף את הטוקן מכותרת Authorization. מקבל גם כותרת בלי התחילית \"Bearer \", כדי שלקוח שלא הוסיף אותה לא ייכשל סתם"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "public async Task<string> Login(string email)",
+  "doc": "מאתר משתמש קיים לפי הדוא\"ל ומנפיק לו טוקן. מחזיר NoUser אם אין משתמש כזה - וזה אינו כישלון אלא הסימן ל-AuthController שצריך לרשום את המשתמש עכשיו. ההשוואה היא COLLATE NOCASE: פורטלם עשוי להחזיר את אותו דוא\"ל באותיות גדולות או קטנות, ובלי זה אותו אדם היה נספר כשני משתמשים שונים התחברות"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "public async Task<string> Signup(PortelemUser newUser)",
+  "doc": "רושם משתמש חדש, או משייך מחדש משתמש קיים, ומנפיק טוקן. בפועל זו פעולת \"עדכן או הוסף\" בשלושה מסלולים, לפי הסדר: 1. קיים לפי PortelemId - מרעננים לו את הדוא\"ל והשם. זה המסלול של מי ששינה את פרטיו בפורטלם. 2. קיים לפי דוא\"ל אבל בלי PortelemId - משלימים לו את המזהה. זה המסלול של משתמש ותיק מלפני החיבור לפורטלם. 3. לא קיים בכלל - הוספה חדשה. הסדר הזה הוא לב העניין: בטבלה יש אילוץ ייחודיות גם על הדוא\"ל וגם על PortelemId. חיפוש לפי דוא\"ל בלבד היה יוצר נעילה הדדית - ההתחברות לא מוצאת את המשתמש לפי הדוא\"ל החדש, וההוספה נכשלת כי המזהה כבר תפוס הרשמה"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "public async Task<string> RefreshToken()",
+  "doc": "מחדש את הטוקן שבבקשה הנוכחית. הטוקן נשלף מכותרת Authorization ולא מפרמטר, כדי שלא יהיה אפשר לבקש חידוש לטוקן של מישהו אחר. טוקן לא תקין גורר התנתקות מיידית: אם הוא ממילא פסול, עדיף לפסול אותו סופית מאשר להשאיר אותו תלוי באוויר עדכון TOKEN שעומד לפוג"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "public async Task Logout()",
+  "doc": "מנתק את המשתמש בכך שהוא מוסיף את הטוקן לרשימה השחורה. מחיקת הטוקן מהדפדפן לבדה אינה מספיקה: מי שהעתיק אותו היה יכול להמשיך להשתמש בו עד שיפוג. כאן הוא נפסל בשרת. שגיאה נרשמת ביומן ואינה נזרקת, כי גם התנתקות שנכשלה חלקית לא צריכה להחזיר שגיאה למשתמש שכבר עזב התנתקות"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "public async Task<User> GetUser()",
+  "doc": "מחזיר את פרטי המשתמש המחובר, כולם מתוך הטוקן עצמו. אין כאן פנייה לבסיס הנתונים בכוונה: הפרטים כבר יושבים בתביעות הטוקן, והוא חתום ולכן אי אפשר לזייף אותם. שלוש בדיקות לפני שמחזירים משהו: יש טוקן, הוא תקף, והוא לא נפסל בהתנתקות. כל כישלון מחזיר null קבלת פרטי משתמש מהיוזר"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthRepository.cs",
+  "sig": "private string CreateToken(UserFromDB user)",
+  "doc": "בונה את רשימת התביעות מתוך שורת המשתמש, ומנפיק טוקן. שגרת העזר שכל שלושת מסלולי ההרשמה וההתחברות מסתיימים בה, כדי שהטוקן ייבנה במקום אחד בלבד. NameId הוא המזהה הפנימי של המחולל - זה מה ש-AuthCheck יקרא בכל בקשה כדי לדעת מי המשתמש. שדות ריקים מוחלפים במחרוזת ריקה, כי תביעה עם ערך null נכשלת בבנייה יצירת Claims"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbTokenBlacklistService.cs",
+  "sig": "public DbTokenBlacklistService(DbRepository db, ILogger<DbTokenBlacklistService> logger)",
+  "doc": "הגישה לבסיס הנתונים והיומן מוזרקות, כדי שהמחלקה לא תיצור חיבור משלה"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbTokenBlacklistService.cs",
+  "sig": "public void AddToBlacklist(string token)",
+  "doc": "מוסיף טוקן לרשימה בהתנתקות. תאריך התפוגה נשלף מתוך הטוקן עצמו ולא מחושב מחדש, כדי שהשורה תימחק בדיוק כשהטוקן ממילא כבר לא תקף. ה-INSERT מותנה ב-NOT EXISTS כדי שהתנתקות כפולה לא תיצור שתי שורות לאותו טוקן. כישלון כאן נזרק הלאה: אם לא הצלחנו לפסול טוקן, אסור לדווח למשתמש שההתנתקות הצליחה"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbTokenBlacklistService.cs",
+  "sig": "public bool IsBlacklisted(string token)",
+  "doc": "בודק אם הטוקן נפסל. נקרא בכל בקשה מאומתת. התנאי על ExpiresAt מוודא ששורות ישנות שטרם נוקו אינן משפיעות על התוצאה. בשגיאה מוחזר false ולא true: תקלה בבסיס הנתונים לא תנעל את כל המשתמשים מחוץ למערכת"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbTokenBlacklistService.cs",
+  "sig": "public void RemoveExpiredTokens()",
+  "doc": "מוחק מהרשימה שורות שתוקפן פג. מופעל פעם ביום על ידי TokenCleanupBackgroundService. שגיאה נרשמת ביומן ולא נזרקת, כדי שתקלה בניקוי לא תפיל את שירות הרקע"
+ },
+ {
+  "layer": "שרת",
+  "file": "PasswordService.cs",
+  "sig": "public PasswordService()",
+  "doc": "יוצר מצפין חדש עם הגדרות ברירת המחדל של ASP.NET"
+ },
+ {
+  "layer": "שרת",
+  "file": "PasswordService.cs",
+  "sig": "public string HashPassword(MinimalUser user, string password)",
+  "doc": "מקבל משתמש וסיסמה גלויה, ומחזיר את המחרוזת המוצפנת שתישמר בבסיס הנתונים"
+ },
+ {
+  "layer": "שרת",
+  "file": "PasswordService.cs",
+  "sig": "public PasswordVerificationResult VerifyPassword(MinimalUser user, string password)",
+  "doc": "משווה סיסמה גלויה מול ה-hash השמור של המשתמש. מחזיר Success, Failed, או SuccessRehashNeeded כשהסיסמה נכונה אבל הוצפנה בשיטה ישנה יותר"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenBlacklistMiddleware.cs",
+  "sig": "public TokenBlacklistMiddleware(RequestDelegate next)",
+  "doc": "next הוא השלב הבא בשרשרת. שכבת ביניים חייבת להחזיק אותו כדי להעביר הלאה בקשה שעברה את הבדיקה"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenBlacklistMiddleware.cs",
+  "sig": "public async Task Invoke(HttpContext context, ITokenBlacklistService tokenBlacklistService)",
+  "doc": "רץ על כל בקשה: שולף את הטוקן מכותרת Authorization, ואם הוא ברשימה השחורה עוצר מיד ב-401. שירות הרשימה מוזרק לפי בקשה ולא בבנאי, כי הוא scoped"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenCleanupBackgroundService.cs",
+  "sig": "protected override async Task ExecuteAsync(CancellationToken stoppingToken)",
+  "doc": "הלולאה הראשית של השירות, רצה כל עוד השרת פועל. ההמתנה הראשונה של דקה נותנת לשרת לסיים לעלות לפני שהוא ניגש לבסיס הנתונים. אחר כך ניקוי כל 24 שעות. שגיאה אינה מפילה את השירות אלא רק דוחה את הניסיון הבא בשעה, כדי שתקלה זמנית לא תשבית את הניקוי לתמיד. הפרמטר stoppingToken מסומן כשהשרת נסגר, וכל המתנה מתבטלת מיד במקום להחזיק את הסגירה"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public TokenService(IConfiguration configuration)",
+  "doc": "המפתח והמנפיק נקראים פעם אחת מקובץ ההגדרות. שינוי המפתח פוסל מיידית את כל הטוקנים הקיימים"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public string GenerateToken(List<Claim> claims)",
+  "doc": "בונה טוקן חתום מרשימת תביעות, בתוקף ליומיים. מוחזר ללקוח בהתחברות ונשלח בכל בקשה בכותרת Authorization"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public ClaimsPrincipal ValidateToken(string token)",
+  "doc": "מאמת טוקן ומחזיר את זהות המשתמש שבו, או null אם נכשל. נבדקים המנפיק, תוקף החתימה ותאריך התפוגה. הקהל אינו נבדק כי לשרת הזה יש צרכן אחד בלבד. ClockSkew אופס: ברירת המחדל מאפשרת חמש דקות חריגה, וכאן רוצים שתוקף שפג ייפסל מיד. כל חריגה נבלעת ומוחזר null, כי מבחינת הקורא כישלון אימות הוא תוצאה ולא תקלה"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public bool IsTokenExpired(string token)",
+  "doc": "בודק אם תוקף הטוקן פג, בלי לבדוק את החתימה"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public string RefreshToken(string token)",
+  "doc": "מחדש טוקן שעומד לפוג בחמש הדקות הקרובות, ומחזיר אותו כמות שהוא אם עוד יש לו זמן. טוקן לא תקין מחזיר null. התביעות מועתקות כפי שהן, ולכן המשתמש נשאר אותו משתמש"
+ },
+ {
+  "layer": "שרת",
+  "file": "TokenService.cs",
+  "sig": "public List<Claim> GetClaims(string jwt)",
+  "doc": "שולף את התביעות מתוך טוקן בלי לאמת אותו. משמש לקריאת הטוקן של פורטלם, שנחתם במפתח של פורטלם ולא במפתח של המחולל ולכן אינו עובר כאן אימות חתימה. רשימה ריקה מוחזרת על כל תקלה, כדי שהקורא לא יצטרך לטפל בחריגות"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "public AuthController(AuthRepository authRepository, IHttpClientFactory httpClientFactory, IConfiguration configuration, TokenService tokenService, ILogger<AuthController> logger)",
+  "doc": "ה-HttpClient נוצר דרך מפעל ולא ב-new, כדי שחיבורי הרשת ימוחזרו. יצירה ידנית חוזרת של HttpClient מרוקנת את מאגר החיבורים של המערכת"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "public async Task<ActionResult> GetUser()",
+  "doc": "מחזיר את פרטי המשתמש המחובר: GET api/Auth/user המזהה נלקח מהטוקן שבבקשה, ולא מפרמטר, כדי שלא יהיה אפשר לבקש פרטים של משתמש אחר קבלת פרטי משתמש"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "public async Task<IActionResult> PortelemLogin([FromBody] string ssoToken)",
+  "doc": "ההתחברות עצמה: POST api/Auth/portelemLogin מקבל את טוקן ה-SSO של פורטלם ועובר את השלבים: 1. בדיקת מבנה בסיסית של הטוקן 2. פנייה לפורטלם עם מזהה השירות והסוד, לאימות 3. שליפת הדוא\"ל מתוך תביעות הטוקן 4. ניסיון התחברות לפי הדוא\"ל 5. אם המשתמש אינו מוכר - רישום אוטומטי תשובה \"false\" מפורטלם אינה שגיאת רשת אלא תשובה תקינה שמשמעותה שהמשתמש אינו מורשה, ולכן היא נבדקת בנפרד. אין כאן מסך הרשמה: משתמש שנכנס בפעם הראשונה נרשם מאליו מתוך הפרטים שבטוקן התחברות"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "async Task<string> SignUp(string jwt)",
+  "doc": "רישום משתמש חדש מתוך תביעות טוקן פורטלם. פרטית ונקראת רק מ-PortelemLogin. מחלצת את המזהה מפורטלם (sub), הדוא\"ל והשם, ומעבירה ל-Repository. sub והדוא\"ל הם חובה - בלעדיהם אי אפשר לזהות את המשתמש בכניסה הבאה. השם הפרטי ושם המשפחה אינם חובה ומוחלפים במחרוזת ריקה אם הם חסרים. מחזירה טוקן של המחולל בהצלחה, או ErrorSignup בכישלון. הענף של UserExists נשאר מהגרסה הקודמת ואינו מגיע יותר, מאז שהרישום הפך לעדכון-או-הוספה לפי המזהה מפורטלם"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "public async Task<IActionResult> refreshToken()",
+  "doc": "מחדש את הטוקן של המחולל לפני שהוא פג: GET api/Auth/refresh הלקוח קורא לכאן ברקע, כדי שמשתמש באמצע עבודה לא יימצא פתאום מנותק מרענן את הטוקן שעומד לפוג"
+ },
+ {
+  "layer": "שרת",
+  "file": "AuthController.cs",
+  "sig": "public async Task<IActionResult> Logout()",
+  "doc": "התנתקות: GET api/Auth/logout הטוקן הנוכחי נכנס לרשימה השחורה, ולכן הוא נפסל מיד ולא רק נמחק מהדפדפן התנתקות"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public GamesController(DbRepository db, FilesManage files)",
+  "doc": "שתי התלויות של הבקר: בסיס הנתונים וניהול קבצי התמונות"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> GetUserGames(int authUserId)",
+  "doc": "מחזיר את טבלת \"המשחקים שלי\": GET api/Games רק המשחקים של המשתמש המחובר, עם ספירת השאלות לכל אחד שליפת כל המשחקים של המשתמש המחובר"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> GetOneGame(int authUserId, int gameId)",
+  "doc": "מחזיר משחק אחד לעמוד העריכה: GET api/Games/{gameId} מחזיר שגיאה גם כשהמשחק קיים אך שייך למשתמש אחר, כדי לא לחשוף שהמזהה הזה תפוס שליפת משחק אחד לפי המזהה שלו, עבור מסך העורך"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> AddGames(int authUserId, GameToAdd gameToAdd)",
+  "doc": "יוצר משחק חדש: POST api/Games/addGame קוד המשחק נקבע בשרת ולא מגיע מהלקוח, כדי שיהיה ייחודי הוספת משחק חדש"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> EditGame(int authUserId, GameToEdit gameToEdit)",
+  "doc": "עריכת הגדרות של משחק קיים"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> PublishGame(int authUserId, int gameId)",
+  "doc": "מחליף את מצב הפרסום: PUT api/Games/publishGame/{gameId} פרסום הוא מה שהופך משחק לזמין לשחקנים - UnityController מגיש רק משחקים מפורסמים. לכן תנאי הפרסום נבדקים כאן בשרת ולא רק במסך, כדי שקריאה ישירה ל-API לא תעקוף אותם שינוי מצב הפרסום של משחק"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> DeleteGame(int authUserId, int gameId)",
+  "doc": "מוחק משחק: DELETE api/Games/deleteGame/{gameId} השאלות והפריטים נמחקים מאליהם בזכות מחיקה מדורגת - ולכן חשוב ש-PRAGMA foreign_keys נדלק ב-DbRepository. קבצי התמונות אינם חלק מבסיס הנתונים ולכן נמחקים כאן במפורש, אחרת היו נשארים יתומים בתיקייה לנצח מחיקת משחק. השלבים והתשובות נמחקים אוטומטית בזכות ה-CASCADE"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> GetQuestions(int authUserId, int gameId)",
+  "doc": "שליפת כל השאלות של משחק, כולל הפריטים של כל שאלה"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> AddQuestion(int authUserId, QuestionToEdit question)",
+  "doc": "מוסיף שאלה למשחק: POST api/Games/addQuestion השאלה והפריטים שלה נשמרים יחד: קודם השאלה, כדי לקבל את המזהה שלה, ואז הפריטים שמצביעים עליו. בסיום נקרא SyncPublishState, כי הוספת שאלה חסרה עלולה להוציא משחק מפורסם ממצב שניתן לפרסום הוספת שאלה חדשה"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> EditQuestion(int authUserId, QuestionToEdit question)",
+  "doc": "מעדכן שאלה קיימת: PUT api/Games/editQuestion הפריטים אינם מעודכנים אחד-אחד אלא נמחקים ונכתבים מחדש מהרשימה שהגיעה. זה פשוט יותר מהשוואת רשימות, ומבטיח שהמקום הנכון של כל פריט תואם לסדר שבמסך. לפני הכתיבה נמחקים קבצי התמונות שכבר אינם בשימוש עדכון שאלה קיימת והפריטים שלה"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> DeleteQuestion(int authUserId, int questionId)",
+  "doc": "מחיקת שאלה. הפריטים נמחקים אוטומטית בזכות ה-CASCADE"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "public async Task<IActionResult> UploadImage(int authUserId, ImageToUpload image)",
+  "doc": "מעלה תמונה לפריט: POST api/Games/uploadImage מוחזר שם הקובץ בלבד, והוא זה שנשמר בעמודת התוכן של הפריט. התמונה עצמה יושבת כקובץ תחת wwwroot העלאת תמונה עבור פריט תשובה. הקובץ נשמר בתיקיית uploadedFiles, ומוחזר שמו כדי שיישמר בבסיס הנתונים"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<List<string>> GetQuestionImages(int questionId)",
+  "doc": "שמות קבצי התמונות של שאלה אחת"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<List<string>> GetGameImages(int gameId)",
+  "doc": "שמות קבצי התמונות של כל השאלות במשחק"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private void DeleteUnusedImages(List<string> oldImages, List<AnswerToEdit> newAnswers)",
+  "doc": "מוחק את הקבצים שהיו בשאלה ואינם מופיעים בה יותר"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<List<AnswerToEdit>> GetAnswers(int questionId)",
+  "doc": "שליפת הפריטים של שאלה, לפי הסדר הנכון"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task SaveAnswers(int questionId, List<AnswerToEdit> answers)",
+  "doc": "כותבת את פריטי השאלה. המקום הנכון אינו שדה שהעורכת מזינה אלא נגזר מהמיקום ברשימה: הפריט הראשון מקבל מקום ראשון וכן הלאה. לכן שינוי סדר במסך הוא כל מה שצריך כדי לשנות את התשובה הנכונה, ואין שדה נפרד שעלול לצאת מסנכרון שמירת הפריטים של שאלה. המקום הנכון נקבע לפי הסדר ברשימה שהגיעה מהעורך"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<bool> IsMyQuestion(int questionId, int userId)",
+  "doc": "בדיקה שהשאלה שייכת למשחק של המשתמש המחובר"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<GameToTable> GetGameById(int gameId)",
+  "doc": "שליפת משחק אחד לפי המזהה שלו"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<bool> IsMyGame(int gameId, int userId)",
+  "doc": "בדיקה שהמשחק שייך למשתמש המחובר"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task SyncPublishState(int gameId)",
+  "doc": "מעדכנת את שני דגלי הפרסום אחרי כל שינוי בשאלות. CanPublish - האם המשחק עומד בתנאים IsPublish - האם הוא מפורסם בפועל המעבר הוא חד-כיווני בכוונה: משחק שחדל לעמוד בתנאים יורד מפרסום מיד, אבל משחק שחזר לעמוד בהם אינו עולה לפרסום מאליו - העורכת צריכה לפרסם אותו שוב. בלי הקריאה הזו אחרי כל הוספה, עריכה ומחיקה של שאלה, משחק מפורסם היה יכול להישאר מוגש לשחקנים במצב שבור סנכרון מצב הפרסום אחרי שינוי בשאלות. אם משחק מפורסם כבר לא עומד בתנאים (למשל נוצרה טיוטה) - מורידים אותו מפרסום"
+ },
+ {
+  "layer": "שרת",
+  "file": "GamesController.cs",
+  "sig": "private async Task<bool> CheckCanPublish(int gameId)",
+  "doc": "בודקת אם המשחק עומד בתנאי הפרסום שבאפיון: 1. לפחות שלוש שאלות במשחק 2. אין אף שאלה עם פחות משלושה פריטים התנאי השני נבדק בשאילתה אחת עם תת-שאילתה, ולא בלולאה על השאלות, כדי לא לפנות לבסיס הנתונים פעם לכל שאלה. שים לב שההערה הישנה מתחת מדברת על שלב אחד ושתי תשובות - הקוד מחמיר ממנה. הקוד הוא הקובע בדיקת עמידה בתנאי הפרסום. משחק ניתן לפרסום אם יש בו לפחות שלב אחד, ובכל שלב לפחות שתי תשובות"
+ },
+ {
+  "layer": "שרת",
+  "file": "UnityController.cs",
+  "sig": "public UnityController(DbRepository db)",
+  "doc": "הבקר צריך רק את בסיס הנתונים - אין כאן העלאות קבצים ואין אימות משתמש"
+ },
+ {
+  "layer": "שרת",
+  "file": "UnityController.cs",
+  "sig": "public async Task<ActionResult<GameForUnityDto>> GetGameByCode(string gameCode)",
+  "doc": "מחזיר משחק שלם לפי קוד המשחק: GET api/Unity/{gameCode} הסדר: אימות הקוד, שליפת המשחק, בדיקת פרסום, שליפת השלבים, ואז שליפת הפריטים של כל שלב. הפריטים נשלפים בשאילתה נפרדת לכל שלב ולא ב-JOIN אחד, כדי שהרכבת המבנה ההיררכי תישאר פשוטה. מספר השלבים במשחק קטן, ולכן זה לא מכביד. הפריטים חוזרים ממוינים לפי CorrectPlace - כלומר בסדר הנכון. הערבוב נעשה ביוניטי ולא כאן"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbRepository.cs",
+  "sig": "public DbRepository(IConfiguration config)",
+  "doc": "מחרוזת החיבור נקראת מ-appsettings ומצביעה על קובץ ה-db. החיבור נוצר כאן אבל אינו נפתח - הפתיחה נעשית לפי שאילתה"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbRepository.cs",
+  "sig": "public void OpenConnection()",
+  "doc": "פותח את החיבור אם הוא סגור. ב-SQLite מחיקה מדורגת אינה פעילה כברירת מחדל, וצריך להדליק אותה בכל חיבור מחדש. בלי השורה הזו מחיקת משחק הייתה משאירה את השאלות והפריטים שלו יתומים בבסיס הנתונים"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbRepository.cs",
+  "sig": "public void CloseConnection()",
+  "doc": "סוגר את החיבור. נקרא בסוף כל פעולה, גם כשהיא נכשלה, כדי שקובץ ה-db לא יישאר נעול"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbRepository.cs",
+  "sig": "public async Task<int> SaveDataAsync(string query, object parameters = null)",
+  "doc": "מריץ שאילתת כתיבה - הוספה, עדכון או מחיקה - ומחזיר את מספר השורות שהושפעו. 0 שורות אינו בהכרח שגיאה: הוא גם התשובה כשתנאי ה-WHERE לא התאים לאף שורה, למשל בעדכון משחק של משתמש אחר. חריגה נזרקת הלאה כדי שהקורא יבחין בין כישלון אמיתי לבין עדכון שלא תפס"
+ },
+ {
+  "layer": "שרת",
+  "file": "DbRepository.cs",
+  "sig": "public async Task<int> InsertReturnIdAsync(string query, object parameters = null)",
+  "doc": "מוסיף שורה ומחזיר את המזהה שנוצר עבורה, או 0 אם ההוספה לא בוצעה. last_insert_rowid של SQLite מחזיר את המזהה האחרון שנוצר באותו חיבור, ולכן חשוב שהשליפה תתבצע לפני הסגירה ועל אותו חיבור בדיוק. בשימוש בהוספת משחק ובהוספת שאלה, ששם צריך את המזהה כדי לקשר אליו את הפריטים"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "public FilesManage(IWebHostEnvironment env)",
+  "doc": "הסביבה דרושה כדי למצוא את נתיב wwwroot בזמן ריצה, שמשתנה בין הרצה מקומית לבין השרת"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "public bool DeleteFile(string fileName, string containerName)",
+  "doc": "מחיקת קובץ בודד"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "public int DeleteFiles(IEnumerable<string> fileNames, string containerName)",
+  "doc": "מחיקת אוסף קבצים. מחזיר כמה נמחקו בפועל"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "private bool IsSafeFileName(string fileName)",
+  "doc": "בודק ששם הקובץ הוא שם ולא נתיב"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "public async Task<string> SaveFile(string imageBase64, string extension, string containerName)",
+  "doc": "שומרת תמונה שהגיעה כ-base64, ומחזירה את שם הקובץ שנוצר. הסדר: פענוח, הקטנה למידות התצוגה, דחיסה עד שהקובץ נכנס למגבלה, ורק אז כתיבה לדיסק. כך קובץ גדול מדי לעולם אינו נכתב לשרת ולו לרגע. אם הדחיסה נאלצה לעבור מ-PNG ל-JPEG, גם הסיומת משתנה בהתאם, כדי שהקובץ על הדיסק יתאים לתוכנו שמירת תמונה. התמונה מוקטנת ונדחסת עד שהיא נכנסת למגבלת 512KB"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "private async Task<byte[]> CompressToLimit(Image image, string extension)",
+  "doc": "דוחסת את התמונה בשלבים עד שהיא נכנסת למגבלת 512KB. סדר הניסיונות מהזול ליקר מבחינת איכות התוצאה: 1. קידוד באיכות 85 2. אם זה PNG - מעבר ל-JPEG, שכמעט תמיד קטן בהרבה 3. הורדת איכות הדרגתית: 70, 55, 45, 35 4. הקטנת המידות ב-20% כל פעם, עד חמישה סיבובים עצירה ב-80 פיקסלים כדי לא להגיע לתמונה בלתי שמישה. אם גם אחרי כל זה הקובץ גדול מהמגבלה, מוחזר מה שיש - כי הוא כבר קטן משמעותית מהמקור, ועדיף מלדחות את ההעלאה מוריד את איכות הדחיסה, ואם צריך גם את המידות, עד שהתמונה נכנסת למגבלת הגודל"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "private async Task<byte[]> EncodeAsync(Image image, string extension, int quality)",
+  "doc": "ממיר את התמונה למערך בתים לפי הסיומת"
+ },
+ {
+  "layer": "שרת",
+  "file": "FilesManage.cs",
+  "sig": "private string CleanExtension(string extension)",
+  "doc": "מקבל רק את הסיומות המותרות לפי האפיון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "App.razor",
+  "sig": "protected override async Task OnInitializedAsync()",
+  "doc": "נרשם לאירוע שינוי ההזדהות וטוען את פרטי המשתמש הראשוניים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "App.razor",
+  "sig": "private async void HandleAuthenticationStateChanged()",
+  "doc": "מרענן את פרטי המשתמש בכל כניסה או יציאה, וקורא ל-StateHasChanged כי האירוע מגיע מחוץ למחזור העדכון בכל פעם שמשהו בהזדהות משתנה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "App.razor",
+  "sig": "public void Dispose()",
+  "doc": "ניתוק מהאירוע. בלעדיו הרכיב היה נשאר מוחזק בזיכרון על ידי השירות גם אחרי שהוסר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "public AuthStateProvider(HttpClient httpClient, ILocalStorageService localStorage, IConfiguration configuration)",
+  "doc": "_anonymous נבנה פעם אחת ומשמש כתשובה הקבועה למצב \"אף אחד לא מחובר\""
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "public override async Task<AuthenticationState> GetAuthenticationStateAsync()",
+  "doc": "מחזיר את מצב ההזדהות הנוכחי. נקרא על ידי Blazor. הסדר: קריאת הטוקן מהאחסון, חידוש אם צריך, והרכבת זהות מהתביעות שבו. בסוף מוצבת כותרת Authorization על ה-HttpClient, וזו הסיבה שכל קריאת API בהמשך נושאת את הטוקן מאליה בלי שאף מסך יצטרך לצרף אותו"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "public async Task NotifyAuthenticationStateChanged(string token)",
+  "doc": "נקרא אחרי התחברות מוצלחת: שומר את הטוקן ומודיע לכל הרכיבים שמצב ההזדהות השתנה, כדי שיצטיירו מחדש"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "public async Task NotifyUserLogout()",
+  "doc": "מנקה את הטוקן מהאחסון ומכותרת הבקשות, ומחזיר את המערכת למצב אנונימי"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "private bool IsTokenExpired(string token)",
+  "doc": "בודק אם הטוקן פג או עומד לפוג בשעה הקרובה. השעה המוקדמת מכוונת: אם היינו מחכים לפקיעה ממש, משתמש היה נתקל בשגיאה באמצע שמירה. כך החידוש קורה מראש. טוקן בלי תביעת exp נחשב פג - ברירת מחדל מחמירה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthStateProvider.cs",
+  "sig": "private string GetTokenName()",
+  "doc": "שם המפתח ב-localStorage, מורכב ממזהה השירות ומשם המערכת. כך שתי מערכות שונות שרצות על אותו דומיין אינן דורסות זו את הטוקן של זו"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthenticationService.cs",
+  "sig": "public async Task Logout()",
+  "doc": "התנתקות מלאה, בשלושה שלבים: 1. פסילת הטוקן בשרת, כדי שלא יהיה שמיש גם אם הועתק 2. מחיקתו מ-localStorage ועדכון מצב ההזדהות 3. חזרה לעמוד הראשי של פורטל\"מ רק הראשון מנטרל את הטוקן באמת. השניים האחרים דואגים לכך שהממשק יתעדכן ושהמשתמש לא יישאר במסך ריק"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthenticationService.cs",
+  "sig": "public async Task<bool> LoginWithPortelem()",
+  "doc": "ההתחברות עצמה. אין טוקן בכתובת - מפנים לפורטל\"מ ומחזירים false. כלומר false כאן אינו בהכרח כישלון, אלא גם \"עוד לא סיימנו\". כתובת ההפניה שונה בין סביבת פיתוח לסביבת ייצור: בפיתוח מעבירים לפורטל\"מ גם את הכתובת לחזור אליה, כי היא משתנה בין מפתחים. בסוף הכתובת מנוקה מהפרמטר, בלי טעינה מחדש. אחרת הטוקן של פורטל\"מ היה נשאר בשורת הכתובת ובהיסטוריה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthenticationService.cs",
+  "sig": "string GetQueryParm(string parmName)",
+  "doc": "שולף פרמטר משורת הכתובת. מחזיר מחרוזת ריקה ולא null כשהפרמטר חסר, כדי שהקורא לא יצטרך לבדוק null"
+ },
+ {
+  "layer": "לקוח",
+  "file": "AuthenticationService.cs",
+  "sig": "public async Task<User> GetUserFromClaimAsync()",
+  "doc": "מרכיב אובייקט משתמש מתוך תביעות הטוקן השמור. המידע מגיע מהטוקן ולא מפנייה לשרת, ולכן זה מיידי"
+ },
+ {
+  "layer": "לקוח",
+  "file": "ILocalStorageService.cs",
+  "sig": "public LocalStorageService(IJSRuntime jsRuntime)",
+  "doc": "IJSRuntime הוא הגשר לקריאות JavaScript מתוך Blazor"
+ },
+ {
+  "layer": "לקוח",
+  "file": "ILocalStorageService.cs",
+  "sig": "public async Task SetItemAsync(string key, string value)",
+  "doc": "כותב ל-localStorage של הדפדפן"
+ },
+ {
+  "layer": "לקוח",
+  "file": "ILocalStorageService.cs",
+  "sig": "public async Task<string> GetItemAsync(string key)",
+  "doc": "קורא מ-localStorage. מחזיר null כשאין ערך שמור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "ILocalStorageService.cs",
+  "sig": "public async Task RemoveItemAsync(string key)",
+  "doc": "מוחק מפתח מ-localStorage"
+ },
+ {
+  "layer": "לקוח",
+  "file": "JwtParser.cs",
+  "sig": "public static IEnumerable<Claim> ParseClaimsFromJwt(string jwt)",
+  "doc": "מחלץ את התביעות מהחלק האמצעי של הטוקן. טוקן בנוי משלושה חלקים מופרדים בנקודה: כותרת, מטען וחתימה. רק המטען מכיל את פרטי המשתמש"
+ },
+ {
+  "layer": "לקוח",
+  "file": "JwtParser.cs",
+  "sig": "private static byte[] ParseBase64WithoutPadding(string base64)",
+  "doc": "JWT משתמש ב-base64 בלי תווי ריפוד, ו-Convert דורש שהאורך יתחלק בארבע. כאן מוסיפים את הריפוד החסר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NavMenu.razor",
+  "sig": "void ShowHowTo()",
+  "doc": "פותח או סוגר את חלונית ההסבר. סוגר קודם את האודות, כדי ששתי החלוניות לא יוצגו זו מעל זו"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NavMenu.razor",
+  "sig": "void ShowAbout()",
+  "doc": "פותח או סוגר את חלונית האודות, וסוגר את ההסבר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NavMenu.razor",
+  "sig": "void CloseAll()",
+  "doc": "סוגר הכול. נקרא גם מכפתור הסגירה וגם מלחיצה על הרקע"
+ },
+ {
+  "layer": "לקוח",
+  "file": "CustomInputText.razor",
+  "sig": "protected override void OnParametersSet()",
+  "doc": "רצה בטעינת הקומפוננטה ובכל עדכון מהעמוד."
+ },
+ {
+  "layer": "לקוח",
+  "file": "CustomInputText.razor",
+  "sig": "void countChars()",
+  "doc": "רצה בכל הקלדה ומעדכנת את המונה ואת המחלקה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "int EmptySlots()",
+  "doc": "כמה כרטיסי הוספה מוצגים כרגע. עד שלושה פריטים - משלימים לשלושה. משלושה ומעלה - כרטיס הכנה אחד, עד למקסימום"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void OpenAddItem()",
+  "doc": "פופאפ הפריט"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void OpenEditItem(int index)",
+  "doc": "פותח את הפופאפ על פריט קיים וממלא אותו בערכיו. התוכן נטען לשדה שמתאים לסוגו - טקסט או שם קובץ - ולכן מעבר בין הסוגים בתוך הפופאפ אינו מוחק את מה שכבר היה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void CloseItemPopup()",
+  "doc": "סוגר את פופאפ הפריט בלי לשמור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task ChooseImage()",
+  "doc": "בחירת תוכן מסוג תמונה פותחת מיד את חלון הקבצים במחשב"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task UploadImage(InputFileChangeEventArgs e)",
+  "doc": "קריאת הקובץ, שליחתו לשרת ושמירת שם הקובץ שחזר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task OnItemKeyDown(KeyboardEventArgs e)",
+  "doc": "הבהוב אדום של מונה הפריט כשמנסים לחרוג מ-30 התווים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task OnTagKeyDown(KeyboardEventArgs e)",
+  "doc": "הבהוב אדום של מונה ערך הקיצון כשמנסים לחרוג מ-10 התווים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool IsTypingKey(KeyboardEventArgs e)",
+  "doc": "מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "string ItemCounterClass()",
+  "doc": "צבע מונה התווים של הפריט: ירוק כשתקין, אדום במגבלה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool HasItemChanged()",
+  "doc": "האם התוכן שונה מרגע פתיחת הפופאפ. עד שאין שינוי אי אפשר לשמור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool CanSaveItem()",
+  "doc": "האם התוכן תקין לשמירה: טקסט לא ריק ובתוך המגבלה, או תמונה שהועלתה בהצלחה וקיבלה שם קובץ"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task SaveItem()",
+  "doc": "שומר את הפריט ברשימה שבזיכרון - לא בשרת. השמירה לשרת מתרחשת רק כששומרים את השאלה כולה, ולכן ביטול העריכה בעמוד מבטל גם את כל שינויי הפריטים. פריט חדש מתווסף בסוף הרשימה, וקיים מעודכן במקומו. בסוף נשלחת הודעה לעמוד, כדי שמונה הפריטים בכותרת יתעדכן"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void OpenZoom(string fileName)",
+  "doc": "הגדלת תמונה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void CloseZoom()",
+  "doc": "סוגר את תצוגת ההגדלה. שם קובץ ריק הוא מצב סגור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool CanRemove()",
+  "doc": "לפי האפיון שאלה מכילה לפחות שלושה פריטים, ולכן אי אפשר למחוק את השלישי"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "string RemoveTitle()",
+  "doc": "הטקסט בטולטיפ של סל המחיקה, שמסביר למה הוא כבוי"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void AskRemove(int index)",
+  "doc": "מסמן פריט כממתין לאישור מחיקה, ובכך פותח את הפופאפ"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task RemoveItem()",
+  "doc": "מסיר את הפריט מהרשימה שבזיכרון ומודיע לעמוד. כמו בשמירה, השינוי מגיע לשרת רק בשמירת השאלה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void OpenTagPopup(bool right)",
+  "doc": "ערכי הקיצון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void CloseTagPopup()",
+  "doc": "סוגר את פופאפ התגית בלי לשמור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "string TagCounterClass()",
+  "doc": "צבע מונה התווים של התגית"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool CanSaveTag()",
+  "doc": "תגית חייבת להיות לא ריקה ובתוך מגבלת 10 התווים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void SaveTag()",
+  "doc": "כותב את התגית שנערכה לשאלה, לפי הצד שנבחר בפתיחה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void StartDrag(int index)",
+  "doc": "תחילת גרירה: שומר מאיזה מיקום היא התחילה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task DropOn(int targetIndex)",
+  "doc": "הפריט הנגרר נכנס למקום שעליו שוחרר, והשאר נדחפים בהתאם"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "void EndDrag()",
+  "doc": "סיום גרירה שלא הסתיימה בשחרור על פריט. איפוס המיקום מונע מגרירה נטושה להשפיע על השחרור הבא"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "async Task HandleSave()",
+  "doc": "ערך קיצון לא נשמר ריק - אם רוקן, חוזר לברירת המחדל"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "string SaveTip()",
+  "doc": "הטקסט שמופיע בטולטיפ של כפתור השמירה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "bool IsReady()",
+  "doc": "כפתור השמירה פעיל רק כששאלה מלאה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionForm.razor",
+  "sig": "string TagText(string tag)",
+  "doc": "כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום"
+ },
+ {
+  "layer": "לקוח",
+  "file": "QuestionItems.razor",
+  "sig": "string TagText(string tag)",
+  "doc": "כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NotAllowed.razor",
+  "sig": "protected override async Task OnInitializedAsync()",
+  "doc": "מריץ את ההתחברות. ההשהיה של שנייה נותנת להפניה לפורטל\"מ להתרחש בפועל לפני שמשהו מוצג על המסך"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NotAllowed.razor",
+  "sig": "protected override async Task OnAfterRenderAsync(bool firstRender)",
+  "doc": "נשארת ריקה בכוונה. היא הייתה קיימת במקור, והוצאתה משנה את סדר מחזור החיים של הקומפוננטה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "NotAllowed.razor",
+  "sig": "private void Reload()",
+  "doc": "טעינה מחדש של העמוד. לא מריץ את ההתחברות שוב מתוך הקומפוננטה, כדי לא להתערב בזרימת האימות"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "protected override async Task OnParametersSetAsync()",
+  "doc": "טוען את המשחק ואת השאלות שלו. שתי קריאות נפרדות, כי רשימת המשחקים אינה נושאת את השאלות עמה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task LoadQuestions()",
+  "doc": "טוען מחדש את השאלות מהשרת. נקרא אחרי כל שמירה או מחיקה, כדי שהמזהים והסדר יהיו אלה שבבסיס הנתונים ולא ניחוש מקומי. כישלון מציב רשימה ריקה ולא משאיר את הקודמת, שכבר אינה נכונה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool HasEnoughQuestions()",
+  "doc": "התנאי הראשון לפרסום: לפחות שלוש שאלות במשחק"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool AllQuestionsValid()",
+  "doc": "כל השאלות תקינות אם לכל אחת יש לפחות 3 פריטים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool CanTogglePublish()",
+  "doc": "פרסום וביטול פרסום אפשריים תמיד, גם בזמן עריכת שאלה. התנאי היחיד הוא עמידה בתנאי הפרסום, והוא נבדק שוב בשרת"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string PublishCheckClass()",
+  "doc": "מחלקת ה-CSS של סימון הפרסום"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string PublishLabel()",
+  "doc": "בפיגמה הכיתוב על הכפתור קבוע. המצב נמסר דרך הצבע והטולטיפ, ולא דרך טקסט ארוך שגולש מהכפתור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string PublishTip()",
+  "doc": "הטקסט בטולטיפ של כפתור הפרסום, לפי שלושת המצבים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task PublishGame()",
+  "doc": "מחליף את מצב הפרסום. המשחק מוחלף בזה שחזר מהשרת, ולכן גם CanPublish מתעדכן ולא רק IsPublish"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool IsEditing()",
+  "doc": "האם שאלה כלשהי פתוחה בעריכה כרגע"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string AddQuestionTip()",
+  "doc": "הטקסט בטולטיפ של כפתור הוספת שאלה. מסביר למה הוא כבוי כשכבר יש 10 שאלות, במקום להשאיר כפתור אפור בלי הסבר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool CanAddQuestion()",
+  "doc": "מגבלת 10 שאלות למשחק, לפי האפיון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool AreAllExpanded()",
+  "doc": "האם כל השאלות פתוחות כרגע"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string ExpandAllTip()",
+  "doc": "הטקסט בטולטיפ של כפתור פתיחת הכל, לפי מצבו הנוכחי"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void ToggleExpandAll()",
+  "doc": "כפתור אחד שמחליף בין הרחבת הכל לקיבוץ הכל"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void ToggleExpand(int questionId)",
+  "doc": "פותח או סוגר שאלה בודדת לתצוגה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "protected override async Task OnAfterRenderAsync(bool firstRender)",
+  "doc": "רץ אחרי כל ציור של העמוד. משמש להחזרת המיקוד לשדה אחרי פתיחת פופאפ, כדי שאפשר יהיה להקליד בלי ללחוץ עליו קודם"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void StartNewQuestion()",
+  "doc": "פותחת שאלה חדשה לעריכה: שלושה פריטים ריקים וערכי קיצון של ברירת מחדל, לפי האפיון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void StartEditQuestion(QuestionToEdit question)",
+  "doc": "עובדים על עותק, כדי שביטול לא ישנה את מה שמוצג ברשימה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void CancelQuestion()",
+  "doc": "יציאה ממצב עריכה בלי לשמור. העותק הנערך נזרק, ולכן מה שמוצג ברשימה נשאר כפי שהיה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "int EditedQuestionNumber()",
+  "doc": "מספר השאלה שמוצג בזמן עריכה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task SaveQuestion()",
+  "doc": "לפי האפיון: אחרי השמירה המסך חוזר לרשימת השאלות"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void AskDeleteQuestion(QuestionToEdit question)",
+  "doc": "מסמן שאלה כממתינה לאישור מחיקה, ובכך פותח את הפופאפ"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void AskDeleteEdited()",
+  "doc": "מחיקה מתוך מצב עריכה. שאלה חדשה שטרם נשמרה פשוט מבוטלת"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task DeleteQuestion()",
+  "doc": "מוחק את השאלה שממתינה לאישור. הפריטים שלה נמחקים בשרת דרך המחיקה המדורגת. אחרי המחיקה נטענות השאלות מחדש וגם המשחק עצמו, כי מחיקת שאלה עשויה לשנות את CanPublish ולהוריד את המשחק מפרסום"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void OpenSettingsPopup()",
+  "doc": "ההגדרות הכלליות"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void CloseSettingsPopup()",
+  "doc": "סוגר את פופאפ ההגדרות בלי לשמור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "int NameLength()",
+  "doc": "אורך השם שהוזן, עבור מונה התווים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "int DeleteQuestionNumber()",
+  "doc": "מספר השאלה ברשימה, להצגה בפופאפ המחיקה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task OnNameKeyDown(KeyboardEventArgs e)",
+  "doc": "הבהוב אדום של המונה כשמנסים להקליד מעבר למגבלה. maxlength חוסם את התו בשקט, ובלי חיווי המשתמשת הייתה חושבת שהמקלדת תקועה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool IsTypingKey(KeyboardEventArgs e)",
+  "doc": "מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string CounterClass()",
+  "doc": "צבע מונה התווים: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool IsFormReady()",
+  "doc": "כפתור השמירה מוצג רק כשהשם תקין ונבחר זמן"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "bool HasChanges()",
+  "doc": "לפי האפיון: עד שלא מתבצע שינוי, כפתור השמירה אינו מוצג"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task SaveSettings()",
+  "doc": "שומר את ההגדרות הכלליות. המשחק מוחלף בזה שחזר מהשרת, כדי שהמסך יציג את מה שנשמר בפועל"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "async Task RefreshGame()",
+  "doc": "טוען מחדש רק את המשחק, בלי השאלות. נקרא אחרי כל שינוי בשאלות, כי הוא זה שמביא את CanPublish ואת IsPublish המעודכנים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void BackToList()",
+  "doc": "חזרה לרשימת המשחקים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "string TimeText(int seconds)",
+  "doc": "מתרגם שניות לכיתוב בעברית, להצגה במסך"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GameEditor.razor",
+  "sig": "void ShowError(string error)",
+  "doc": "מתרגם את הודעת השגיאה שחזרה מהשרת להודעה בעברית. השרת מחזיר מחרוזות באנגלית, והתרגום מרוכז כאן כדי שכל המסך ידבר בשפה אחת"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "List<GameToTable> VisibleGames()",
+  "doc": "הרשימה שמוצגת בפועל: קודם מסננים, אחר כך ממיינים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "int CompareGames(GameToTable a, GameToTable b)",
+  "doc": "ההשוואה בין שני משחקים, לפי העמודה הנבחרת. שובר השוויון לפי המזהה אינו קישוט: בלעדיו שני משחקים בעלי אותו שם היו יכולים להחליף מקומות בין רינדור לרינדור, והשורות היו קופצות מול המשתמשת בלי סיבה נראית לעין"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void SortBy(string column)",
+  "doc": "לחיצה על אותה כותרת הופכת את כיוון המיון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "string SortMark(string column)",
+  "doc": "החץ שמופיע ליד כותרת העמודה הממוינת, ומחרוזת ריקה לשאר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "protected override async Task OnParametersSetAsync()",
+  "doc": "שליפת המשחקים בטעינת העמוד"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void OpenAddPopup()",
+  "doc": "יצירת משחק"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void ClosePopup()",
+  "doc": "סוגר את פופאפ היצירה בלי לשמור. הטופס עצמו אינו מאופס כאן אלא בפתיחה הבאה, ב-OpenAddPopup"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "int NameLength()",
+  "doc": "אורך השם שהוזן, עבור מונה התווים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "async Task OnNameKeyDown(KeyboardEventArgs e)",
+  "doc": "הבהוב אדום של המונה כשמנסים להקליד מעבר למגבלה. maxlength חוסם את התו בשקט, ובלי חיווי המשתמשת הייתה חושבת שהמקלדת תקועה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "bool IsTypingKey(KeyboardEventArgs e)",
+  "doc": "מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "string CounterClass()",
+  "doc": "צבע מונה התווים: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "bool IsFormReady()",
+  "doc": "הכפתור מוצג רק כשהשם תקין ונבחר זמן"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "async Task CreateGame()",
+  "doc": "אחרי היצירה עוברים למסך העורך, כפי שמוגדר באפיון"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void OpenEditor(int gameId)",
+  "doc": "מעבר לעמוד עריכת המשחק"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "string PublishTip(GameToTable game)",
+  "doc": "הטקסט שמופיע בטולטיפ של כפתור הפרסום, לפי מצב המשחק"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "bool CanTogglePublish(GameToTable game)",
+  "doc": "ביטול פרסום מותר תמיד. רק ההדלקה מותנית בעמידה בתנאים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "string PublishCheckClass(GameToTable game)",
+  "doc": "מחלקת ה-CSS של סימון הפרסום: כבוי, דלוק או לא זמין"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "string PublishLabel(GameToTable game)",
+  "doc": "הכיתוב ליד הסימון, לפי שלושת המצבים האפשריים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "async Task PublishGame(GameToTable game)",
+  "doc": "שינוי מצב הפרסום. השרת בודק את התנאים ומחליט אם לאשר"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void AskDelete(GameToTable game)",
+  "doc": "מחיקה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void CancelDelete()",
+  "doc": "ביטול אישור המחיקה. ניקוי המשחק הממתין סוגר את הפופאפ"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "async Task DeleteGame()",
+  "doc": "מוחק את המשחק שממתין לאישור. המשחק מוסר מהרשימה המקומית במקום לטעון מחדש את כל הטבלה מהשרת, כדי שהמסך יגיב מיד. המשחק הממתין מנוקה בשני המסלולים, גם בכישלון, אחרת הפופאפ היה נשאר פתוח מעל הודעת השגיאה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void UpdateGameInList(GameToTable updatedGame)",
+  "doc": "החלפת המשחק ברשימה במשחק המעודכן שחזר מהשרת"
+ },
+ {
+  "layer": "לקוח",
+  "file": "GamesList.razor",
+  "sig": "void ShowError(string error)",
+  "doc": "תרגום הודעת השגיאה מהשרת להודעה בעברית למשתמש"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "protected override void OnInitialized()",
+  "doc": "מפעיל את שעון העצר כבר בטעינת העמוד, כדי שמשחק שלא נטען כלל לא ישאיר את השחקן במסך טעינה לנצח"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private string GameUrl()",
+  "doc": "בלי קוד תקין לא מוסיפים ?code= בכלל. אחרת המשחק היה שולח code=0 לשרת, מקבל \"קוד המשחק חייב להיות מספר חיובי\", ומציג שגיאה במסך הפתיחה עוד לפני שהשחקן הקליד משהו"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private void GameLoaded()",
+  "doc": "נקרא מאירוע onload של המסגרת. מעביר למצב \"מוכן\" ומבטל את שעון העצר. הבדיקה בתחילתו מונעת מ-onload חוזר לשנות מצב אחרי שכבר הוצגה שגיאה"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private void Retry()",
+  "doc": "ניסיון חוזר: קידום מזהה הניסיון בונה iframe חדש לגמרי, כי @key השתנה. בלי זה הדפדפן היה משאיר את המסגרת הקיימת ו-onload לא היה נורה שוב"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private void StartTimeout()",
+  "doc": "מאתחל את שעון העצר. מבטל קודם כל שעון קיים, כדי ששני ניסיונות רצופים לא יריצו שתי המתנות במקביל"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private async Task WatchTimeout(CancellationToken token)",
+  "doc": "ממתין למשך הפסק זמן, ואם המשחק עדיין לא נטען מציג שגיאה. StateHasChanged נקרא דרך InvokeAsync כי ההמשך רץ מחוץ לחוט הרינדור של Blazor"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "private void CancelTimeout()",
+  "doc": "מבטל ומשחרר את שעון העצר, אם קיים"
+ },
+ {
+  "layer": "לקוח",
+  "file": "PlayGame.razor",
+  "sig": "public void Dispose()",
+  "doc": "ביטול שעון העצר ביציאה מהעמוד. בלעדיו ההמתנה הייתה ממשיכה לרוץ וניגשת למצב של עמוד שכבר נסגר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "void Awake()",
+  "doc": "סיום שלב בהצלחה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "void Start()",
+  "doc": "מוזיקת הרקע מתחילה ב-Start ולא ב-Awake, כדי שנגני הסאונד כבר ייבנו ומצב ההשתקה כבר ייקבע לפני שמשמיעים משהו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "private void BuildSources()",
+  "doc": "יוצר את נגני הסאונד אם לא חוברו ב-Inspector"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public void PlayMusic()",
+  "doc": "מתחיל את מוזיקת הרקע. אם היא כבר מתנגנת - לא מפריעים לה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public void PlayCorrect()",
+  "doc": "תשובה נכונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public void PlayWrong()",
+  "doc": "תשובה שגויה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public void PlayStageComplete()",
+  "doc": "סיום שלב בהצלחה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "private void PlaySfx(AudioClip clip)",
+  "doc": "משמיע צליל בודד. PlayOneShot ולא Play, כדי ששני צלילים שנופלים יחד לא יקטעו זה את זה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public void SetSoundOn(bool on)",
+  "doc": "כפתור הסאונד קורא לפונקציה הזאת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "private void ApplyMute()",
+  "doc": "מחיל את מצב הסאונד על עוצמת המאזין הכללית, ולכן הוא משתיק גם את המוזיקה וגם את האפקטים במכה אחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public static void Correct()",
+  "doc": "גישה בטוחה מכל מקום, גם אם אין מנהל סאונד בסצנה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public static void Wrong()",
+  "doc": "תשובה שגויה, מכל מקום בקוד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "AudioManager.cs",
+  "sig": "public static void StageComplete()",
+  "doc": "סיום שלב בהצלחה, מכל מקום בקוד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "void Awake()",
+  "doc": "המיקום שבו המצלמה הונחה בסצנה הוא \"הבית\" שאליו היא תמיד חוזרת. נקבע פעם אחת ב-Awake, לפני ש-Start של סקריפטים אחרים מתחיל להזיז אותה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "void OnEnable()",
+  "doc": "נקרא גם בהדלקה מחדש של האובייקט, ולא רק בטעינה. חוזר על התאמת הרקע והגודל, כי חזרה מהשהיה עלולה לאפס אותם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "void Update()",
+  "doc": "מכונת המצבים של המצלמה, רצה בכל פריים. ארבעה מצבים: idle - עומדת, move - נעה ליעד, follow - עוקבת אחרי אובייקט, wait - ממתינה במקום לפני חזרה הביתה. כאן גם נבדק בכל פריים אם יחס המסך השתנה. המשחק רץ בתוך iframe במחולל, שגודלו משתנה עם חלון הדפדפן, ולכן אי אפשר להסתפק בחישוב חד-פעמי בטעינה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "void LateUpdate()",
+  "doc": "הגבלת המצלמה לתחומי השלב נעשית ב-LateUpdate ולא ב-Update, כדי שהיא תרוץ אחרי שכל התנועות של הפריים כבר בוצעו. אחרת המצלמה הייתה יכולה לחרוג לרגע אחד מהגבול"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "private void ApplyBackground()",
+  "doc": "מחליף את הרקע הכחול של יוניטי בצבע של המשחק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "private void FitToScreen()",
+  "doc": "מגדיל את שדה הראייה במסך צר, ככה שכל מה שעוצב נשאר בפנים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "private void ClampInsideLevel()",
+  "doc": "מחזיר את המצלמה אל תוך המלבן שבין עמדת הבית לתצוגת האגם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void Follow(Transform newTarget)",
+  "doc": "מעקב אחרי האבן, מופעל אחרי זריקת אבן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void FollowSideways(Transform newTarget)",
+  "doc": "מעקב אופקי בלבד. משמש בדילוג של הגמד על האבנים, כדי שהקפיצות למעלה לא יטלטלו את המצלמה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void ShowLakeThenReturn()",
+  "doc": "המצלמה מחכה כמה שניות במסך התשובות לאחר הנחת אבן תשובה נכונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void ShowLakeThenReturn(float stayTime)",
+  "doc": "גרסה שמקבלת זמן שהייה מפורש, לשימוש כשהשהייה צריכה להתאים לאורך אנימציה מסוימת. אם נקודת התצוגה לא חוברה באינספקטור, המצלמה נשארת במקומה וממתינה - עדיף מאשר לקפוץ לנקודה שגויה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void LookAtLake()",
+  "doc": "תזוזת מצלמה עם לחיצה על החיצים החץ השמאלי- תזוזה לאגם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void LookAtPlayer()",
+  "doc": "החץ הימני- חוזר למסך אבני התשובה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void WatchLake()",
+  "doc": "נשארים על תצוגת האגם בלי לחזור אוטומטית. משמש כשהגמד מדלג על האבנים בסיום שאלה מוצלחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void GoHome()",
+  "doc": "חזרה חלקה לנקודת הבית"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "public void JumpHome()",
+  "doc": "קפיצה מיידית הביתה בלי אנימציה, ואיפוס כל מצב המעקב. משמש במעבר בין שלבים, ששם תנועה חלקה הייתה נראית כמו תקלה במקום כמו מעבר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "private Vector3 LakePoint()",
+  "doc": "מיקום תצוגת האגם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "CameraScript.cs",
+  "sig": "private void MoveTo(Vector3 point, bool waitThere)",
+  "doc": "מעביר את המצלמה למצב תנועה אל נקודה. waitThere קובע אם להמתין שם ואז לחזור הביתה, או להישאר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "void Awake()",
+  "doc": "המקום שבו הגמד הונח בסצנה הוא נקודת הבית שלו, זו שאליה הוא חוזר אחרי כל פעולה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "void Start()",
+  "doc": "מכבה את אנימציות ההליכה כדי שהגמד יתחיל בעמידה, ומתרגם את שם מצב ההרמה למזהה מספרי. Animator עובד עם מזהים, וגזירה חוזרת מהמחרוזת בכל פריים הייתה בזבוז"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "public bool IsIdle()",
+  "doc": "האם הגמד פנוי לקבל פקודה חדשה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "void Update()",
+  "doc": "מכונת המצבים של הגמד, רצה בכל פריים. המצבים הם שלבים ברצף אחד: המתנה, הליכה אל האבן, הרמה, הליכה אל האגם, זריקה, חזרה הביתה, ולבסוף הדילוג על האבנים בסיום שאלה מוצלחת. כל מצב מסיים את עצמו בכך שהוא קובע את המצב הבא, ולכן אין כאן קורוטינות: הכול מתקדם לפי מרחק וזמן בפריים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "public void GoGetRock(RockScript rock, bool isCorrect, Vector2 target)",
+  "doc": "הפונקציה שה-GameManager מפעיל כשהשחקן לוחץ על אבן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "public void WalkFreely(Vector2 target)",
+  "doc": "לחיצה על הדשא שולחת את הגמד לטייל. עובד רק כשהגמד פנוי, ככה זה לא מתנגש עם מנגנון התשובות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "public void SkipOverRocks(List<Vector2> path, System.Action onDone)",
+  "doc": "הגמד מדלג על כל אבני התשובה באגם, מהתגית הימנית לתגית השמאלית"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void BeginSkipping()",
+  "doc": "המעבר מהליכה לדילוג, ברגע שהגמד הגיע לאבן הראשונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private float ClipLength()",
+  "doc": "אורך הקליפ, לפי שלושת השלבים שהוגדרו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private float HopTime()",
+  "doc": "כמה זמן לוקחת קפיצה אחת. הגנה מערך לא הגיוני באינספקטור, שהיה מקפיא את הגמד או מדלג על כל הקליפ"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void StartHop()",
+  "doc": "מתחילים קפיצה חדשה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void ShowJumpFrame(float progress)",
+  "doc": "מציב את הקליפ באחוז ההתקדמות של הקפיצה. 0 = תחילת ההתכופפות, 1 = סוף הנחיתה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private Vector2 StonePoint(Vector2 point)",
+  "doc": "המקום שעליו הגמד באמת עומד: נקודת האבן, מורמת כך שהרגליים ינחתו על ראש הסלע"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void UpdateSkipping()",
+  "doc": "מקדמת קפיצה אחת בדילוג על אבני האגם, בכל פריים. הקפיצה מחולקת לשלושה שלבים לפי אותם יחסי זמן שיש בקליפ האנימציה: התכופפות, תעופה בקשת, ונחיתה. כך התמונה והתנועה נשארות מסונכרנות גם כשמשנים את מהירות הקפיצה. התעופה מחושבת כ-Lerp אופקי ועוד סינוס אנכי, וזה מה שנותן את הקשת במקום קו ישר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void StartSkipAnimation()",
+  "doc": "מדליקה את מצב הקפיצה ב-Animator"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void StopSkipAnimation()",
+  "doc": "מכבה את מצב הקפיצה ומחזירה את מהירות ה-Animator לרגילה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void ReportTurnFinished()",
+  "doc": "מודיע ל-GameManager שהתור נגמר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void UpdateLiftProgress()",
+  "doc": "הפעלת האנימציה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void MoveRockWithHand()",
+  "doc": "הזזת האבן יחד עם תנועת ההרמה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void ThrowTheRock()",
+  "doc": "זריקת האבן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void SpinRock()",
+  "doc": "מסובב את האבן תוך כדי הזריקה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "public void ResetDwarf()",
+  "doc": "מחזיר את הגמד להתחלה בתחילת שאלה חדשה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void WalkTowards(Vector2 target)",
+  "doc": "מזיז את הגמד לכיוון היעד ומדליק את אנימציית ההליכה המתאימה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void SetWalkAnimation(bool side, bool forward, bool back)",
+  "doc": "מדליקה בדיוק אחד משלושת כיווני ההליכה ומכבה את השאר. מרוכז בשגרה אחת, כדי ששני כיוונים לא יידלקו יחד בטעות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void StopWalkAnimation()",
+  "doc": "מכבה את כל כיווני ההליכה, ומחזירה את הגמד לעמידה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void LookWhileSkipping(Vector2 target)",
+  "doc": "כיוון הגמד בזמן הדילוג על אבני האגם. מופרד מ-LookAt כי גיליון הדילוג הוא ספרייט אחר מגיליון ההליכה, ולכן הוא עשוי להיות מצויר לכיוון ההפוך"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "DwarfScript.cs",
+  "sig": "private void LookAt(Vector2 target)",
+  "doc": "הפיכת הספרייט כך שהגמד יסתכל לכיוון אבן התשובה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameData.cs",
+  "sig": "public static void NewGame()",
+  "doc": "איפוס הכל למשחק חדש"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameData.cs",
+  "sig": "public static string TimeText()",
+  "doc": "מחזירה את זמן המשחק כמחרוזת דקות:שניות להצגה במסך הסיום. הריפוד בספרה אפס מונע תצוגה כמו 3:7 במקום 3:07"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "void Start()",
+  "doc": "ההפעלה של המשחק, לפי הסדר: בניית פאנל ההגדלה, שמירת מיקומי האבנים שסודרו ידנית בסצנה, בדיקת הרכבה, שליפת המשחק, והתחלת השאלה הראשונה. שמירת המיקומים חייבת לקרות לפני StartStage, כי משם ואילך הקוד מזיז את האבנים לפי מספר הפריטים בשאלה - ואז כבר אי אפשר לדעת איפה הן הונחו במקור"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void ShowLakeIntro()",
+  "doc": "בתחילת כל שאלה המצלמה נוסעת לאגם ועומדת שם כמה שניות, ככה השחקן רואה לאן הוא אמור לסדר את האבנים ובאיזה סדר. הטיימר קפוא בזמן הזה ומתחיל רק כשהמצלמה חוזרת."
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void StartTimer()",
+  "doc": "מרגע זה הטיימר רץ. מציגים לשחקן חיווי שהזמן התחיל"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void BuildZoomPanel()",
+  "doc": "הגדלת תמונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void GetGame()",
+  "doc": "הכנת משחק חדש, אתחול חיים, ניקוד וזמן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void CheckSetup()",
+  "doc": "בודקת שכל השדות חוברו באינספקטור, ומשלימה מה שאפשר לבד. במקום להיכשל בזמן ריצה עם שגיאת null במקום אקראי, נאספת כאן רשימה של כל מה שחסר ומודפסת בבת אחת - כך רואים את כל הבעיות יחד ולא אחת בכל הרצה. הקישור של הגמד והאבנים למנהל נעשה כאן פעם אחת, במקום חיפוש בכל פריים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "void Update()",
+  "doc": "הלולאה הראשית של המשחק, רצה בכל פריים. מטפלת בטיימר, בהודעות שנעלמות מעצמן, בהבזק האדום, בלחיצה על הדשא ובמעבר לשאלה הבאה. היציאה המוקדמת כשאין שאלה פעילה היא מה שמונע ממנה לרוץ בזמן הטעינה ובמסכי הביניים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void HandleGrassClick()",
+  "doc": "לחיצה על הדשא שולחת את הגמד לטייל לשם. הלחיצה נבדקת כאן ולא בסקריפט נפרד על אובייקט הדשא"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void TimeIsUp()",
+  "doc": "נגמר הזמן: השאלה מסומנת כשגויה והמשחק נגמר. השחקן עובר למסך \"נגמר הזמן\""
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void CountMistake()",
+  "doc": "מוריד חיים ומעדכן את מונה השגיאות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void ReturnQuestionToPool()",
+  "doc": "מחזיר את השאלה הנוכחית למאגר ומסמן אותה כשגויה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void StartStage()",
+  "doc": "מתחילה שאלה חדשה: איפוס מצב, פיזור האבנים לפי מספר הפריטים, הצגת הנושא ותגיות הקיצון, והפעלת הטיימר. גם נקודת הכניסה לשאלה הראשונה וגם המעבר לכל שאלה הבאה, ולכן כל מה שנשאר משאלה קודמת חייב להתאפס כאן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void SaveManualSlotPositions()",
+  "doc": "שומר את הסידור הידני של ה-Slots בסצנה, פעם אחת בתחילת המשחק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void LayoutSlots()",
+  "doc": "כשיש מספר תשובות מלא - משתמשים בסידור הידני כמו שהוא. כשיש פחות - מפזרים את האבנים במידה שווה לאורך אותו מסלול, כך שהראשונה צמודה לתגית הימנית והאחרונה לתגית השמאלית"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void RestoreManualSlots()",
+  "doc": "מחזירה את האבנים למקומות שסודרו ידנית בסצנה. נקראת לפני כל פיזור מחדש, כדי שהחישוב יתחיל תמיד מהמצב המקורי ולא יצטבר על גבי פיזור קודם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private Vector3 PointOnManualPath(float t)",
+  "doc": "מחזיר נקודה על המסלול שסודר ידנית, לפי מרחק יחסי לאורכו. ככה הפיזור נשאר על אותו קו שסידרת, גם כשיש פחות אבנים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void ShowSlots()",
+  "doc": "מדליק רק את מספר ה-Slots שהוקצבו בשאלה הזאת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void SetupRocks()",
+  "doc": "מכין את האבנים בסצנה לשאלה החדשה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private GameObject GetMagnifier(int index)",
+  "doc": "מחזיר את כפתור ההגדלה ששייך לאבן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private List<int> RandomPlaces(int count)",
+  "doc": "מחזיר רשימה של אבני התשובה בסדר מעורבב"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void RockClicked(RockScript rock)",
+  "doc": "האבן מפעילה את הפונקציה כשלוחצים עליה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void ShowAnswerFeedback(RockScript rock, bool isCorrect)",
+  "doc": "הגמד מפעיל את הפונקציה ברגע שהוא זורק את האבן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void TurnFinished()",
+  "doc": "נקראת בכל פעם שהגמד סיים להניח אבן, ומחליטה מה קורה הלאה. שלוש אפשרויות: נגמרו הפסילות, כל האבנים סודרו נכון, או שממשיכים לתור הבא. הבדיקה על skipping מונעת מהשגרה לרוץ שוב בזמן שהגמד באמצע אנימציית הדילוג שמסיימת שאלה מוצלחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void StageWon()",
+  "doc": "סיום שאלה בהצלחה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void StartSkipping()",
+  "doc": "אנימציית הדילוג של הגמד על אבני האגם בסיום שאלה מוצלחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private Vector2 SkipEndPoint(List<Vector2> path)",
+  "doc": "הנקודה שבה הדילוג נגמר: התגית השמאלית אם חוברה, אחרת ממשיכים צעד אחד בכיוון שבו הלכו האבנים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void AfterSkipping()",
+  "doc": "נקרא כשהגמד סיים לדלג"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void AddStageScore()",
+  "doc": "בתוך השאלה, הניקוד נקבע לפי הדיוק של התשובות. כל שאלה שווה חלק שווה מ-100, ומשחק מושלם בלי טעויות נותן 100. הניקוד ניתן רק כששאלה נענית נכון במלואה, ולכן ניסיון כושל לא גורע פעמיים."
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void EndGame(string result, string message)",
+  "doc": "סיום משחק- מעבר לסצנת הסיום"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void ShowMessage(string message)",
+  "doc": "הודעה זמנית על המסך בלי לסיים את המשחק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void PlayCorrectSound()",
+  "doc": "שלוש שגרות הצליל הבאות מעדיפות את מנהל הסאונד, שקיים לאורך כל המשחק ומכבד את כפתור ההשתקה. הנפילה לנגן המקומי היא למקרה שהמנהל לא נמצא בסצנה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void PlayWrongSound()",
+  "doc": "צליל תשובה שגויה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void PlayStageCompleteSound()",
+  "doc": "צליל סיום שלב מוצלח"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void PlaySound(AudioClip sound)",
+  "doc": "מנגן סאונד רק אם יש קובץ סאונד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void PauseGame()",
+  "doc": "כפתור ההשהייה מפעיל את הפונקציה הזאת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void Next()",
+  "doc": "הכפתור ״שאלה הבאה״ מפעיל את הפונקציה הזאת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "public void RestartGame()",
+  "doc": "מתחיל את כל המשחק מההתחלה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void UpdateHearts()",
+  "doc": "מעדכנת את תצוגת הפסילות: מדליקה לב לכל פסילה שנותרה ומכבה את השאר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void UpdateProgressBar()",
+  "doc": "המד מייצג את שאלות המשחק: חרוז לכל שאלה, וכל שאלה שנענתה הופכת חרוז אחד מאפור לירוק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private void SetWrappedText(TMP_Text target, string text, int maxLength)",
+  "doc": "מציב טקסט שעלול להישבר ליותר משורה אחת (נושא השאלה ותגיות הקצה)"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private string FixText(string text)",
+  "doc": "הופכת טקסט עברי לסדר תצוגה נכון. TextMeshPro מציג עברית הפוכה, ולכן כל טקסט שמוצג לשחקן עובר דרך כאן. אפשר לכבות את ההיפוך בשדה fixHebrewOrder, למקרה שגרסה עתידית של TextMeshPro תטפל בזה לבד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameManager.cs",
+  "sig": "private string FixRockText(string text)",
+  "doc": "טקסט של אבן תשובה. שוברים לשורות בעצמנו ורק אז הופכים כל שורה, אחרת המשפט מופיע על האבן בסדר מילים אחר מזה שבמחולל"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "void Awake()",
+  "doc": "אתחול"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "void Start()",
+  "doc": "רץ אחרי כל ה-Awake בסצנה: מכין את רשימת הספרייטים ובודק שההרכבה באינספקטור שלמה. שלב הבדיקה חייב להיות כאן ולא ב-Awake, כי רק עכשיו כל הרכיבים כבר אותחלו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "void Update()",
+  "doc": "מטפל בפעימה הקצרה של השמש ברגע שהטיימר משתחרר. יוצא מיד כשאין פעימה פעילה, ולכן הוא זול כמעט בכל פריים. זו הסיבה שאפשר להשאיר אותו ב-Update ולא להעביר לקורוטינה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private Vector3 SafeScale()",
+  "doc": "רשת ביטחון: אם משום מה הגודל שנשמר הוא אפס, לא מכווצים את הטיימר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "public void SetFrozen(bool isFrozen)",
+  "doc": "הטיימר קפוא בזמן שהמצלמה מראה את האגם, ומתחיל לרוץ כשהיא חוזרת. כשהוא מתחיל, הוא פועם רגע כדי שהשחקן יראה שהזמן התחיל."
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "public void SetUnlimited(bool isUnlimited)",
+  "doc": "שלב ללא הגבלת זמן. אין מה להציג, ולכן השמש, האבן והמספר יורדים מהמסך לגמרי"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "public void ShowTime(float timeLeft, float totalTime)",
+  "doc": "מעדכנת את תצוגת הזמן. נקראת מה-GameManager בכל פריים. מקבלת גם את הזמן שנותר וגם את הזמן הכולל, כי מיקום השמש הוא היחס ביניהם ולא ערך מוחלט. כך אותו קוד עובד לשאלה בת דקה ולשאלה בת שתי דקות. במצב ללא הגבלת זמן מוצג כיתוב קבוע במקום מספר, והשמש אינה זזה בכלל"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void BuildReadySprites()",
+  "doc": "בונה רשימה נקייה בלי תאים ריקים, פעם אחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ShowTimerObjects(bool show)",
+  "doc": "מדליק או מכבה את שלושת חלקי הטיימר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private GameObject FindEmptyRock()",
+  "doc": "האבן לא תמיד מחוברת בעורך, ולכן מחפשים אותה גם לפי שם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ApplyFrozenLook()",
+  "doc": "מחילה את המראה הדהוי של טיימר שעוד לא התחיל לרוץ: שמש שקופה למחצה ומספר אפור. זה החיווי לשחקן שהספירה עדיין לא רצה ואפשר להסתכל על השאלה בנחת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ShowNumbers(float timeLeft)",
+  "doc": "מציגה את הספירה לאחור במספרים. Ceil ולא Floor: כך השחקן רואה \"1\" בשנייה האחרונה ולא \"0\", והאפס מופיע רק כשהזמן באמת נגמר. הצבע מעביר מידע נוסף - אפור לפני ההתחלה, ואזהרה בשניות האחרונות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ShowSun(float timeLeft, float totalTime)",
+  "doc": "בוחר את שלב השמש לפי הזמן שנשאר. השלב האחרון שמור לשניות האחרונות, וכל שאר השלבים נפרסים באופן שווה על כל הזמן שלפניהן. ככה השמש לא מגיעה לשקיעה בזמן שעוד נשארו עשרות שניות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "public void Build(int questionCount)",
+  "doc": "בונה את המד מחדש לפי מספר השאלות במשחק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "public void SetProgress(int answered)",
+  "doc": "מסמן כמה שאלות כבר נענו. אלה שנענו מקבלות חרוז ירוק"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void Spread()",
+  "doc": "מפזר את חרוזי האמצע במרווחים שווים בין שני הקצוות. הקצוות עצמם נשארים בדיוק במקום שנקבע להם בעורך"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private Sprite SpriteFor(int index, bool green)",
+  "doc": "החרוז הראשון והאחרון מקבלים את ספרייטי הקצה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void FindAnchors()",
+  "doc": "אם העוגנים לא חוברו ב-Inspector, מאתרים אותם לפי השם. החיפוש עובר על כל הצאצאים ולא רק על הילדים הישירים, כי החרוזים יושבים תחת ProgressBar ולא ישירות תחת Menu"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private SpriteRenderer FindByName(string childName)",
+  "doc": "מחפשת רכיב בן לפי שם, כולל בנים מכובים. משמשת לאיתור עוגני מד ההתקדמות כשהם לא חוברו ידנית באינספקטור"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ShowAnchors(bool on)",
+  "doc": "מדליקה או מכבה את שלושת עוגני מד ההתקדמות יחד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void ClearClones()",
+  "doc": "מוחקת את החרוזים שנוצרו בבנייה הקודמת. נקראת לפני כל בנייה מחדש, אחרת חרוזים של משחק קודם היו נשארים על המסך"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "GameStatus.cs",
+  "sig": "private void CheckSetup()",
+  "doc": "בדיקת חיווט. רצה פעם אחת ב-Start"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "public static string Fix(string text)",
+  "doc": "הופך את סדר האותיות בעברית ומשאיר אנגלית ומספרים כמו שהם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "public static string FixLines(string text, int maxLength)",
+  "doc": "מפצל טקסט ארוך לשורות עד maxLength תווים, ומסדר כל שורה בעברית"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "private static void AddLine(StringBuilder result, string line)",
+  "doc": "מוסיפה שורה לתוצאה, אחרי שהפכה אותה לסדר הנכון. ירידת השורה נוספת לפני השורה ולא אחריה, כדי שלא תישאר שורה ריקה בסוף הטקסט"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "private static void CloseGroup(StringBuilder result, StringBuilder group, bool isEnglish)",
+  "doc": "כל קבוצה חדשה נכנסת משמאל לקודמות, ככה מתקבל סדר מימין לשמאל"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "private static bool IsHebrew(char c)",
+  "doc": "טווח האותיות העבריות בטבלת התווים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "HebrewText.cs",
+  "sig": "private static bool IsEnglishOrNumber(char c)",
+  "doc": "אנגלית וספרות נשארות בסדר המקורי שלהן גם בתוך טקסט עברי, ולכן צריך לזהות אותן בנפרד ולא להפוך אותן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "void Start()",
+  "doc": "שורת סיכום אחת שמרכזת הכל, אם מעדיפים טקסט אחד במקום ארבעה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "public void StartGame()",
+  "doc": "כפתור \"התחל משחק\""
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "public void BackToGame()",
+  "doc": "כפתור \"חזור למשחק\""
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "public void RestartGame()",
+  "doc": "כפתור \"התחל מחדש\""
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "public void GoHome()",
+  "doc": "כפתור \"חזרה לתפריט\""
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private bool IsEndScreen()",
+  "doc": "מזהה אם הסקריפט יושב על מסך הסיום או על מסך אחר. הזיהוי נעשה לפי השדות שחוברו באינספקטור ולא לפי שם הסצנה: אותו סקריפט משרת כמה מסכים, ומסך הסיום הוא היחיד שבו שדות התוצאה ממולאים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private void ShowResultImage()",
+  "doc": "מציגה את תמונת הסיום המתאימה לתוצאת המשחק. שלוש תוצאות אפשריות: ניצחון, נגמר הזמן, ונגמרו הפסילות. תוצאה ריקה פירושה שהמסך הופעל ישירות ולא דרך המשחק, ולכן מוצגת תמונת ההפסד עם אזהרה ב-Console"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private void HideAll()",
+  "doc": "מכבה את כל תמונות הסיום. נקרא לפני הצגת אחת מהן, כדי ששתי תמונות לא יוצגו זו מעל זו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private void ShowImage(GameObject image, string fieldName)",
+  "doc": "מדליקה תמונה אחת. אם השדה לא חובר באינספקטור, נופלת לתמונת ההפסד ומדפיסה אזהרה עם שם השדה החסר, כדי שאפשר יהיה למצוא אותו מיד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private GameObject FindTimeTitle()",
+  "doc": "מאתרת את כיתוב הזמן בסצנה, ושומרת אותו לפעם הבאה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private void ShowScoreAndTime()",
+  "doc": "משוב מסכם: זמן כולל, ציון ומספר שגיאות. מוצג גם במסך סיום מוצלח וגם במסך נגמר הזמן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "MenuScript.cs",
+  "sig": "private string BuildSummary()",
+  "doc": "בונה את שורות הסיכום בעברית מסודרת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "void Awake()",
+  "doc": "אתחול האבן: איתור הרכיבים, כיבוי ה-Animator, הכנת תמונת התשובה ושמירת המקום והצבע ההתחלתיים. סדר הפעולות חשוב: שומרים את המקום והצבע רק אחרי שה-Animator כובה, אחרת היו נשמרים ערכים שהאנימציה כבר שינתה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void BuildAnswerImage()",
+  "doc": "יוצרת בקוד את הרנדרר שיציג תמונת תשובה על האבן. נבנה בקוד ולא בפריפאב, כי לא כל פריט הוא תמונה - פריטי טקסט לא צריכים אותו כלל. הוא נוצר מכובה ונדלק רק כשיש תמונה להציג. שכבת המיון שלו היא של האבן ועוד אחת, כדי שהתמונה תוצג מעל הסלע ולא מאחוריו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void SaveAnswerImageScale()",
+  "doc": "שומרת את הגודל המקורי של תמונת התשובה, כדי שאפשר יהיה לחזור אליו אחרי התאמות גודל לתמונות שונות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void SetMagnifier(GameObject button)",
+  "doc": "ה-GameManager מחבר את כפתור ההגדלה שממקמת בסצנה לאבן הזאת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void SetCarried(bool carried)",
+  "doc": "מסמנת שהאבן מורמת על ידי הגמד או הונחה. התפקיד העיקרי הוא שכבות התצוגה: אבן מורמת מקבלת דחיפה בסדר המיון כדי שתעבור מעל שאר האבנים ולא תיעלם מאחוריהן. הטקסט והתמונה שעליה מקבלים דחיפה גדולה באחד, כדי שיישארו מעל האבן עצמה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void PlaceMagnifier()",
+  "doc": "מצמיד את כפתור ההגדלה לאבן, איפה שהיא לא תהיה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void HideMagnifier()",
+  "doc": "כיבוי הכפתור. לא בשימוש בזמן משחק רגיל, כי לפי האפיון אפשר להגדיל תמונה גם אחרי שהאבן הונחה באגם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void StopPositionAnimation()",
+  "doc": "מכבה את ה-Animator של האבן. קליפ האנימציה שבפריפאב מנפיש גם את המיקום, ולכן כל האבנים היו נדחפות לאותה נקודה בדיוק ונערמות זו על זו. עד שיוסרו עקומות המיקום מהקליפ, הפתרון הוא לכבות אותו. האזהרה מודפסת פעם אחת בלבד ולא לכל אבן בנפרד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void SaveHome()",
+  "doc": "שומר את המקום של האבן בסצנה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "void Update()",
+  "doc": "מטפל בהבהוב האדום של תשובה שגויה. יוצא מיד כשאין הבהוב פעיל, ולכן הוא זול כמעט בכל פריים"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void OnMouseDown()",
+  "doc": "לחיצה על האבן. שני התנאים אינם כפילות: canAnswer חוסם לחיצות בזמן שהגמד באמצע פעולה, ו-isPlaced חוסם אבן שכבר הונחה באגם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void OnMouseEnter()",
+  "doc": "הגדלה קלה במעבר עכבר, כחיווי שהאבן לחיצה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void OnMouseExit()",
+  "doc": "חזרה לגודל המקורי ביציאת העכבר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void ShowBigImage()",
+  "doc": "כפתור זכוכית המגדלת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void SetRock(string text, Sprite image, int place)",
+  "doc": "הפונקציה טוענת לאבן טקסט או תמונה, ומגדירה את המקום הנכון שלה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void ShowContent(string text, Sprite image)",
+  "doc": "מחליט מה מוצג על האבן: תמונה או טקסט. אף פעם לא שניהם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void FitAnswerImage(Sprite image)",
+  "doc": "התאמת גודל התמונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void StartBlink()",
+  "doc": "מתחיל את ההבהוב האדום - קורה כשהתשובה שגויה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "void Awake()",
+  "doc": "בונה את הפאנל מיד בטעינה, כדי שהוא יהיה מוכן לפני ההגדלה הראשונה ולא ייבנה תוך כדי לחיצה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "void Start()",
+  "doc": "הפאנל מתחיל סגור. ההסתרה ב-Start ולא ב-Awake, כדי שהבנייה תספיק להסתיים קודם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "void Update()",
+  "doc": "קלט ההגדלה והגרירה, רק כשהפאנל פתוח. היציאה המוקדמת מוודאת שהגלגלת לא תשפיע על שום דבר כשהוא סגור"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void HandleZoomInput()",
+  "doc": "גלגלת העכבר מגדילה ומקטינה את התמונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void ZoomIn()",
+  "doc": "כפתורי + ו- על המסך יכולים לקרוא לפונקציות האלה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void ZoomOut()",
+  "doc": "הקטנה בצעד אחד, לכפתור המינוס"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void SetZoom(float newZoom)",
+  "doc": "קובעת את רמת ההגדלה, בתוך הטווח המותר. כשחוזרים לגודל המקורי התמונה מוחזרת למרכז, אחרת שחקן שגרר אותה הצידה והקטין היה נשאר עם תמונה תלויה מחוץ למסגרת בלי דרך ברורה להחזיר אותה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void HandleDragInput()",
+  "doc": "גרירה של התמונה כשהיא מוגדלת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private Vector3 MouseWorld()",
+  "doc": "ממירה את מיקום העכבר במסך לנקודה בעולם המשחק. ציר ה-Z מאופס, כי המשחק דו-ממדי"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void BuildPanel()",
+  "doc": "בונה בקוד את כל חלקי פאנל ההגדלה: רקע כהה, תמונה גדולה וכפתור סגירה. הכול נבנה בקוד ולא בסצנה, כדי שההגדלה תעבוד בכל סצנה בלי להרכיב אותה ידנית מחדש. היציאה המוקדמת מאפשרת בכל זאת לחבר חלקים מוכנים באינספקטור, והם לא יידרסו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private Sprite MakeSquareSprite()",
+  "doc": "מייצרת ספרייט לבן בגודל פיקסל אחד, שמשמש כרקע מתוח. כך אין צורך בקובץ תמונה עבור מלבן בצבע אחיד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private Sprite MakeCloseSprite()",
+  "doc": "מצייר עיגול עם X בתוכו, ככה אין צורך בקובץ תמונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void Show(Sprite image)",
+  "doc": "פותחת את ההגדלה על תמונה נתונה. הפאנל מועבר קודם למיקום המצלמה, כי המצלמה נעה במהלך המשחק והפאנל חייב להיפתח מול השחקן ולא במקום שבו הוא נבנה. כל פתיחה מתחילה מהגודל ההתחלתי ומהמרכז"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public void Hide()",
+  "doc": "סוגרת את ההגדלה ומאפסת את מצב הגרירה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public bool IsOpen()",
+  "doc": "האם ההגדלה פתוחה. נבדק מבחוץ, כדי שלחיצות על המשחק לא ייקלטו כשהפאנל מכסה אותו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "public bool ClosingByBackgroundAllowed()",
+  "doc": "לחיצה על הרקע סוגרת, אבל רק אם זו הייתה לחיצה ולא גרירה של התמונה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void MoveToCamera()",
+  "doc": "מעבירה את הפאנל למרכז תצוגת המצלמה הנוכחית"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void FitImage(Sprite image)",
+  "doc": "התאמת גודל לפי פרופורציות. עובד גם לתמונות רחבות וגם לגבוהות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void OnMouseUpAsButton()",
+  "doc": "OnMouseUpAsButton ולא OnMouseDown: כך לחיצה שהתחילה על הרקע וגררה את התמונה אינה נספרת כלחיצת סגירה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "RockScript.cs",
+  "sig": "private void OnMouseDown()",
+  "doc": "לחיצה על ה-X סוגרת מיד, בלי התניות"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "void Start()",
+  "doc": "אתחול מסך הפתיחה: ניקוי הודעות, הצגת קודי הדוגמה, וקביעת כתובת השרת לפי סביבת ההרצה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private void SetProjectUrl()",
+  "doc": "כתובת השרת, לפי מצגת ההנחיות \"ייצוא פרויקט\". המשחק יושב ב-<המחולל>/wwwroot/Game/index.html, והשרת הוא רמה אחת מעליו. לכן \"./../\" מוביל בדיוק לשורש המחולל, בלי תלות בשם הדומיין או בתיקייה שבה האתר יושב ב-IIS."
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private void ReadCodeFromUrl()",
+  "doc": "המחולל מטמיע את המשחק כך: Game/index.html?code=1001 כאן שולפים את הקוד מהכתובת, ממלאים אותו בתיבה ומתחילים לבד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private void ShowSampleCodes()",
+  "doc": "מציג לשחקן את הקודים של משחקי הדוגמה מעל תיבת הקוד"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "public async void CheckCode()",
+  "doc": "כפתור התחל משחק מפעיל את הפונקציה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "async Task<GameData> GetGameFromServer(string code)",
+  "doc": "קריאה ל-API"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "async Task<GameData> ParseGame(ServerGame serverGame)",
+  "doc": "ממיר משחק שלם מהשרת למחלקת המשחק של היוניטי"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "async Task<StageData> ParseStage(ServerStage serverStage)",
+  "doc": "ממירה שלב שהגיע מהשרת למבנה שהמשחק עובד איתו. שלב פסול אינו מפיל את הטעינה אלא מוחזר כ-null ומדולג, עם אזהרה ב-Console. כך משחק שבו שאלה אחת חסרה עדיין ניתן לשחק במקום להיכשל כולו. אסינכרונית כי הפריטים עשויים להיות תמונות, וכל תמונה דורשת הורדה נפרדת מהשרת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "async Task<AnswerData> ParseAnswer(ServerAnswer serverAnswer)",
+  "doc": "ממיר תשובה אחת- אם היא תמונה- הוא מוריד אותה מהשרת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "async Task<string> GetDataFromServer(string url)",
+  "doc": "פנייה כללית לשרת, שמחזירה את גוף התשובה כטקסט. ההמתנה נעשית בלולאת Task.Yield ולא בקורוטינה, כדי שאפשר יהיה לקרוא לה מתוך שגרות async רגילות. שים לב: אם השרת מוגש ב-http ולא ב-https, יוניטי חוסמת את הפנייה מברירת מחדל. ההגדרה שמתירה זאת היא insecureHttpOption ב-Player Settings"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private string ReadServerError(UnityWebRequest http)",
+  "doc": "שולף את הודעת השגיאה שהשרת החזיר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "public async Task<Sprite> LoadImage(string endpoint)",
+  "doc": "מוריד תמונה מהשרת ומחזיר אותה כ-Sprite ואם התמונה לא קיימת- תוחזר שגיאה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private string ErrorForPlayer()",
+  "doc": "מתרגם את הודעת השגיאה של השרת להודעה שתוצג לשחקן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "ServerManager.cs",
+  "sig": "private void ShowMessage(string message)",
+  "doc": "מציגה הודעה לשחקן אחרי שהפכה אותה לסדר תצוגה נכון. isRightToLeftText מכובה בכוונה: HebrewText כבר הפך את הטקסט, והפעלת שתי ההיפוכים יחד הייתה מחזירה אותו לשיבוש"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "void Awake()",
+  "doc": "אתחול הכפתור: שמירת הגודל המקורי, נרמול שם הפעולה, הבטחת קוליידר, ואיתור כל המנהלים שהכפתור עשוי לפנות אליהם. האיתור האוטומטי נעשה רק כשהשדה ריק, ולכן חיבור ידני באינספקטור תמיד גובר עליו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "void Start()",
+  "doc": "רץ אחרי שכל ה-Awake בסצנה הסתיימו, ולכן זה המקום לדווח על תקלות הרכבה - בשלב הזה כבר ידוע מה חובר ומה לא"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void ReportSetup()",
+  "doc": "מדפיס ל-Console מה הכפתור הזה יודע על עצמו. אם כפתור לא מופיע ברשימה - הסקריפט לא מחובר אליו בכלל"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "public void SetRock(RockScript rock)",
+  "doc": "מקשר את הכפתור לאבן מסוימת. נקרא מבחוץ כשהכפתור נבנה דינמית ליד אבן, ולא הונח מראש בסצנה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void EnsureCollider()",
+  "doc": "מוודא שיש קוליידר שאפשר ללחוץ עליו. אם הספרייט יושב על אובייקט בן, הקוליידר עדיין נבנה על ההורה, כדי שהחלפת תמונות (למשל סאונד דלוק/כבוי) לא תבטל את הלחיצה"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "public void Press()",
+  "doc": "כפתור UI רגיל יכול לקרוא לפונקציה הזאת ישירות מ-On Click"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void OnMouseDown()",
+  "doc": "לחיצה על הספרייט. יוניטי קוראת לזה רק כשיש קוליידר על האובייקט, וזו הסיבה ש-EnsureCollider רץ ב-Awake"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void DoAction()",
+  "doc": "מפעילה את הפעולה שהוגדרה לכפתור באינספקטור. שם הפעולה הוא מחרוזת ולא enum, כדי שאפשר יהיה להוסיף כפתור חדש בלי לגעת בקוד. המחיר הוא שהשוואת המחרוזות חייבת להיות באותיות קטנות בלבד - הנרמול נעשה ב-Awake"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void ShowRightSoundImage()",
+  "doc": "מחליף את הספרייט של הכפתור לפי מצב הסאונד. אותו אובייקט, אותו קוליידר, רק התמונה משתנה - ולכן הכפתור אף פעם לא נעלם ואף פעם לא מפסיק להיות לחיץ"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void OnMouseEnter()",
+  "doc": "הגדלה קלה במעבר עכבר, כחיווי שהכפתור לחיץ"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "SpriteButtonScript.cs",
+  "sig": "private void OnMouseExit()",
+  "doc": "חזרה לגודל המקורי ביציאת העכבר"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "public static void Open()",
+  "doc": "פותחת את חלון הייצוא. הקיצור %#w הוא Ctrl+Shift+W (ובמק Cmd+Shift+W)"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private void OnEnable()",
+  "doc": "נתיב היעד נשמר ב-EditorPrefs ולכן שורד סגירה של יוניטי. בפתיחה ראשונה, כשאין ערך שמור, מנחשים אותו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private static string GuessGeneratorPath()",
+  "doc": "מנסה לנחש איפה תיקיית המחולל יושבת, יחסית לפרויקט היוניטי"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private void OnGUI()",
+  "doc": "מציירת את חלון הייצוא. יוניטי קוראת לזה מחדש בכל שינוי בחלון, ולכן אין כאן שמירת מצב מעבר לשדות עצמם"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private static void MakeTemplateResponsive(string outputPath)",
+  "doc": "מוסיפה כללי CSS לתבנית שנבנתה, כדי שהמשחק יתכווץ בתוך ה-iframe במקום להיחתך. רצה על התוצר ולא על התבנית של יוניטי עצמה, כדי שעדכון של יוניטי לא ידרוס את השינוי. סימן ההיכר מונע הוספה כפולה בבנייה חוזרת"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private static string[] EnabledScenes()",
+  "doc": "מחזירה את הסצנות המסומנות ב-Build Settings בלבד. סצנה שאינה מסומנת לא תיכלל בבנייה, ולכן משחק שלא נטען נכון מתחיל לרוב מכאן"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "public static void BuildFromCommandLine()",
+  "doc": "נקודת כניסה לשורת הפקודה (batchmode) - בשביל build-all.sh Unity -quit -batchmode -projectPath <פרויקט> \\ -executeMethod WebGLExport.BuildFromCommandLine \\ -outputPath <יעד> -logFile <לוג>"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private void Build()",
+  "doc": "הבנייה מהחלון. בסיומה נפתחת תיקיית היעד, כדי שאפשר יהיה לוודא מיד שהקבצים אכן נכתבו"
+ },
+ {
+  "layer": "יוניטי",
+  "file": "WebGLExport.cs",
+  "sig": "private static bool RunBuild(string outputPath, bool cleanBefore, bool developmentBuild)",
+  "doc": "הבנייה עצמה. סטטית, כדי שגם החלון וגם שורת הפקודה יריצו בדיוק אותו קוד."
+ },
+ {
+  "layer": "משותף",
+  "file": "User.cs",
+  "sig": "class User",
+  "doc": "המשתמש המחובר כפי שהלקוח מכיר אותו. נוצר בשרת מתוך טוקן פורטל\"מ ונשלח ללקוח בהתחברות. יושב ב-Shared כדי ששני הצדדים יעבדו על אותו מבנה."
+ },
+ {
+  "layer": "משותף",
+  "file": "AnswerToEdit.cs",
+  "sig": "class AnswerToEdit",
+  "doc": "פריט בודד בשאלה - אבן אחת שהשחקן יסדר. נע בשני הכיוונים: העורך שולח אותו בשמירה, והשרת מחזיר אותו בטעינת שאלה לעריכה. מזהה 0 מסמן פריט חדש."
+ },
+ {
+  "layer": "משותף",
+  "file": "GameToAdd.cs",
+  "sig": "class GameToAdd",
+  "doc": "פרטי משחק חדש בדרך מפופאפ היצירה אל GamesController. מכיל רק את מה שהעורכת מזינה - קוד המשחק, הבעלים ומצב הפרסום נקבעים בשרת."
+ },
+ {
+  "layer": "משותף",
+  "file": "GameToEdit.cs",
+  "sig": "class GameToEdit",
+  "doc": "הגדרות משחק קיים בדרך מהלקוח לשרת. מכיל את המזהה ואת ההגדרות שמותר לשנות. השרת מוודא בנפרד שהמשחק שייך למשתמש המחובר."
+ },
+ {
+  "layer": "משותף",
+  "file": "GameToTable.cs",
+  "sig": "class GameToTable",
+  "doc": "שורה אחת בטבלת \"המשחקים שלי\", בדרך מהשרת ללקוח. מכיל רק את מה שהטבלה מציגה, כדי שטעינת המסך לא תגרור את כל השאלות והפריטים."
+ },
+ {
+  "layer": "משותף",
+  "file": "ImageToUpload.cs",
+  "sig": "class ImageToUpload",
+  "doc": "קובץ תמונה בדרך מהעורך לשרת, כמחרוזת base64 בתוך JSON. השרת מפענח, מייצר שם מ-GUID ושומר בתיקיית uploadedFiles."
+ },
+ {
+  "layer": "משותף",
+  "file": "QuestionToEdit.cs",
+  "sig": "class QuestionToEdit",
+  "doc": "שאלה אחת על כל פריטיה. במשחק סדר \"שאלה\" היא רצף אחד שהשחקן מסדר בין שתי תגיות קיצון. נע בשני הכיוונים בין עמוד העריכה לשרת."
+ },
+ {
+  "layer": "משותף",
+  "file": "AnswerForUnityDto.cs",
+  "sig": "class AnswerForUnityDto",
+  "doc": "פריט בודד בדרך מהשרת אל משחק היוניטי. מגיע בסדר הנכון, והמשחק מערבב אותו בעצמו לפני ההצגה על האבנים."
+ },
+ {
+  "layer": "משותף",
+  "file": "GameForUnityDto.cs",
+  "sig": "class GameForUnityDto",
+  "doc": "משחק שלם בדרך מהשרת ליוניטי - התשובה של UnityController לקוד משחק. מכיל רק את מה שהמשחק צריך, בלי מזהים ובלי פרטי הבעלים."
+ },
+ {
+  "layer": "משותף",
+  "file": "StageForUnityDto.cs",
+  "sig": "class StageForUnityDto",
+  "doc": "שלב בודד בדרך מהשרת ליוניטי. \"שלב\" כאן הוא מה שנקרא \"שאלה\" בצד המחולל: רצף אחד בין שתי תגיות קיצון."
+ },
+ {
+  "layer": "משותף",
+  "file": "MinimalUser.cs",
+  "sig": "class MinimalUser",
+  "doc": "משתמש מצומצם לצורכי הצפנת סיסמה בלבד. PasswordHasher דורש אובייקט משתמש, ולכן קיימת מחלקה מינימלית במקום להעביר את המחלקה המלאה. אינה עוברת ללקוח."
+ },
+ {
+  "layer": "משותף",
+  "file": "PortelemUser.cs",
+  "sig": "class PortelemUser",
+  "doc": "שורת משתמש כפי שהיא בטבלת Users. מחזיקה את שני המזהים - הפנימי ושל פורטל\"מ - וזו ההפרדה שמאפשרת לזהות משתמש שחזר גם אם שינה את הדוא\"ל."
+ },
+ {
+  "layer": "משותף",
+  "file": "UserFromDB.cs",
+  "sig": "class UserFromDB",
+  "doc": "תוצאת שאילתת משתמש מבסיס הנתונים, לפני שהיא הופכת ל-User שנשלח ללקוח. קיימת בנפרד כדי ששכבת הנתונים לא תחזיר טיפוס שמוגדר ב-Shared."
+ },
+ {
+  "layer": "משותף",
+  "file": "AuthConstants.cs",
+  "sig": "static class AuthConstants",
+  "doc": "מחרוזות קבועות של מנגנון ההתחברות - קודי תוצאה ושמות תביעות. ריכוז במקום אחד, כדי שכל השכבות ישוו את אותן מחרוזות בדיוק."
+ },
+ {
+  "layer": "משותף",
+  "file": "GameData.cs",
+  "sig": "static class DataPass",
+  "doc": "מצב המשחק שעובר בין סצנות ביוניטי: תוצאה, ניקוד, זמן, פסילות וכמה שאלות נענו. סטטי, ולכן שורד מעבר בין סצנות."
+ }
+]
