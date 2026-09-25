@@ -71,6 +71,9 @@ public class CameraScript : MonoBehaviour
     // היחס האחרון שחושב, כדי לא לחשב מחדש בכל פריים
     private float lastAspect = -1f;
 
+    // המיקום שבו המצלמה הונחה בסצנה הוא "הבית" שאליו היא תמיד
+    // חוזרת. נקבע פעם אחת ב-Awake, לפני ש-Start של סקריפטים
+    // אחרים מתחיל להזיז אותה
     void Awake()
     {
         homePosition = transform.position;
@@ -83,6 +86,8 @@ public class CameraScript : MonoBehaviour
         FitToScreen();
     }
 
+    // נקרא גם בהדלקה מחדש של האובייקט, ולא רק בטעינה. חוזר על
+    // התאמת הרקע והגודל, כי חזרה מהשהיה עלולה לאפס אותם
     void OnEnable()
     {
         if (myCamera == null) myCamera = GetComponent<Camera>();
@@ -91,6 +96,16 @@ public class CameraScript : MonoBehaviour
         FitToScreen();
     }
 
+    // ============================================================
+    // מכונת המצבים של המצלמה, רצה בכל פריים.
+    //
+    // ארבעה מצבים: idle - עומדת, move - נעה ליעד, follow - עוקבת
+    // אחרי אובייקט, wait - ממתינה במקום לפני חזרה הביתה.
+    //
+    // כאן גם נבדק בכל פריים אם יחס המסך השתנה. המשחק רץ בתוך
+    // iframe במחולל, שגודלו משתנה עם חלון הדפדפן, ולכן אי אפשר
+    // להסתפק בחישוב חד-פעמי בטעינה
+    // ============================================================
     void Update()
     {
         // המסך שינה גודל - מתאימים את שדה הראייה מחדש
@@ -152,6 +167,9 @@ public class CameraScript : MonoBehaviour
         }
     }
 
+    // הגבלת המצלמה לתחומי השלב נעשית ב-LateUpdate ולא ב-Update,
+    // כדי שהיא תרוץ אחרי שכל התנועות של הפריים כבר בוצעו.
+    // אחרת המצלמה הייתה יכולה לחרוג לרגע אחד מהגבול
     void LateUpdate()
     {
         ClampInsideLevel();
@@ -247,6 +265,10 @@ public class CameraScript : MonoBehaviour
     {
         ShowLakeThenReturn(stayAtLakeTime);
     }
+    // גרסה שמקבלת זמן שהייה מפורש, לשימוש כשהשהייה צריכה
+    // להתאים לאורך אנימציה מסוימת.
+    // אם נקודת התצוגה לא חוברה באינספקטור, המצלמה נשארת במקומה
+    // וממתינה - עדיף מאשר לקפוץ לנקודה שגויה
     public void ShowLakeThenReturn(float stayTime)
     {
         target = null;
@@ -297,11 +319,15 @@ public class CameraScript : MonoBehaviour
         state = "move";
     }
 
+    // חזרה חלקה לנקודת הבית
     public void GoHome()
     {
         MoveTo(homePosition, false);
     }
 
+    // קפיצה מיידית הביתה בלי אנימציה, ואיפוס כל מצב המעקב.
+    // משמש במעבר בין שלבים, ששם תנועה חלקה הייתה נראית כמו
+    // תקלה במקום כמו מעבר
     public void JumpHome()
     {
         target = null;
@@ -319,6 +345,8 @@ public class CameraScript : MonoBehaviour
             lakeViewPoint.position.x, lakeViewPoint.position.y, transform.position.z);
     }
 
+    // מעביר את המצלמה למצב תנועה אל נקודה. waitThere קובע אם
+    // להמתין שם ואז לחזור הביתה, או להישאר
     private void MoveTo(Vector3 point, bool waitThere)
     {
         target = null;

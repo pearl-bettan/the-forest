@@ -238,13 +238,14 @@
                 @* ---------- שם המשחק ---------- *@
                 <label class="field-label">שם המשחק:</label>
 
-                <input class="game-name-input @(NameLength() >= NameMax ? "is-full" : "")"
+                <input class="game-name-input @(nameBlink ? "limit-blink" : "")"
                        maxlength="@NameMax"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
-                       @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
+                       @oninput="(e) => gameForm.GameName = e.Value.ToString()"
+                       @onkeydown="OnNameKeyDown" />
 
-                <span class="chars-counter @CounterClass()">@NameLength()/@NameMax</span>
+                <span class="chars-counter @CounterClass() @(nameBlink ? "count-blink" : "")">@NameLength()/@NameMax</span>
 
                 @* ---------- זמן לשאלה ---------- *@
                 <label class="field-label">זמן לשאלה:</label>
@@ -296,7 +297,7 @@
             <h2 class="popup-title">מחיקת משחק</h2>
 
             <p class="delete-text">
-                "@gameToDelete.GameName" - @gameToDelete.QuestionsCount שאלות
+                <bdi>"@gameToDelete.GameName"</bdi> - @gameToDelete.QuestionsCount שאלות
             </p>
 
             <div class="popup-actions">
@@ -512,13 +513,30 @@
 
 
     // צבע המונה: אפור לפני הקלדה, ירוק כשתקין ואדום בחריגה
+    // הבהוב מסגרת אדום כשמנסים לחרוג ממגבלת התווים של שם המשחק
+    bool nameBlink = false;
+
+    async Task OnNameKeyDown(KeyboardEventArgs e)
+    {
+        if (NameLength() >= NameMax && IsTypingKey(e))
+        {
+            // הבהוב אדום קצר בכל ניסיון להקליד מעבר למקסימום
+            nameBlink = true;
+            await Task.Delay(220);
+            nameBlink = false;
+        }
+    }
+
+    // מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור
+    bool IsTypingKey(KeyboardEventArgs e)
+    {
+        return e.Key != null && e.Key.Length == 1
+               && e.CtrlKey == false && e.MetaKey == false && e.AltKey == false;
+    }
+
+
     string CounterClass()
     {
-        if (NameLength() >= NameMax)
-        {
-            return "chars-full";
-        }
-
         if (NameLength() == 0)
         {
             return "chars-short";

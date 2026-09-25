@@ -65,6 +65,13 @@ public class RockScript : MonoBehaviour
     private int blinksLeft;
     private bool isRed;
 
+    // ============================================================
+    // אתחול האבן: איתור הרכיבים, כיבוי ה-Animator, הכנת תמונת
+    // התשובה ושמירת המקום והצבע ההתחלתיים.
+    //
+    // סדר הפעולות חשוב: שומרים את המקום והצבע רק אחרי שה-Animator
+    // כובה, אחרת היו נשמרים ערכים שהאנימציה כבר שינתה
+    // ============================================================
     void Awake()
     {
         if (rockText == null) rockText = GetComponentInChildren<TMP_Text>();
@@ -88,6 +95,15 @@ public class RockScript : MonoBehaviour
 
         isBlinking = false;
     }
+    // ============================================================
+    // יוצרת בקוד את הרנדרר שיציג תמונת תשובה על האבן.
+    //
+    // נבנה בקוד ולא בפריפאב, כי לא כל פריט הוא תמונה - פריטי
+    // טקסט לא צריכים אותו כלל. הוא נוצר מכובה ונדלק רק כשיש
+    // תמונה להציג.
+    // שכבת המיון שלו היא של האבן ועוד אחת, כדי שהתמונה תוצג
+    // מעל הסלע ולא מאחוריו
+    // ============================================================
     private void BuildAnswerImage()
     {
         if (answerImage != null) return;
@@ -106,6 +122,8 @@ public class RockScript : MonoBehaviour
         answerImage.gameObject.SetActive(false);
     }
 
+    // שומרת את הגודל המקורי של תמונת התשובה, כדי שאפשר יהיה
+    // לחזור אליו אחרי התאמות גודל לתמונות שונות
     private void SaveAnswerImageScale()
     {
         if (answerImage == null) return;
@@ -145,6 +163,14 @@ public class RockScript : MonoBehaviour
         script.SetRock(this);
     }
     
+    // ============================================================
+    // מסמנת שהאבן מורמת על ידי הגמד או הונחה.
+    //
+    // התפקיד העיקרי הוא שכבות התצוגה: אבן מורמת מקבלת דחיפה
+    // בסדר המיון כדי שתעבור מעל שאר האבנים ולא תיעלם מאחוריהן.
+    // הטקסט והתמונה שעליה מקבלים דחיפה גדולה באחד, כדי שיישארו
+    // מעל האבן עצמה
+    // ============================================================
     public void SetCarried(bool carried)
     {
         // הכפתור נעלם בזמן שהאבן באוויר, וחוזר ליד האבן כשהיא נוחתת.
@@ -195,6 +221,14 @@ public class RockScript : MonoBehaviour
         if (magnifierButton != null) magnifierButton.SetActive(false);
     }
     
+    // ============================================================
+    // מכבה את ה-Animator של האבן.
+    //
+    // קליפ האנימציה שבפריפאב מנפיש גם את המיקום, ולכן כל האבנים
+    // היו נדחפות לאותה נקודה בדיוק ונערמות זו על זו. עד שיוסרו
+    // עקומות המיקום מהקליפ, הפתרון הוא לכבות אותו.
+    // האזהרה מודפסת פעם אחת בלבד ולא לכל אבן בנפרד
+    // ============================================================
     private void StopPositionAnimation()
     {
         Animator animator = GetComponent<Animator>();
@@ -223,6 +257,8 @@ public class RockScript : MonoBehaviour
         homeSaved = true;
     }
 
+    // מטפל בהבהוב האדום של תשובה שגויה. יוצא מיד כשאין הבהוב
+    // פעיל, ולכן הוא זול כמעט בכל פריים
     void Update()
     {
         // ההבהוב האדום 
@@ -254,6 +290,9 @@ public class RockScript : MonoBehaviour
         }
     }
     
+    // לחיצה על האבן. שני התנאים אינם כפילות: canAnswer חוסם
+    // לחיצות בזמן שהגמד באמצע פעולה, ו-isPlaced חוסם אבן
+    // שכבר הונחה באגם
     private void OnMouseDown()
     {
         if (gameManager == null) return;
@@ -264,6 +303,7 @@ public class RockScript : MonoBehaviour
         }
     }
 
+    // הגדלה קלה במעבר עכבר, כחיווי שהאבן לחיצה
     private void OnMouseEnter()
     {
         if (gameManager == null) return;
@@ -274,6 +314,7 @@ public class RockScript : MonoBehaviour
         }
     }
 
+    // חזרה לגודל המקורי ביציאת העכבר
     private void OnMouseExit()
     {
         transform.localScale = startScale;
@@ -459,17 +500,23 @@ public class ZoomPanelScript : MonoBehaviour
     private Vector3 dragStartMouse;
     private Vector3 dragStartImage;
 
+    // בונה את הפאנל מיד בטעינה, כדי שהוא יהיה מוכן לפני
+    // ההגדלה הראשונה ולא ייבנה תוך כדי לחיצה
     void Awake()
     {
         gameCamera = Camera.main;
         BuildPanel();
     }
 
+    // הפאנל מתחיל סגור. ההסתרה ב-Start ולא ב-Awake, כדי
+    // שהבנייה תספיק להסתיים קודם
     void Start()
     {
         Hide();
     }
 
+    // קלט ההגדלה והגרירה, רק כשהפאנל פתוח. היציאה המוקדמת
+    // מוודאת שהגלגלת לא תשפיע על שום דבר כשהוא סגור
     void Update()
     {
         if (isOpen == false) return;
@@ -500,11 +547,19 @@ public class ZoomPanelScript : MonoBehaviour
         SetZoom(zoom + zoomStep);
     }
 
+    // הקטנה בצעד אחד, לכפתור המינוס
     public void ZoomOut()
     {
         SetZoom(zoom - zoomStep);
     }
 
+    // ============================================================
+    // קובעת את רמת ההגדלה, בתוך הטווח המותר.
+    //
+    // כשחוזרים לגודל המקורי התמונה מוחזרת למרכז, אחרת שחקן
+    // שגרר אותה הצידה והקטין היה נשאר עם תמונה תלויה מחוץ
+    // למסגרת בלי דרך ברורה להחזיר אותה
+    // ============================================================
     private void SetZoom(float newZoom)
     {
         zoom = Mathf.Clamp(newZoom, minZoom, maxZoom);
@@ -552,6 +607,8 @@ public class ZoomPanelScript : MonoBehaviour
         }
     }
 
+    // ממירה את מיקום העכבר במסך לנקודה בעולם המשחק.
+    // ציר ה-Z מאופס, כי המשחק דו-ממדי
     private Vector3 MouseWorld()
     {
         if (gameCamera == null) return Vector3.zero;
@@ -561,6 +618,14 @@ public class ZoomPanelScript : MonoBehaviour
         return point;
     }
 
+    // ============================================================
+    // בונה בקוד את כל חלקי פאנל ההגדלה: רקע כהה, תמונה גדולה
+    // וכפתור סגירה.
+    //
+    // הכול נבנה בקוד ולא בסצנה, כדי שההגדלה תעבוד בכל סצנה בלי
+    // להרכיב אותה ידנית מחדש. היציאה המוקדמת מאפשרת בכל זאת
+    // לחבר חלקים מוכנים באינספקטור, והם לא יידרסו
+    // ============================================================
     private void BuildPanel()
     {
         if (panel != null && bigImage != null && closeButton != null) return;
@@ -618,6 +683,8 @@ public class ZoomPanelScript : MonoBehaviour
         }
     }
 
+    // מייצרת ספרייט לבן בגודל פיקסל אחד, שמשמש כרקע מתוח.
+    // כך אין צורך בקובץ תמונה עבור מלבן בצבע אחיד
     private Sprite MakeSquareSprite()
     {
         Texture2D texture = new Texture2D(1, 1);
@@ -676,6 +743,13 @@ public class ZoomPanelScript : MonoBehaviour
         return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size);
     }
 
+    // ============================================================
+    // פותחת את ההגדלה על תמונה נתונה.
+    //
+    // הפאנל מועבר קודם למיקום המצלמה, כי המצלמה נעה במהלך
+    // המשחק והפאנל חייב להיפתח מול השחקן ולא במקום שבו הוא
+    // נבנה. כל פתיחה מתחילה מהגודל ההתחלתי ומהמרכז
+    // ============================================================
     public void Show(Sprite image)
     {
         if (panel == null) return;
@@ -700,6 +774,7 @@ public class ZoomPanelScript : MonoBehaviour
         panel.SetActive(true);
     }
 
+    // סוגרת את ההגדלה ומאפסת את מצב הגרירה
     public void Hide()
     {
         isOpen = false;
@@ -708,6 +783,8 @@ public class ZoomPanelScript : MonoBehaviour
         if (panel != null) panel.SetActive(false);
     }
 
+    // האם ההגדלה פתוחה. נבדק מבחוץ, כדי שלחיצות על המשחק
+    // לא ייקלטו כשהפאנל מכסה אותו
     public bool IsOpen()
     {
         return isOpen;
@@ -722,6 +799,7 @@ public class ZoomPanelScript : MonoBehaviour
         return true;
     }
 
+    // מעבירה את הפאנל למרכז תצוגת המצלמה הנוכחית
     private void MoveToCamera()
     {
         if (gameCamera == null) gameCamera = Camera.main;
@@ -774,6 +852,8 @@ public class ZoomBackgroundScript : MonoBehaviour
 {
     public ZoomPanelScript zoomPanel;
 
+    // OnMouseUpAsButton ולא OnMouseDown: כך לחיצה שהתחילה על
+    // הרקע וגררה את התמונה אינה נספרת כלחיצת סגירה
     private void OnMouseUpAsButton()
     {
         if (zoomPanel == null) return;
@@ -789,6 +869,7 @@ public class ZoomCloseScript : MonoBehaviour
 {
     public ZoomPanelScript zoomPanel;
 
+    // לחיצה על ה-X סוגרת מיד, בלי התניות
     private void OnMouseDown()
     {
         if (zoomPanel == null) return;

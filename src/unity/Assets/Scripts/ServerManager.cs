@@ -82,6 +82,8 @@ public class ServerManager : MonoBehaviour
     // הגנה מפני שליחה כפולה של אותה בקשה
     private bool isLoading;
 
+    // אתחול מסך הפתיחה: ניקוי הודעות, הצגת קודי הדוגמה, וקביעת
+    // כתובת השרת לפי סביבת ההרצה
     void Start()
     {
         ShowMessage("");
@@ -288,6 +290,16 @@ public class ServerManager : MonoBehaviour
         return unityGame;
     }
 
+    // ============================================================
+    // ממירה שלב שהגיע מהשרת למבנה שהמשחק עובד איתו.
+    //
+    // שלב פסול אינו מפיל את הטעינה אלא מוחזר כ-null ומדולג, עם
+    // אזהרה ב-Console. כך משחק שבו שאלה אחת חסרה עדיין ניתן
+    // לשחק במקום להיכשל כולו.
+    //
+    // אסינכרונית כי הפריטים עשויים להיות תמונות, וכל תמונה
+    // דורשת הורדה נפרדת מהשרת
+    // ============================================================
     async Task<StageData> ParseStage(ServerStage serverStage)
     {
         //מקרה של שלב בלי תשובות
@@ -367,6 +379,16 @@ public class ServerManager : MonoBehaviour
         return unityAnswer;
     }
 
+    // ============================================================
+    // פנייה כללית לשרת, שמחזירה את גוף התשובה כטקסט.
+    //
+    // ההמתנה נעשית בלולאת Task.Yield ולא בקורוטינה, כדי שאפשר
+    // יהיה לקרוא לה מתוך שגרות async רגילות.
+    //
+    // שים לב: אם השרת מוגש ב-http ולא ב-https, יוניטי חוסמת את
+    // הפנייה מברירת מחדל. ההגדרה שמתירה זאת היא
+    // insecureHttpOption ב-Player Settings
+    // ============================================================
     async Task<string> GetDataFromServer(string url)
     {
         using var http = UnityWebRequest.Get(url);
@@ -453,6 +475,9 @@ public class ServerManager : MonoBehaviour
         return lastError;
     }
 
+    // מציגה הודעה לשחקן אחרי שהפכה אותה לסדר תצוגה נכון.
+    // isRightToLeftText מכובה בכוונה: HebrewText כבר הפך את
+    // הטקסט, והפעלת שתי ההיפוכים יחד הייתה מחזירה אותו לשיבוש
     private void ShowMessage(string message)
     {
         if (messageText == null) return;

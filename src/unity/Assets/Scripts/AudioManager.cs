@@ -52,6 +52,8 @@ public class AudioManager : MonoBehaviour
         ApplyMute();
     }
 
+    // מוזיקת הרקע מתחילה ב-Start ולא ב-Awake, כדי שנגני הסאונד
+    // כבר ייבנו ומצב ההשתקה כבר ייקבע לפני שמשמיעים משהו
     void Start()
     {
         PlayMusic();
@@ -114,6 +116,8 @@ public class AudioManager : MonoBehaviour
         PlaySfx(stageCompleteSound);
     }
 
+    // משמיע צליל בודד. PlayOneShot ולא Play, כדי ששני צלילים
+    // שנופלים יחד לא יקטעו זה את זה
     private void PlaySfx(AudioClip clip)
     {
         if (sfxSource == null) return;
@@ -129,6 +133,8 @@ public class AudioManager : MonoBehaviour
         ApplyMute();
     }
 
+    // מחיל את מצב הסאונד על עוצמת המאזין הכללית, ולכן הוא
+    // משתיק גם את המוזיקה וגם את האפקטים במכה אחת
     private void ApplyMute()
     {
         AudioListener.volume = DataPass.soundOn ? 1f : 0f;
@@ -140,11 +146,13 @@ public class AudioManager : MonoBehaviour
         if (Instance != null) Instance.PlayCorrect();
     }
 
+    // תשובה שגויה, מכל מקום בקוד
     public static void Wrong()
     {
         if (Instance != null) Instance.PlayWrong();
     }
 
+    // סיום שלב בהצלחה, מכל מקום בקוד
     public static void StageComplete()
     {
         if (Instance != null) Instance.PlayStageComplete();

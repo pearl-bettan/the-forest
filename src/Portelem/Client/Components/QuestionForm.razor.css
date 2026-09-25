@@ -147,7 +147,9 @@
 }
 
 .item-card:hover .item-remove {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .item-remove:hover:not(:disabled) {

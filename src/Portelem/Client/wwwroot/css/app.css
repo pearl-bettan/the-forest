@@ -189,8 +189,9 @@ a, .btn-link {
     z-index: 300;
 }
 
-.tip:hover::after,
-.tip:focus-within::after {
+/* הטולטיפ מופיע רק במעבר עכבר ונעלם ברגע שהעכבר יורד ממנו.
+   לא משתמשים ב-focus-within כדי שלא יישאר תקוע אחרי לחיצה על כפתור */
+.tip:hover::after {
     opacity: 1;
     visibility: visible;
 }
@@ -348,4 +349,61 @@ select {
         flex-wrap: wrap;
         gap: 10px;
     }
+}
+
+
+/* הבהוב אדום של המסגרת והמונה בניסיון לחרוג ממגבלת התווים.
+   ההדלקה/כיבוי מנוהלים מהקוד ולכן חוזרים בכל הקשה */
+.limit-blink {
+    box-shadow: 0 0 0 3px var(--danger);
+    border-radius: 6px;
+}
+
+.count-blink {
+    color: var(--danger) !important;
+}
+
+
+/* מיקום הטקסט על תגית הקצה במצב תצוגה (QuestionItems).
+   מוגדר גלובלית עם !important כי חבילת ה-scoped css נשמרת ב-cache
+   בדפדפן בלי גרסה, וכך השינוי נטען עם רענון של app.css */
+.question-view .tag-media .item-text {
+    bottom: 34% !important;
+}
+
+
+/* אייקון העט בכרטיס "הגדרות כלליות" - ממורכז אנכית וצמוד לקצה השמאלי */
+.settings-card {
+    position: relative;
+}
+.settings-pen {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+
+
+/* כפתור הפרסום בכרטיס "תנאי פרסום" - ממורכז אנכית וצמוד לקצה השמאלי */
+.publish-card {
+    position: relative;
+}
+.publish-anchor {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    margin: 0;
+}
+
+
+/* גרירת פריטים לשינוי הסדר: התמונות בתוך הכרטיס לא יתפסו את הגרירה,
+   כדי שגרירת כל הכרטיס תעבוד מכל מקום ולא רק מאייקון החיצים */
+.item-card img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    user-drag: none;
+    user-select: none;
 }

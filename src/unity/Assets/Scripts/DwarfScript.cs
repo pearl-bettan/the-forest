@@ -140,12 +140,17 @@ public class DwarfScript : MonoBehaviour
     // המזהה של מצב הקפיצה ב-Animator
     private int jumpStateHash;
 
+    // המקום שבו הגמד הונח בסצנה הוא נקודת הבית שלו, זו שאליה
+    // הוא חוזר אחרי כל פעולה
     void Awake()
     {
         homePosition = transform.position;
         state = "wait";
     }
 
+    // מכבה את אנימציות ההליכה כדי שהגמד יתחיל בעמידה, ומתרגם
+    // את שם מצב ההרמה למזהה מספרי. Animator עובד עם מזהים, וגזירה
+    // חוזרת מהמחרוזת בכל פריים הייתה בזבוז
     void Start()
     {
         StopWalkAnimation();
@@ -158,6 +163,16 @@ public class DwarfScript : MonoBehaviour
         return state == "wait";
     }
 
+    // ============================================================
+    // מכונת המצבים של הגמד, רצה בכל פריים.
+    //
+    // המצבים הם שלבים ברצף אחד: המתנה, הליכה אל האבן, הרמה,
+    // הליכה אל האגם, זריקה, חזרה הביתה, ולבסוף הדילוג על
+    // האבנים בסיום שאלה מוצלחת.
+    //
+    // כל מצב מסיים את עצמו בכך שהוא קובע את המצב הבא, ולכן
+    // אין כאן קורוטינות: הכול מתקדם לפי מרחק וזמן בפריים
+    // ============================================================
     void Update()
     {
         // הולך לכיוון האבן שנבחרה
@@ -444,6 +459,16 @@ public class DwarfScript : MonoBehaviour
         return new Vector2(point.x, point.y + skipStoneOffsetY);
     }
 
+    // ============================================================
+    // מקדמת קפיצה אחת בדילוג על אבני האגם, בכל פריים.
+    //
+    // הקפיצה מחולקת לשלושה שלבים לפי אותם יחסי זמן שיש בקליפ
+    // האנימציה: התכופפות, תעופה בקשת, ונחיתה. כך התמונה והתנועה
+    // נשארות מסונכרנות גם כשמשנים את מהירות הקפיצה.
+    //
+    // התעופה מחושבת כ-Lerp אופקי ועוד סינוס אנכי, וזה מה שנותן
+    // את הקשת במקום קו ישר
+    // ============================================================
     private void UpdateSkipping()
     {
         Vector2 target = StonePoint(skipPath[skipIndex]);
@@ -505,6 +530,7 @@ public class DwarfScript : MonoBehaviour
         }
     }
 
+    // מדליקה את מצב הקפיצה ב-Animator
     private void StartSkipAnimation()
     {
         if (animator == null) return;
@@ -513,6 +539,7 @@ public class DwarfScript : MonoBehaviour
         animator.SetBool(skipBoolName, true);
     }
 
+    // מכבה את מצב הקפיצה ומחזירה את מהירות ה-Animator לרגילה
     private void StopSkipAnimation()
     {
         if (animator == null) return;
@@ -675,6 +702,8 @@ public class DwarfScript : MonoBehaviour
         }
     }
 
+    // מדליקה בדיוק אחד משלושת כיווני ההליכה ומכבה את השאר.
+    // מרוכז בשגרה אחת, כדי ששני כיוונים לא יידלקו יחד בטעות
     private void SetWalkAnimation(bool side, bool forward, bool back)
     {
         if (animator == null) return;
@@ -684,6 +713,7 @@ public class DwarfScript : MonoBehaviour
         animator.SetBool("IsWalkingBack", back);
     }
 
+    // מכבה את כל כיווני ההליכה, ומחזירה את הגמד לעמידה
     private void StopWalkAnimation()
     {
         SetWalkAnimation(false, false, false);

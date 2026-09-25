@@ -43,6 +43,13 @@ public class SpriteButtonScript : MonoBehaviour
 
     private RockScript myRock;
 
+    // ============================================================
+    // אתחול הכפתור: שמירת הגודל המקורי, נרמול שם הפעולה, הבטחת
+    // קוליידר, ואיתור כל המנהלים שהכפתור עשוי לפנות אליהם.
+    //
+    // האיתור האוטומטי נעשה רק כשהשדה ריק, ולכן חיבור ידני
+    // באינספקטור תמיד גובר עליו
+    // ============================================================
     void Awake()
     {
         startScale = transform.localScale;
@@ -70,6 +77,8 @@ public class SpriteButtonScript : MonoBehaviour
         if (gameCamera == null) gameCamera = Object.FindFirstObjectByType<CameraScript>();
     }
 
+    // רץ אחרי שכל ה-Awake בסצנה הסתיימו, ולכן זה המקום לדווח
+    // על תקלות הרכבה - בשלב הזה כבר ידוע מה חובר ומה לא
     void Start()
     {
         ReportSetup();
@@ -118,6 +127,8 @@ public class SpriteButtonScript : MonoBehaviour
         Debug.Log(state);
     }
 
+    // מקשר את הכפתור לאבן מסוימת. נקרא מבחוץ כשהכפתור נבנה
+    // דינמית ליד אבן, ולא הונח מראש בסצנה
     public void SetRock(RockScript rock)
     {
         myRock = rock;
@@ -161,11 +172,20 @@ public class SpriteButtonScript : MonoBehaviour
         DoAction();
     }
 
+    // לחיצה על הספרייט. יוניטי קוראת לזה רק כשיש קוליידר על
+    // האובייקט, וזו הסיבה ש-EnsureCollider רץ ב-Awake
     private void OnMouseDown()
     {
         DoAction();
     }
 
+    // ============================================================
+    // מפעילה את הפעולה שהוגדרה לכפתור באינספקטור.
+    //
+    // שם הפעולה הוא מחרוזת ולא enum, כדי שאפשר יהיה להוסיף
+    // כפתור חדש בלי לגעת בקוד. המחיר הוא שהשוואת המחרוזות
+    // חייבת להיות באותיות קטנות בלבד - הנרמול נעשה ב-Awake
+    // ============================================================
     private void DoAction()
     {
 
@@ -279,11 +299,13 @@ public class SpriteButtonScript : MonoBehaviour
         soundRenderer.color = on ? Color.white : mutedTint;
     }
 
+    // הגדלה קלה במעבר עכבר, כחיווי שהכפתור לחיץ
     private void OnMouseEnter()
     {
         transform.localScale = startScale * bigScale;
     }
 
+    // חזרה לגודל המקורי ביציאת העכבר
     private void OnMouseExit()
     {
         transform.localScale = startScale;

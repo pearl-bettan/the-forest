@@ -161,12 +161,21 @@ public class GameStatus : MonoBehaviour
         FindAnchors();
     }
 
+    // רץ אחרי כל ה-Awake בסצנה: מכין את רשימת הספרייטים ובודק
+    // שההרכבה באינספקטור שלמה. שלב הבדיקה חייב להיות כאן ולא
+    // ב-Awake, כי רק עכשיו כל הרכיבים כבר אותחלו
     void Start()
     {
         BuildReadySprites();
         CheckSetup();
     }
 
+    // ============================================================
+    // מטפל בפעימה הקצרה של השמש ברגע שהטיימר משתחרר.
+    //
+    // יוצא מיד כשאין פעימה פעילה, ולכן הוא זול כמעט בכל פריים.
+    // זו הסיבה שאפשר להשאיר אותו ב-Update ולא להעביר לקורוטינה
+    // ============================================================
     void Update()
     {
         // פעימה קצרה ברגע שהטיימר מתחיל לרוץ
@@ -239,6 +248,16 @@ public class GameStatus : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // מעדכנת את תצוגת הזמן. נקראת מה-GameManager בכל פריים.
+    //
+    // מקבלת גם את הזמן שנותר וגם את הזמן הכולל, כי מיקום השמש
+    // הוא היחס ביניהם ולא ערך מוחלט. כך אותו קוד עובד לשאלה
+    // בת דקה ולשאלה בת שתי דקות.
+    //
+    // במצב ללא הגבלת זמן מוצג כיתוב קבוע במקום מספר, והשמש
+    // אינה זזה בכלל
+    // ============================================================
     public void ShowTime(float timeLeft, float totalTime)
     {
         // ללא הגבלת זמן - אין ספירה לאחור ואין שקיעה של השמש
@@ -297,6 +316,9 @@ public class GameStatus : MonoBehaviour
         return emptyRock;
     }
 
+    // מחילה את המראה הדהוי של טיימר שעוד לא התחיל לרוץ:
+    // שמש שקופה למחצה ומספר אפור. זה החיווי לשחקן שהספירה
+    // עדיין לא רצה ואפשר להסתכל על השאלה בנחת
     private void ApplyFrozenLook()
     {
         if (sunImage != null)
@@ -312,6 +334,15 @@ public class GameStatus : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // מציגה את הספירה לאחור במספרים.
+    //
+    // Ceil ולא Floor: כך השחקן רואה "1" בשנייה האחרונה ולא "0",
+    // והאפס מופיע רק כשהזמן באמת נגמר.
+    //
+    // הצבע מעביר מידע נוסף - אפור לפני ההתחלה, ואזהרה בשניות
+    // האחרונות
+    // ============================================================
     private void ShowNumbers(float timeLeft)
     {
         if (timerText == null) return;
@@ -535,6 +566,8 @@ public class GameStatus : MonoBehaviour
         if (endView == null) endView = FindByName("EndProgressBar");
     }
 
+    // מחפשת רכיב בן לפי שם, כולל בנים מכובים. משמשת לאיתור
+    // עוגני מד ההתקדמות כשהם לא חוברו ידנית באינספקטור
     private SpriteRenderer FindByName(string childName)
     {
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
@@ -545,6 +578,7 @@ public class GameStatus : MonoBehaviour
         return null;
     }
 
+    // מדליקה או מכבה את שלושת עוגני מד ההתקדמות יחד
     private void ShowAnchors(bool on)
     {
         if (startView != null) startView.gameObject.SetActive(on);
@@ -552,6 +586,8 @@ public class GameStatus : MonoBehaviour
         if (endView != null) endView.gameObject.SetActive(on);
     }
 
+    // מוחקת את החרוזים שנוצרו בבנייה הקודמת. נקראת לפני כל
+    // בנייה מחדש, אחרת חרוזים של משחק קודם היו נשארים על המסך
     private void ClearClones()
     {
         for (int i = 0; i < clones.Count; i++)

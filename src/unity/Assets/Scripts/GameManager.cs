@@ -171,6 +171,15 @@ public class GameManager : MonoBehaviour
     // המיקומים שסודרו ידנית בסצנה, נשמרים לפני שנוגעים בהם
     private List<Vector3> manualSlotPositions;
 
+    // ============================================================
+    // ההפעלה של המשחק, לפי הסדר:
+    //   בניית פאנל ההגדלה, שמירת מיקומי האבנים שסודרו ידנית
+    //   בסצנה, בדיקת הרכבה, שליפת המשחק, והתחלת השאלה הראשונה.
+    //
+    // שמירת המיקומים חייבת לקרות לפני StartStage, כי משם ואילך
+    // הקוד מזיז את האבנים לפי מספר הפריטים בשאלה - ואז כבר אי
+    // אפשר לדעת איפה הן הונחו במקור
+    // ============================================================
     void Start()
     {
         BuildZoomPanel();
@@ -307,6 +316,16 @@ public class GameManager : MonoBehaviour
         UpdateProgressBar();
     }
 
+    // ============================================================
+    // בודקת שכל השדות חוברו באינספקטור, ומשלימה מה שאפשר לבד.
+    //
+    // במקום להיכשל בזמן ריצה עם שגיאת null במקום אקראי, נאספת
+    // כאן רשימה של כל מה שחסר ומודפסת בבת אחת - כך רואים את
+    // כל הבעיות יחד ולא אחת בכל הרצה.
+    //
+    // הקישור של הגמד והאבנים למנהל נעשה כאן פעם אחת, במקום
+    // חיפוש בכל פריים
+    // ============================================================
     private void CheckSetup()
     {
         string missing = "";
@@ -351,6 +370,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // הלולאה הראשית של המשחק, רצה בכל פריים.
+    //
+    // מטפלת בטיימר, בהודעות שנעלמות מעצמן, בהבזק האדום, בלחיצה
+    // על הדשא ובמעבר לשאלה הבאה.
+    //
+    // היציאה המוקדמת כשאין שאלה פעילה היא מה שמונע ממנה לרוץ
+    // בזמן הטעינה ובמסכי הביניים
+    // ============================================================
     void Update()
     {
         //אם השאלה לא התחילה - אין מה לעדכן
@@ -526,6 +554,13 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // מתחילה שאלה חדשה: איפוס מצב, פיזור האבנים לפי מספר
+    // הפריטים, הצגת הנושא ותגיות הקיצון, והפעלת הטיימר.
+    //
+    // גם נקודת הכניסה לשאלה הראשונה וגם המעבר לכל שאלה הבאה,
+    // ולכן כל מה שנשאר משאלה קודמת חייב להתאפס כאן
+    // ============================================================
     public void StartStage()
     {
         if (game == null || game.stagesList == null || game.stagesList.Count == 0)
@@ -647,6 +682,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // מחזירה את האבנים למקומות שסודרו ידנית בסצנה. נקראת לפני
+    // כל פיזור מחדש, כדי שהחישוב יתחיל תמיד מהמצב המקורי ולא
+    // יצטבר על גבי פיזור קודם
     private void RestoreManualSlots()
     {
         for (int i = 0; i < slots.Count && i < manualSlotPositions.Count; i++)
@@ -850,6 +888,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    // ============================================================
+    // נקראת בכל פעם שהגמד סיים להניח אבן, ומחליטה מה קורה הלאה.
+    //
+    // שלוש אפשרויות: נגמרו הפסילות, כל האבנים סודרו נכון, או
+    // שממשיכים לתור הבא.
+    //
+    // הבדיקה על skipping מונעת מהשגרה לרוץ שוב בזמן שהגמד
+    // באמצע אנימציית הדילוג שמסיימת שאלה מוצלחת
+    // ============================================================
     public void TurnFinished()
     {
         if (gameOver == true) return;
@@ -1028,6 +1075,9 @@ public class GameManager : MonoBehaviour
         if (messageText != null) messageText.text = FixText(message);
     }
 
+    // שלוש שגרות הצליל הבאות מעדיפות את מנהל הסאונד, שקיים
+    // לאורך כל המשחק ומכבד את כפתור ההשתקה. הנפילה לנגן המקומי
+    // היא למקרה שהמנהל לא נמצא בסצנה
     private void PlayCorrectSound()
     {
         if (AudioManager.Instance != null)
@@ -1039,6 +1089,7 @@ public class GameManager : MonoBehaviour
         PlaySound(correctSound);
     }
 
+    // צליל תשובה שגויה
     private void PlayWrongSound()
     {
         if (AudioManager.Instance != null)
@@ -1050,6 +1101,7 @@ public class GameManager : MonoBehaviour
         PlaySound(wrongSound);
     }
 
+    // צליל סיום שלב מוצלח
     private void PlayStageCompleteSound()
     {
         if (AudioManager.Instance != null)
@@ -1115,6 +1167,8 @@ public class GameManager : MonoBehaviour
         StartStage();
     }
 
+    // מעדכנת את תצוגת הפסילות: מדליקה לב לכל פסילה שנותרה
+    // ומכבה את השאר
     private void UpdateHearts()
     {
         if (hearts == null) return;
@@ -1163,6 +1217,10 @@ public class GameManager : MonoBehaviour
         target.text = HebrewText.FixLines(text, maxLength);
     }
 
+    // הופכת טקסט עברי לסדר תצוגה נכון. TextMeshPro מציג עברית
+    // הפוכה, ולכן כל טקסט שמוצג לשחקן עובר דרך כאן.
+    // אפשר לכבות את ההיפוך בשדה fixHebrewOrder, למקרה שגרסה
+    // עתידית של TextMeshPro תטפל בזה לבד
     private string FixText(string text)
     {
         if (fixHebrewOrder == false) return text;

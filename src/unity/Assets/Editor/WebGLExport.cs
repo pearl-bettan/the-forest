@@ -34,6 +34,8 @@ public class WebGLExport : EditorWindow
     private bool developmentBuild = false;
     private Vector2 scroll;
 
+    // פותחת את חלון הייצוא. הקיצור %#w הוא Ctrl+Shift+W
+    // (ובמק Cmd+Shift+W)
     [MenuItem("ForestGame/Export game to Web %#w", false, 1)]
     public static void Open()
     {
@@ -42,6 +44,8 @@ public class WebGLExport : EditorWindow
         window.Show();
     }
 
+    // נתיב היעד נשמר ב-EditorPrefs ולכן שורד סגירה של יוניטי.
+    // בפתיחה ראשונה, כשאין ערך שמור, מנחשים אותו
     private void OnEnable()
     {
         outputPath = EditorPrefs.GetString(PathKey, GuessGeneratorPath());
@@ -78,6 +82,8 @@ public class WebGLExport : EditorWindow
         }
     }
 
+    // מציירת את חלון הייצוא. יוניטי קוראת לזה מחדש בכל שינוי
+    // בחלון, ולכן אין כאן שמירת מצב מעבר לשדות עצמם
     private void OnGUI()
     {
         scroll = EditorGUILayout.BeginScrollView(scroll);
@@ -164,6 +170,14 @@ public class WebGLExport : EditorWindow
     // ============================================================
     private const string ResponsiveMarker = "/* ForestGame responsive */";
 
+    // ============================================================
+    // מוסיפה כללי CSS לתבנית שנבנתה, כדי שהמשחק יתכווץ בתוך
+    // ה-iframe במקום להיחתך.
+    //
+    // רצה על התוצר ולא על התבנית של יוניטי עצמה, כדי שעדכון
+    // של יוניטי לא ידרוס את השינוי. סימן ההיכר מונע הוספה
+    // כפולה בבנייה חוזרת
+    // ============================================================
     private static void MakeTemplateResponsive(string outputPath)
     {
         string cssPath = Path.Combine(outputPath, "TemplateData", "style.css");
@@ -205,6 +219,9 @@ public class WebGLExport : EditorWindow
         }
     }
 
+    // מחזירה את הסצנות המסומנות ב-Build Settings בלבד.
+    // סצנה שאינה מסומנת לא תיכלל בבנייה, ולכן משחק שלא נטען
+    // נכון מתחיל לרוב מכאן
     private static string[] EnabledScenes()
     {
         System.Collections.Generic.List<string> list = new System.Collections.Generic.List<string>();
@@ -246,6 +263,8 @@ public class WebGLExport : EditorWindow
         if (Application.isBatchMode == true) EditorApplication.Exit(ok == true ? 0 : 1);
     }
 
+    // הבנייה מהחלון. בסיומה נפתחת תיקיית היעד, כדי שאפשר יהיה
+    // לוודא מיד שהקבצים אכן נכתבו
     private void Build()
     {
         bool ok = RunBuild(outputPath, cleanBefore, developmentBuild);

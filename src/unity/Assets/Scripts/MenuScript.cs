@@ -74,6 +74,13 @@ public class MenuScript : MonoBehaviour
         SceneManager.LoadScene(homeScene);
     }
     
+    // ============================================================
+    // מזהה אם הסקריפט יושב על מסך הסיום או על מסך אחר.
+    //
+    // הזיהוי נעשה לפי השדות שחוברו באינספקטור ולא לפי שם הסצנה:
+    // אותו סקריפט משרת כמה מסכים, ומסך הסיום הוא היחיד שבו
+    // שדות התוצאה ממולאים
+    // ============================================================
     private bool IsEndScreen()
     {
         if (mistakesText != null) return true;
@@ -89,6 +96,13 @@ public class MenuScript : MonoBehaviour
         return false;
     }
 
+    // ============================================================
+    // מציגה את תמונת הסיום המתאימה לתוצאת המשחק.
+    //
+    // שלוש תוצאות אפשריות: ניצחון, נגמר הזמן, ונגמרו הפסילות.
+    // תוצאה ריקה פירושה שהמסך הופעל ישירות ולא דרך המשחק,
+    // ולכן מוצגת תמונת ההפסד עם אזהרה ב-Console
+    // ============================================================
     private void ShowResultImage()
     {
         HideAll();
@@ -115,6 +129,8 @@ public class MenuScript : MonoBehaviour
         }
     }
 
+    // מכבה את כל תמונות הסיום. נקרא לפני הצגת אחת מהן, כדי
+    // ששתי תמונות לא יוצגו זו מעל זו
     private void HideAll()
     {
         if (winImage != null) winImage.SetActive(false);
@@ -123,6 +139,9 @@ public class MenuScript : MonoBehaviour
         if (loseImage != null) loseImage.SetActive(false);
     }
 
+    // מדליקה תמונה אחת. אם השדה לא חובר באינספקטור, נופלת
+    // לתמונת ההפסד ומדפיסה אזהרה עם שם השדה החסר, כדי שאפשר
+    // יהיה למצוא אותו מיד
     private void ShowImage(GameObject image, string fieldName)
     {
         if (image == null)
@@ -148,6 +167,7 @@ public class MenuScript : MonoBehaviour
     // תחת Canvas בתוך המסך ולא ישירות עליו
     private static readonly string[] TimeTitleNames = { "TimerTitle", "TimeTitle" };
 
+    // מאתרת את כיתוב הזמן בסצנה, ושומרת אותו לפעם הבאה
     private GameObject FindTimeTitle()
     {
         if (timeTitle != null) return timeTitle;

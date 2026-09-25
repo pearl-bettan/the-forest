@@ -4,6 +4,7 @@
 @using AuthTemplate.Shared.Models.Games
 @inject HttpClient Http
 @inject NavigationManager Nav
+@inject IJSRuntime JS
 
 @* ==========================================================
    מסך העורך לפי הפיגמה:
@@ -23,14 +24,11 @@
     {
         @* ---------- חזרה למשחקים שלי ---------- *@
         <div class="top-row">
-            <span class="tip tip-below tip-wide"
-                  data-tip="@(IsEditing() ? "אי אפשר לצאת בזמן עריכת שאלה" : "חזרה לרשימת המשחקים")">
-                <button class="btn-second back-btn"
-                        disabled="@IsEditing()"
-                        @onclick="BackToList">
-                    חזור למשחקים שלי
-                </button>
-            </span>
+            <button class="btn-second back-btn"
+                    disabled="@IsEditing()"
+                    @onclick="BackToList">
+                חזור למשחקים שלי
+            </button>
         </div>
 
         @* ---------- שני כרטיסי הראש ---------- *@
@@ -50,16 +48,17 @@
 
                     <div class="settings-line">
                         <span class="card-item">זמן לשאלה: @TimeText(game.TimePerQuestion)</span>
-
-                        <span class="tip tip-below" data-tip="עריכת ההגדרות הכלליות">
-                            <button class="pen-btn"
-                                    disabled="@IsEditing()"
-                                    @onclick="OpenSettingsPopup">
-                                <img src="assets-images/pen.svg" alt="עריכה" width="25" height="25" />
-                            </button>
-                        </span>
                     </div>
                 </div>
+
+                @* העיפרון ממורכז אנכית וצמוד לקצה השמאלי של הכרטיס *@
+                <span class="tip tip-below settings-pen" data-tip="עריכת ההגדרות הכלליות">
+                    <button class="pen-btn"
+                            disabled="@IsEditing()"
+                            @onclick="OpenSettingsPopup">
+                        <img src="assets-images/pen.svg" alt="עריכה" width="25" height="25" />
+                    </button>
+                </span>
             </div>
 
             @* כרטיס תנאי הפרסום - הצר, משמאל *@
@@ -86,7 +85,7 @@
 
                 @* במסך העריכה זהו כפתור רגיל, בלי צ'ק בוקס.
                    שלושת המצבים באים לידי ביטוי במראה הכפתור *@
-                <span class="tip tip-below tip-wide tip-anchor-left" data-tip="@PublishTip()">
+                <span class="tip tip-below tip-wide tip-anchor-left publish-anchor" data-tip="@PublishTip()">
                     <button class="publish-btn @PublishCheckClass()"
                             disabled="@(IsEditing() || CanTogglePublish() == false)"
                             @onclick="PublishGame">
@@ -101,14 +100,12 @@
         @* לפי הפיגמה הכפתורים לא נעלמים בזמן עריכת שאלה אלא מוצגים כבויים.
            היציאה מהשאלה היא רק דרך "שמירה" או "ביטול" שבטופס *@
         <div class="action-row @(IsEditing() ? "is-editing" : "")">
-            <span class="tip tip-wide" data-tip="@AddQuestionTip()">
-                <button class="btn-green add-question-btn"
-                        disabled="@(IsEditing() || CanAddQuestion() == false)"
-                        @onclick="StartNewQuestion">
-                    הוספת שאלה
-                    <img src="assets-images/plus.png" alt="" width="15" height="15" />
-                </button>
-            </span>
+            <button class="btn-green add-question-btn"
+                    disabled="@(IsEditing() || CanAddQuestion() == false)"
+                    @onclick="StartNewQuestion">
+                הוספת שאלה
+                <img src="assets-images/plus.png" alt="" width="15" height="15" />
+            </button>
 
             @* הרחבה וקיבוץ של כל השאלות בבת אחת *@
             <span class="tip tip-wide" data-tip="@ExpandAllTip()">
@@ -137,7 +134,7 @@
                 @if (IsEditing() == true && questions[i].ID == openQuestionId)
                 {
                     @* השאלה שנערכת - הטופס מוצג במקומה ברשימה *@
-                    <div class="question-card is-editing">
+                    <div class="question-card is-editing" id="editing-question">
 
                         <div class="question-strip">
                             <span class="strip-right">
@@ -178,20 +175,20 @@
                            לחיצה בכל מקום בשורה פותחת וסוגרת את התצוגה,
                            לא רק החץ הקטן שבצד *@
                         <div class="question-strip is-clickable"
-                             title="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")"
                              @onclick="() => ToggleExpand(question.ID)">
 
                             @* צד ימין: מספר השאלה והחץ *@
                             <span class="strip-right">
                                 <span class="question-title">שאלה @(index + 1)</span>
 
-                                <button class="chevron-btn @(isOpen ? "chevron-open" : "")"
-                                        title="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")"
-                                        @onclick="() => ToggleExpand(question.ID)"
-                                        @onclick:stopPropagation="true">
-                                    <img src="assets-images/chevron-down.svg" alt=""
-                                         width="16" height="16" class="chevron-icon" />
-                                </button>
+                                <span class="tip tip-below" data-tip="@(isOpen ? "סגירת התצוגה" : "פתיחת התצוגה")">
+                                    <button class="chevron-btn @(isOpen ? "chevron-open" : "")"
+                                            @onclick="() => ToggleExpand(question.ID)"
+                                            @onclick:stopPropagation="true">
+                                        <img src="assets-images/chevron-down.svg" alt=""
+                                             width="16" height="16" class="chevron-icon" />
+                                    </button>
+                                </span>
                             </span>
 
                             @* צד שמאל: מחיקה, עריכה ומונה הפריטים *@
@@ -239,7 +236,7 @@
             @* שאלה חדשה שעוד לא נשמרה - נוספת בסוף הרשימה *@
             @if (openQuestionId == -1)
             {
-                <div class="question-card is-editing">
+                <div class="question-card is-editing" id="editing-question">
 
                     <div class="question-strip">
                         <span class="strip-right">
@@ -293,13 +290,14 @@
 
                 <label class="field-label">שם המשחק:</label>
 
-                <input class="game-name-input @(NameLength() >= NameMax ? "is-full" : "")"
+                <input class="game-name-input @(nameBlink ? "limit-blink" : "")"
                        maxlength="@NameMax"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
-                       @oninput="(e) => gameForm.GameName = e.Value.ToString()" />
+                       @oninput="(e) => gameForm.GameName = e.Value.ToString()"
+                       @onkeydown="OnNameKeyDown" />
 
-                <span class="chars-counter @CounterClass()">@NameLength()/@NameMax</span>
+                <span class="chars-counter @CounterClass() @(nameBlink ? "count-blink" : "")">@NameLength()/@NameMax</span>
 
                 <label class="field-label">זמן לשאלה:</label>
 
@@ -660,6 +658,23 @@
 
     // לפי האפיון: שאלה חדשה נפתחת עם שלושה פריטים ריקים
     // וערכי קיצון של ברירת מחדל
+    // בפתיחת שאלה (חדשה או עריכה) גוללים כדי שאזור השאלה ייכנס לתצוגה
+    bool scrollToEdit = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (scrollToEdit == true)
+        {
+            scrollToEdit = false;
+
+            // block:'nearest' - גלילה מינימלית כדי שהשאלה תיראה,
+            // בלי להעלות אותה לראש המסך ובלי למרכז
+            await JS.InvokeVoidAsync("eval",
+                "document.getElementById('editing-question')?.scrollIntoView({behavior:'smooth',block:'nearest'})");
+        }
+    }
+
+
     void StartNewQuestion()
     {
         editedQuestion = new QuestionToEdit();
@@ -670,6 +685,7 @@
         editedQuestion.Answers = new List<AnswerToEdit>();
 
         openQuestionId = -1;
+        scrollToEdit = true;
     }
 
 
@@ -694,6 +710,7 @@
         }
 
         openQuestionId = question.ID;
+        scrollToEdit = true;
     }
 
 
@@ -866,13 +883,30 @@
 
 
     // צבע המונה: אפור לפני הקלדה, ירוק כשתקין ואדום במגבלה
+    // הבהוב מסגרת אדום כשמנסים לחרוג ממגבלת התווים של שם המשחק
+    bool nameBlink = false;
+
+    async Task OnNameKeyDown(KeyboardEventArgs e)
+    {
+        if (NameLength() >= NameMax && IsTypingKey(e))
+        {
+            // הבהוב אדום קצר בכל ניסיון להקליד מעבר למקסימום
+            nameBlink = true;
+            await Task.Delay(220);
+            nameBlink = false;
+        }
+    }
+
+    // מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור
+    bool IsTypingKey(KeyboardEventArgs e)
+    {
+        return e.Key != null && e.Key.Length == 1
+               && e.CtrlKey == false && e.MetaKey == false && e.AltKey == false;
+    }
+
+
     string CounterClass()
     {
-        if (NameLength() >= NameMax)
-        {
-            return "chars-full";
-        }
-
         if (NameLength() == 0)
         {
             return "chars-short";

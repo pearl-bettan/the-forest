@@ -73,6 +73,9 @@ public static class HebrewText
         return result.ToString();
     }
 
+    // מוסיפה שורה לתוצאה, אחרי שהפכה אותה לסדר הנכון.
+    // ירידת השורה נוספת לפני השורה ולא אחריה, כדי שלא תישאר
+    // שורה ריקה בסוף הטקסט
     private static void AddLine(StringBuilder result, string line)
     {
         if (line == "") return;
@@ -99,11 +102,14 @@ public static class HebrewText
         result.Insert(0, text);
     }
 
+    // טווח האותיות העבריות בטבלת התווים
     private static bool IsHebrew(char c)
     {
         return c >= 0x0590 && c <= 0x05FF;
     }
 
+    // אנגלית וספרות נשארות בסדר המקורי שלהן גם בתוך טקסט עברי,
+    // ולכן צריך לזהות אותן בנפרד ולא להפוך אותן
     private static bool IsEnglishOrNumber(char c)
     {
         if (c >= 'a' && c <= 'z') return true;

@@ -123,6 +123,8 @@ public class DataPass
         unlimitedTime = false;
     }
 
+    // מחזירה את זמן המשחק כמחרוזת דקות:שניות להצגה במסך הסיום.
+    // הריפוד בספרה אפס מונע תצוגה כמו 3:7 במקום 3:07
     public static string TimeText()
     {
         int minutes = Mathf.FloorToInt(totalTime / 60);

@@ -49,7 +49,7 @@
                 <div class="item-media rock-media">
                     @if (answer.IsImage == true)
                     {
-                        <img class="item-img" src="uploadedFiles/@answer.Content" alt="" />
+                        <img class="item-img" src="uploadedFiles/@answer.Content" alt="" draggable="false" />
                     }
                     else
                     {
@@ -60,7 +60,9 @@
                     <button type="button" class="item-remove"
                             title="@RemoveTitle()"
                             disabled="@(CanRemove() == false)"
-                            @onclick="() => AskRemove(pos)">✕</button>
+                            @onclick="() => AskRemove(pos)">
+                        <img src="assets-images/bin.svg" alt="מחיקה" width="12" height="12" />
+                    </button>
                 </div>
 
                 <div class="item-tools">
@@ -175,11 +177,12 @@
                 }
                 else if (itemType == "text")
                 {
-                    <textarea class="rock-input @(itemText.Length >= ItemMax ? "is-full" : "")"
+                    <textarea class="rock-input @(itemBlink ? "limit-blink" : "")"
                               maxlength="@ItemMax" placeholder="הקלדת טקסט"
-                              @bind="itemText" @bind:event="oninput"></textarea>
+                              @bind="itemText" @bind:event="oninput"
+                              @onkeydown="OnItemKeyDown"></textarea>
 
-                    <span class="rock-counter @ItemCounterClass()">@itemText.Length/@ItemMax</span>
+                    <span class="rock-counter @ItemCounterClass() @(itemBlink ? "count-blink" : "")">@itemText.Length/@ItemMax</span>
                 }
                 else
                 {
@@ -222,13 +225,11 @@
             <div class="popup-actions">
                 @if (itemType != "")
                 {
-                    <span class="tip tip-wide" data-tip="שמירת שינויים">
-                        <button type="button" class="btn-main btn-ctx-green"
-                                disabled="@(CanSaveItem() == false || HasItemChanged() == false)"
-                                @onclick="SaveItem">
-                            שמירה
-                        </button>
-                    </span>
+                    <button type="button" class="btn-main btn-ctx-green"
+                            disabled="@(CanSaveItem() == false || HasItemChanged() == false)"
+                            @onclick="SaveItem">
+                        שמירה
+                    </button>
                 }
 
                 <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
@@ -253,11 +254,12 @@
             </p>
 
             <div class="big-tag">
-                <input class="tag-input" maxlength="@TagMax"
+                <input class="tag-input @(tagBlink ? "limit-blink" : "")" maxlength="@TagMax"
                        value="@tagText"
-                       @oninput="(e) => tagText = e.Value.ToString()" />
+                       @oninput="(e) => tagText = e.Value.ToString()"
+                       @onkeydown="OnTagKeyDown" />
 
-                <span class="rock-counter @TagCounterClass()">@tagText.Length/@TagMax</span>
+                <span class="rock-counter @TagCounterClass() @(tagBlink ? "count-blink" : "")">@tagText.Length/@TagMax</span>
             </div>
 
             <div class="popup-actions">
@@ -493,13 +495,42 @@
 
 
     // צבע מונה התווים של הפריט: ירוק כשתקין, אדום בחריגה
+    // הבהוב מסגרת אדום כשמנסים לחרוג ממגבלת התווים
+    bool itemBlink = false;
+    bool tagBlink = false;
+
+    async Task OnItemKeyDown(KeyboardEventArgs e)
+    {
+        if (itemText.Length >= ItemMax && IsTypingKey(e))
+        {
+            // הבהוב אדום קצר בכל ניסיון להקליד מעבר למקסימום
+            itemBlink = true;
+            await Task.Delay(220);
+            itemBlink = false;
+        }
+    }
+
+    async Task OnTagKeyDown(KeyboardEventArgs e)
+    {
+        if (tagText.Length >= TagMax && IsTypingKey(e))
+        {
+            // הבהוב אדום קצר בכל ניסיון להקליד מעבר למקסימום
+            tagBlink = true;
+            await Task.Delay(220);
+            tagBlink = false;
+        }
+    }
+
+    // מקש שמכניס תו בודד, להבדיל ממקשי ניווט/מחיקה/קיצור
+    bool IsTypingKey(KeyboardEventArgs e)
+    {
+        return e.Key != null && e.Key.Length == 1
+               && e.CtrlKey == false && e.MetaKey == false && e.AltKey == false;
+    }
+
+
     string ItemCounterClass()
     {
-        if (itemText.Length >= ItemMax)
-        {
-            return "chars-full";
-        }
-
         if (itemText.Length == 0)
         {
             return "chars-short";
@@ -692,11 +723,6 @@
     // צבע מונה התווים של התגית
     string TagCounterClass()
     {
-        if (tagText.Length >= TagMax)
-        {
-            return "chars-full";
-        }
-
         if (tagText.Length == 0)
         {
             return "chars-short";
