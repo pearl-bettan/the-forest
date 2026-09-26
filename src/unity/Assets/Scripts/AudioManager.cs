@@ -126,6 +126,33 @@ public class AudioManager : MonoBehaviour
         sfxSource.PlayOneShot(clip, sfxVolume);
     }
 
+    // ============================================================
+    // משהה את מוזיקת הרקע בלי לאבד את מקום הניגון.
+    //
+    // נקרא לפני סרטון, כדי שהמוזיקה והפסקול של הסרטון לא
+    // יתנגנו זה על גבי זה. Pause ולא Stop, כדי שהחזרה תמשיך
+    // מאותה נקודה ולא תתחיל את השיר מחדש
+    // ============================================================
+    public void PauseMusic()
+    {
+        if (musicSource == null) return;
+        if (musicSource.isPlaying == false) return;
+
+        musicSource.Pause();
+    }
+
+    // מחזיר את המוזיקה אחרי הסרטון
+    public void ResumeMusic()
+    {
+        if (musicSource == null) return;
+        if (backgroundMusic == null) return;
+
+        musicSource.UnPause();
+
+        // אם מסיבה כלשהי היא נעצרה לגמרי ולא רק הושהתה
+        if (musicSource.isPlaying == false) PlayMusic();
+    }
+
     // כפתור הסאונד קורא לפונקציה הזאת
     public void SetSoundOn(bool on)
     {

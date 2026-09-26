@@ -21,6 +21,13 @@ public class MenuScript : MonoBehaviour
     // תמונת הפסד 
     [SerializeField] GameObject loseImage;
 
+    [Header("Win Video")]
+    // סרטון הניצחון, שרץ בסצנת הסיום לפני מסך הניצחון.
+    // הקובץ יושב ב-Assets/StreamingAssets ולא ב-Assets/Videos,
+    // כי בנייה ל-WebGL אינה תומכת ב-VideoClip מוטמע
+    [SerializeField] bool playWinVideo = true;
+    [SerializeField] string winVideoFile = "Win.mp4";
+
     [Header("End Screen Score And Time")]
     // הציון הסופי
     [SerializeField] TMP_Text scoreText;
@@ -39,12 +46,35 @@ public class MenuScript : MonoBehaviour
     // שורת סיכום אחת שמרכזת הכל, אם מעדיפים טקסט אחד במקום ארבעה
     [SerializeField] TMP_Text summaryText;
 
+    // ============================================================
+    // בסצנת הסיום בלבד: מציג את תוצאת המשחק.
+    //
+    // בניצחון רץ קודם סרטון הניצחון, ורק בסופו מוצג המסך. עד אז
+    // כל תמונות הסיום מכובות, אחרת מסך הניצחון היה מהבהב לרגע
+    // מתחת לסרטון לפני שהוא מתחיל.
+    //
+    // הניקוד והזמן מוצגים מיד ולא מחכים לסרטון: הם יושבים על
+    // אותו מסך שממילא מוסתר מאחוריו
+    // ============================================================
     void Start()
     { 
         if (IsEndScreen() == false) return;
 
-        ShowResultImage();
         ShowScoreAndTime();
+
+        if (playWinVideo == true && DataPass.result == "win")
+        {
+            HideAll();
+
+            // בסצנה הזאת יושבים כמה רכיבי MenuScript - אחד על
+            // המנהל ואחד על כל מסך תוצאה - וכל אחד מהם שפעיל
+            // מגיע לשורה הזאת. CutscenePlayer מנגן בכל זאת פעם
+            // אחת בלבד, ומחזיר את הקריאה לכל מי שביקש
+            CutscenePlayer.PlayThen(winVideoFile, ShowResultImage);
+            return;
+        }
+
+        ShowResultImage();
     }
     
     // כפתור "התחל משחק"
