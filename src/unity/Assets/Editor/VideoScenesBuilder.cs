@@ -100,10 +100,21 @@ public static class VideoScenesBuilder
     {
         GameObject item = new GameObject("Main Camera");
 
+        // ============================================================
+        // z = -10, כמו בכל סצנה דו-ממדית.
+        //
+        // מצלמה שנשארת ב-0 יושבת בדיוק במישור שבו נוחתים אובייקטים
+        // דו-ממדיים שנגררים לסצנה, והם נופלים מאחורי מישור החיתוך
+        // הקרוב. התוצאה: הכול נראה שחור, ותמונה שמוסיפים לסצנה
+        // פשוט לא מופיעה
+        // ============================================================
+        item.transform.position = new Vector3(0f, 0f, -10f);
+
         Camera camera = item.AddComponent<Camera>();
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = Color.black;
         camera.orthographic = true;
+        camera.orthographicSize = 5f;
 
         item.AddComponent<AudioListener>();
         item.tag = "MainCamera";

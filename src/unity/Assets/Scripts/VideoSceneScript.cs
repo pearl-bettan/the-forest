@@ -62,6 +62,10 @@ public class VideoSceneScript : MonoBehaviour
     // את השחקן תקוע מול מסך ריק בלי דרך להמשיך
     [SerializeField] float prepareTimeout = 8f;
 
+    // כמה שניות ממתינים לפריים הראשון לפני שחושפים את המשטח
+    // בכל מקרה
+    [SerializeField] float firstFrameTimeout = 2f;
+
     // רזולוציית ההקרנה. אין טעם לחרוג מגודל הסרטון עצמו
     [SerializeField] int surfaceWidth = 1280;
     [SerializeField] int surfaceHeight = 720;
@@ -108,6 +112,19 @@ public class VideoSceneScript : MonoBehaviour
 
         screen = new RenderTexture(surfaceWidth, surfaceHeight, 0);
 
+        // RenderTexture חדשה מכילה זבל מהזיכרון. בלי הניקוי הזה
+        // עלול להבזיק פריים אקראי לפני הפריים הראשון של הסרטון
+        ClearToBlack(screen);
+
+        // ============================================================
+        // המשטח מוסתר עד שיש באמת מה להציג עליו.
+        //
+        // RawImage בלי טקסטורה מצויר כמלבן לבן אטום. כל עוד הסרטון
+        // לא התחיל, משטח גלוי היה מכסה בלבן את כל מה שיש בסצנה -
+        // רקע, תמונה, כל דבר שהונח בעורך
+        // ============================================================
+        if (videoSurface != null) videoSurface.enabled = false;
+
         video.source = VideoSource.Url;
         video.url = path;
         video.playOnAwake = false;
@@ -148,6 +165,41 @@ public class VideoSceneScript : MonoBehaviour
         }
 
         video.Play();
+
+        yield return StartCoroutine(ShowWhenFirstFrameReady());
+    }
+
+    // ============================================================
+    // חושף את המשטח רק אחרי שהפריים הראשון צויר אליו.
+    //
+    // video.frame הוא מספר הפריים המוצג. כל עוד הוא שלילי לא צויר
+    // דבר, והמשטח היה מציג לבן. תקרת זמן קצרה מוודאת שגם אם
+    // המונה לא מתקדם מסיבה כלשהי, הסרטון עדיין ייראה
+    // ============================================================
+    private IEnumerator ShowWhenFirstFrameReady()
+    {
+        float waited = 0f;
+
+        while (finished == false && video.frame < 1 && waited < firstFrameTimeout)
+        {
+            waited = waited + Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (finished == true) yield break;
+
+        if (videoSurface != null) videoSurface.enabled = true;
+    }
+
+    // מנקה טקסטורה לשחור
+    private static void ClearToBlack(RenderTexture texture)
+    {
+        RenderTexture previous = RenderTexture.active;
+
+        RenderTexture.active = texture;
+        GL.Clear(true, true, Color.black);
+
+        RenderTexture.active = previous;
     }
 
     // ============================================================
@@ -184,7 +236,22 @@ public class VideoSceneScript : MonoBehaviour
 
         if (AudioManager.Instance != null) AudioManager.Instance.ResumeMusic();
 
-        ReleaseVideo();
+        // ============================================================
+        // עוצרים את הניגון אבל לא נוגעים בתמונה.
+        //
+        // Pause ולא Stop, ובלי לנתק את הטקסטורה מהמשטח: כך הפריים
+        // האחרון נשאר על המסך עד שהסצנה הבאה נטענת. ניתוק
+        // הטקסטורה כאן היה משאיר RawImage ריק, כלומר מלבן לבן
+        // אטום - וזה בדיוק המסך הלבן שנראה בין הסרטון למשחק.
+        //
+        // השחרור בפועל קורה ב-OnDestroy, כשהסצנה ממילא נפרקת
+        // ============================================================
+        if (video != null)
+        {
+            video.errorReceived -= OnError;
+            video.loopPointReached -= OnEnded;
+            video.Pause();
+        }
 
         if (string.IsNullOrEmpty(nextScene) == true)
         {
@@ -218,8 +285,13 @@ public class VideoSceneScript : MonoBehaviour
         button.onClick.AddListener(Skip);
     }
 
-    // משחרר את משאבי הסרטון. חייב לרוץ לפני החלפת הסצנה,
-    // אחרת ה-RenderTexture נשאר תפוס בזיכרון
+    // ============================================================
+    // משחרר את משאבי הסרטון.
+    //
+    // נקרא רק מ-OnDestroy, כלומר כשהסצנה כבר נפרקת. אסור לקרוא
+    // לו לפני החלפת סצנה: שחרור הטקסטורה בזמן שהמשטח עדיין מוצג
+    // הופך אותו למלבן לבן
+    // ============================================================
     private void ReleaseVideo()
     {
         if (video != null)
@@ -228,8 +300,6 @@ public class VideoSceneScript : MonoBehaviour
             video.loopPointReached -= OnEnded;
             video.Stop();
         }
-
-        if (videoSurface != null) videoSurface.texture = null;
 
         if (screen != null)
         {
