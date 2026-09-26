@@ -4,7 +4,6 @@ public class SpriteButtonScript : MonoBehaviour
 {
     //מחלקה המרכזת את כל כפתורי המשחק
     
-    [Header("What To Do")]
     [SerializeField] string action = "pause";
 
     [Header("Objects")]

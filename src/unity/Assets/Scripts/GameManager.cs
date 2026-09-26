@@ -27,6 +27,22 @@ public class GameManager : MonoBehaviour
     //מספר השניות שרואים את המסך האחרון לפני המעבר לסצנת הסיום
     [SerializeField] float endSceneDelay = 1.5f;
 
+    // ============================================================
+    // שני הכוונונים של גובה המצלמה בזמן אנימציית הדילוג:
+    //
+    //   Skip Top Margin - כמה אוויר להשאיר מעל ראש הגמד.
+    //                     הגדלה = יותר מרווח מעליו.
+    //
+    //   Skip Max Zoom Out - כמה מותר למצלמה להתרחק בסך הכול.
+    //                       0 מבטל את ההתאמה לגמרי.
+    //
+    // המצלמה מתרחקת ולא מתרוממת: הרמה מזיזה את המסגרת מעלה
+    // ומקצצת את מה שבתחתית, כמו תגית ההתחלה. התרחקות מגדילה
+    // את התמונה סביב אותו מרכז, ולכן שום דבר גלוי אינו נעלם
+    // ============================================================
+    [SerializeField] float skipTopMargin = 0.3f;
+    [SerializeField] float skipMaxZoomOut = 2f;
+
     [Header("Intro")]
     [SerializeField] CameraScript gameCamera;
 
@@ -37,8 +53,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] float introStartDelay = 1;
 
     // ההודעה שמסמנת לשחקן שהטיימר התחיל לרוץ
-    [SerializeField] string timerStartMessage = "צאו לדרך!";
-    [SerializeField] float timerStartMessageTime = 1.2f;
 
     [Header("Objects")]
     [SerializeField] DwarfScript dwarf;
@@ -75,17 +89,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] bool spreadSlotsEvenly = true;
 
     [Header("Texts")]
-    [SerializeField] TMP_Text topicText;
     [SerializeField] TMP_Text leftTagText;
     [SerializeField] TMP_Text rightTagText;
-    [SerializeField] TMP_Text messageText;
-
-    [Header("Screens")]
-    [SerializeField] GameObject messagePanel;
-
-    // תמונה אדומה שמכסה את המסך, מכובה בהתחלה
-    [SerializeField] GameObject redFlash;
-    [SerializeField] float redFlashTime = 0.4f;
 
     [Header("Lives")]
     [SerializeField] List<GameObject> hearts;
@@ -100,9 +105,6 @@ public class GameManager : MonoBehaviour
     [Header("Hebrew")]
     // מסדר את סדר האותיות בעברית
     [SerializeField] bool fixHebrewOrder = true;
-
-    // כמה תווים יש בשורה אחת בנושא השאלה
-    [SerializeField] int topicMaxChars = 11;
 
     // כמה תווים נכנסים בשורה אחת על אבן תשובה.
     // חשוב: בלי שבירת שורות משלנו, TMP שובר את הטקסט אחרי
@@ -130,7 +132,6 @@ public class GameManager : MonoBehaviour
 
     private float stageTimer;
     private int livesLeft;
-    private float flashTimer;
     private bool gameOver;
 
     // הטיימר קפוא עד שהתצוגה של האגם נגמרת
@@ -163,9 +164,6 @@ public class GameManager : MonoBehaviour
 
     //האם המצלמה כבר יצאה לדרך בתצוגת הפתיחה
     private bool introMoved;
-
-    // ספירה לאחור להודעה שמסמנת שהטיימר התחיל
-    private float startMessageTimer;
 
     // הגנה מפני לחיצות חוזרות על כפתור עצירת המשחק
     private bool pauseRequested;
@@ -229,13 +227,6 @@ public class GameManager : MonoBehaviour
         if (gameStatus != null) gameStatus.SetFrozen(false);
 
         if (gameOver == false) canAnswer = true;
-
-        if (timerStartMessage != "" && messagePanel != null && messageText != null)
-        {
-            messagePanel.SetActive(true);
-            messageText.text = FixText(timerStartMessage);
-            startMessageTimer = timerStartMessageTime;
-        }
     }
 
     //הגדלת תמונה
@@ -340,12 +331,8 @@ public class GameManager : MonoBehaviour
         if (slots == null || slots.Count == 0) missing = missing + "Slots, ";
         if (gameStatus == null) missing = missing + "Game Status, ";
         if (magnifiers == null || magnifiers.Count == 0) missing = missing + "Magnifiers, ";
-        if (topicText == null) missing = missing + "Topic Text, ";
         if (leftTagText == null) missing = missing + "Left Tag Text, ";
         if (rightTagText == null) missing = missing + "Right Tag Text, ";
-        if (messageText == null) missing = missing + "Message Text, ";
-        if (messagePanel == null) missing = missing + "Message Panel, ";
-        if (redFlash == null) missing = missing + "Red Flash, ";
         if (hearts == null || hearts.Count == 0) missing = missing + "Hearts, ";
 
         if (missing != "")
@@ -391,17 +378,6 @@ public class GameManager : MonoBehaviour
 
         // לחיצה על הדשא שולחת את הגמד לטייל
         HandleGrassClick();
-
-        // ההודעה שמסמנת שהטיימר התחיל
-        if (startMessageTimer > 0)
-        {
-            startMessageTimer -= Time.deltaTime;
-
-            if (startMessageTimer <= 0 && gameOver == false && messagePanel != null)
-            {
-                messagePanel.SetActive(false);
-            }
-        }
 
         // המצלמה מראה את האגם - הזמן לא רץ ואי אפשר לענות
         if (introTimer > 0)
@@ -487,16 +463,6 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        //כיבוי ההבהוב האדום
-        if (flashTimer > 0)
-        {
-            flashTimer -= Time.deltaTime;
-
-            if (flashTimer <= 0 && redFlash != null)
-            {
-                redFlash.SetActive(false);
-            }
-        }
     }
 
     // לחיצה על הדשא שולחת את הגמד לטייל לשם.
@@ -548,7 +514,8 @@ public class GameManager : MonoBehaviour
         // השאלה עדיין מסומנת כשגויה לצורך מאגר השאלות
         if (currentStage != null) currentStage.markedWrong = true;
 
-        EndGame("timeout", "נגמר הזמן");
+        //נגמר הזמן
+        EndGame("timeout");
     }
 
     // מוריד חיים ומעדכן את מונה השגיאות
@@ -598,7 +565,8 @@ public class GameManager : MonoBehaviour
         // נגמרו השאלות - השחקן ענה נכון על כולן
         if (questionPool.Count == 0)
         {
-            EndGame("win", "סיימת את כל השאלות!");
+            //סיימת את כל השאלות
+            EndGame("win");
             return;
         }
 
@@ -609,7 +577,6 @@ public class GameManager : MonoBehaviour
         questionPool.RemoveAt(randomIndex);
 
         // כותרות
-        SetWrappedText(topicText, currentStage.topic, topicMaxChars);
         SetWrappedText(leftTagText, currentStage.leftTag, tagLineLength);
         SetWrappedText(rightTagText, currentStage.rightTag, tagLineLength);
 
@@ -636,8 +603,6 @@ public class GameManager : MonoBehaviour
         gameOver = false;
         timerRunning = false;
 
-        if (messagePanel != null) messagePanel.SetActive(false);
-        if (redFlash != null) redFlash.SetActive(false);
         if (zoomPanel != null) zoomPanel.Hide();
 
         LayoutSlots();
@@ -896,13 +861,6 @@ public class GameManager : MonoBehaviour
             stageMistakes = stageMistakes + 1;
             CountMistake();
 
-            // ההבהוב האדום שמראה שהייתה טעות
-            if (redFlash != null)
-            {
-                redFlash.SetActive(true);
-                flashTimer = redFlashTime;
-            }
-
             PlayWrongSound();
         }
     }
@@ -924,7 +882,8 @@ public class GameManager : MonoBehaviour
         // נגמרו הפסילות
         if (livesLeft <= 0)
         {
-            EndGame("nolives", "נגמרו הפסילות");
+            //נגמרו הפסילות
+            EndGame("nolives");
             return;
         }
 
@@ -993,9 +952,30 @@ public class GameManager : MonoBehaviour
 
         skipping = true;
 
-        // מעקב אופקי בלבד: הקפיצות למעלה לא מזיזות את המצלמה,
-        // וההצמדה לגבולות מונעת יציאה מחוץ לעולם המשחק
-        if (gameCamera != null) gameCamera.FollowSideways(dwarf.transform);
+        // ============================================================
+        // המצלמה עוקבת אופקית בלבד, כדי שהקפיצות לא יטלטלו אותה -
+        // ומתרחקת כדי שהגמד לא ייחתך בקצה העליון.
+        //
+        // הגובה הדרוש נגזר מהנקודה הגבוהה ביותר במסלול הדילוג ועוד
+        // הגובה שהגמד תופס מעליה. המסלול משתנה בין שאלה לשאלה:
+        // האבנים מתפזרות מחדש לפי מספר הפריטים, ותגית הסיום יושבת
+        // לרוב גבוה מהן. לכן הגובה מחושב כאן בכל דילוג מחדש ולא
+        // נקבע פעם אחת בעורך
+        // ============================================================
+        if (gameCamera != null)
+        {
+            float highest = path[0].y;
+
+            for (int i = 1; i < path.Count; i++)
+            {
+                if (path[i].y > highest) highest = path[i].y;
+            }
+
+            float needed = highest + dwarf.SkipClearance();
+
+            gameCamera.FollowSidewaysShowing(dwarf.transform, needed,
+                                             skipTopMargin, skipMaxZoomOut);
+        }
 
         dwarf.SkipOverRocks(path, AfterSkipping);
     }
@@ -1027,11 +1007,12 @@ public class GameManager : MonoBehaviour
         if (questionPool.Count == 0)
         {
             //השאלה האחרונה
-            EndGame("win", "סיימת את כל השאלות!");
+            EndGame("win");
             return;
         }
 
-        ShowMessage("כל הכבוד!");
+        //כאן הוצגה בעבר ההודעה "כל הכבוד!". הפאנל הוסר, העצירה נשארה
+        StopPlay();
 
         //תחילת ספירה לשאלה הבאה
         nextStageTimer = nextStageDelay;
@@ -1058,7 +1039,7 @@ public class GameManager : MonoBehaviour
     }
 
     // סיום משחק- מעבר לסצנת הסיום
-    private void EndGame(string result, string message)
+    private void EndGame(string result)
     {
         nextStageTimer = 0;
         timerRunning = false;
@@ -1075,7 +1056,7 @@ public class GameManager : MonoBehaviour
         DataPass.questionsAnswered = questionsAnswered;
         DataPass.questionsTotal = totalQuestions;
 
-        ShowMessage(message);
+        StopPlay();
 
         if (endScene != "")
         {
@@ -1083,15 +1064,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // הודעה זמנית על המסך בלי לסיים את המשחק
-    private void ShowMessage(string message)
+    // ============================================================
+    // עוצרת את המשחק: אי אפשר לענות יותר, והשאלה נחשבת סגורה.
+    //
+    // קודם לכן זו הייתה ShowMessage, שגם הציגה כיתוב על המסך.
+    // פאנל ההודעות הוסר, אבל שתי ההשמות כאן אינן תצוגה אלא מצב
+    // משחק, והן חייבות להישאר: בלעדיהן אפשר ללחוץ על אבנים
+    // אחרי סיום שאלה ואחרי סיום המשחק
+    // ============================================================
+    private void StopPlay()
     {
         gameOver = true;
         canAnswer = false;
-        startMessageTimer = 0;
-
-        if (messagePanel != null) messagePanel.SetActive(true);
-        if (messageText != null) messageText.text = FixText(message);
     }
 
     // שלוש שגרות הצליל הבאות מעדיפות את מנהל הסאונד, שקיים
@@ -1234,17 +1218,6 @@ public class GameManager : MonoBehaviour
         }
 
         target.text = HebrewText.FixLines(text, maxLength);
-    }
-
-    // הופכת טקסט עברי לסדר תצוגה נכון. TextMeshPro מציג עברית
-    // הפוכה, ולכן כל טקסט שמוצג לשחקן עובר דרך כאן.
-    // אפשר לכבות את ההיפוך בשדה fixHebrewOrder, למקרה שגרסה
-    // עתידית של TextMeshPro תטפל בזה לבד
-    private string FixText(string text)
-    {
-        if (fixHebrewOrder == false) return text;
-
-        return HebrewText.Fix(text);
     }
 
     // טקסט של אבן תשובה. שוברים לשורות בעצמנו ורק אז הופכים כל שורה,

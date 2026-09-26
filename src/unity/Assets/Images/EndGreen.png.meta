@@ -129,10 +129,10 @@ TextureImporter:
       name: EndGreen_0
       rect:
         serializedVersion: 2
-        x: 167
-        y: 253
-        width: 501
-        height: 322
+        x: 0
+        y: 0
+        width: 835
+        height: 822
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}

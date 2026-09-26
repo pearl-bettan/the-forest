@@ -18,8 +18,6 @@ public class MenuScript : MonoBehaviour
     // נגמרו הפסילות
     [SerializeField] GameObject noLivesImage;
 
-    // תמונת הפסד 
-    [SerializeField] GameObject loseImage;
 
     [Header("End Screen Score And Time")]
     // הציון הסופי
@@ -33,11 +31,6 @@ public class MenuScript : MonoBehaviour
     // מספר הפסילות בכל המשחק
     [SerializeField] TMP_Text mistakesText;
 
-    // כמה שאלות נענו נכון מתוך הסך הכל
-    [SerializeField] TMP_Text questionsText;
-
-    // שורת סיכום אחת שמרכזת הכל, אם מעדיפים טקסט אחד במקום ארבעה
-    [SerializeField] TMP_Text summaryText;
 
     // ============================================================
     // בסצנת הסיום בלבד: מציג את תוצאת המשחק.
@@ -93,12 +86,9 @@ public class MenuScript : MonoBehaviour
     private bool IsEndScreen()
     {
         if (mistakesText != null) return true;
-        if (questionsText != null) return true;
-        if (summaryText != null) return true;
         if (winImage != null) return true;
         if (timeOutImage != null) return true;
         if (noLivesImage != null) return true;
-        if (loseImage != null) return true;
         if (scoreText != null) return true;
         if (timeText != null) return true;
 
@@ -133,8 +123,6 @@ public class MenuScript : MonoBehaviour
             Debug.LogWarning("DataPass.result is empty. " +
                              "Test the full path: Home > game > end, " +
                              "not by pressing Play on the End scene");
-
-            ShowImage(loseImage, "Lose Image");
         }
     }
 
@@ -145,23 +133,16 @@ public class MenuScript : MonoBehaviour
         if (winImage != null) winImage.SetActive(false);
         if (timeOutImage != null) timeOutImage.SetActive(false);
         if (noLivesImage != null) noLivesImage.SetActive(false);
-        if (loseImage != null) loseImage.SetActive(false);
     }
 
-    // מדליקה תמונה אחת. אם השדה לא חובר באינספקטור, נופלת
-    // לתמונת ההפסד ומדפיסה אזהרה עם שם השדה החסר, כדי שאפשר
-    // יהיה למצוא אותו מיד
+    // מדליקה תמונה אחת. אם השדה לא חובר באינספקטור מודפסת אזהרה
+    // עם שם השדה החסר, כדי שאפשר יהיה למצוא אותו מיד
     private void ShowImage(GameObject image, string fieldName)
     {
         if (image == null)
         {
             Debug.LogWarning("The field '" + fieldName + "' is empty in Menu Script. " +
                              "Result was: " + DataPass.result);
-            image = loseImage;
-        }
-
-        if (image == null)
-        {
             Debug.LogWarning("No image to show. Drag the screen objects from the scene " +
                              "into the Menu Script end screen fields (not the PNG files)");
             return;
@@ -230,32 +211,5 @@ public class MenuScript : MonoBehaviour
             mistakesText.text = DataPass.mistakes.ToString();
         }
 
-        if (questionsText != null)
-        {
-            questionsText.isRightToLeftText = false;
-            questionsText.text = DataPass.questionsAnswered + " / " + DataPass.questionsTotal;
-        }
-
-        if (summaryText != null)
-        {
-            summaryText.isRightToLeftText = false;
-            summaryText.text = BuildSummary();
-        }
-    }
-
-    // בונה את שורות הסיכום בעברית מסודרת
-    private string BuildSummary()
-    {
-        string lines = "";
-
-        // כל שורה מופכת בשלמותה, כולל המספרים שבסופה.
-        // הפיכה של החלק העברי בלבד מקפיצה את המספרים לצד הלא נכון
-        lines = lines + HebrewText.Fix("זמן כולל: " + DataPass.TimeText()) + "\n";
-        lines = lines + HebrewText.Fix("ציון: " + DataPass.score) + "\n";
-        lines = lines + HebrewText.Fix("פסילות: " + DataPass.mistakes) + "\n";
-        lines = lines + HebrewText.Fix("שאלות שנענו: " +
-                DataPass.questionsAnswered + " / " + DataPass.questionsTotal);
-
-        return lines;
     }
 }
