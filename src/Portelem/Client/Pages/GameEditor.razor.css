@@ -77,6 +77,32 @@
     margin-right: 0;
 }
 
+/* פריסת שני כרטיסי הראש ב-grid (בלי position: absolute):
+   עמודה ריקה מימין ועמודה משמאל ברוחב שווה (1fr) - כך הכותרת והתוכן
+   ממורכזים, והכפתור (עט / פרסום) נצמד לקצה השמאלי וממורכז אנכית */
+.settings-card,
+.publish-card {
+    display: grid;
+    grid-template-columns: 1fr auto auto 1fr;
+    align-items: center;
+}
+
+.settings-card > .card-title,
+.publish-card > .card-title {
+    grid-column: 2;
+}
+
+.settings-info,
+.conditions {
+    grid-column: 3;
+}
+
+.settings-pen,
+.publish-anchor {
+    grid-column: 4;
+    justify-self: end;
+}
+
 .card-title {
     text-align: right;
     font-family: var(--font);
@@ -633,6 +659,24 @@
     .items-count {
         font-size: 14px;
     }
+
+    /* כרטיסי הראש נערמים לעמודה אחת ממורכזת */
+    .settings-card,
+    .publish-card {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        row-gap: 10px;
+    }
+
+    .settings-card > .card-title,
+    .publish-card > .card-title,
+    .settings-info,
+    .conditions,
+    .settings-pen,
+    .publish-anchor {
+        grid-column: 1;
+        justify-self: center;
+    }
 }
 
 /* תגית "טיוטה" לשאלה עם פחות מ-3 פריטים */
@@ -660,4 +704,40 @@
     align-items: center;
     gap: 14px;
     min-height: 32px;
+}
+
+
+/* ==========================================================
+   טלפונים - פס השאלה נשאר בשורה אחת
+   ========================================================== */
+@media (max-width: 700px) {
+
+    .question-strip {
+        padding: 0 10px;
+    }
+
+    .strip-right,
+    .strip-left {
+        gap: 7px;
+    }
+
+    .question-title,
+    .items-count {
+        white-space: nowrap;
+    }
+
+    .question-title {
+        font-size: 15px;
+    }
+
+    .items-count {
+        font-size: 13px;
+    }
+
+    .draft-badge {
+        margin-inline-start: 2px;
+        padding: 1px 7px;
+        font-size: 12px;
+        white-space: nowrap;
+    }
 }

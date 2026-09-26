@@ -118,6 +118,9 @@
 .col-count  { flex: 1 1 170px; min-width: 0; }
 .col-action { flex: 1 1 140px; min-width: 0; }
 
+/* תווית שמופיעה רק במובייל, כשאין שורת כותרות */
+.cell-label { display: none; }
+
 
 /* ---------- כפתורי האייקונים בשורה ---------- */
 
@@ -231,6 +234,38 @@
 .publish-check-disabled input {
     cursor: not-allowed;
     accent-color: var(--disabled);
+}
+
+
+/* כפתור "מפורסם" - מחליף את הצ'ק בוקס רק במובייל (מוסתר במחשב) */
+.publish-mobile-btn {
+    display: none;
+    font-family: var(--font);
+    font-size: 16px;
+    padding: 5px 16px;
+    border-radius: 10px;
+    background-color: white;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 0 3px var(--publish);
+    color: black;
+    cursor: pointer;
+}
+
+/* מפורסם - הכפתור צבוע */
+.publish-mobile-btn.publish-check-on {
+    background-color: var(--gold);
+    border-color: var(--gold-dark);
+    box-shadow: 1px 2px 2px 0 var(--publish-shadow);
+    font-weight: bold;
+}
+
+/* לא עומד בתנאי הפרסום - אפור ומנוטרל */
+.publish-mobile-btn.publish-check-disabled {
+    background-color: #e6e6e6;
+    border-color: var(--disabled);
+    box-shadow: none;
+    color: #8a8a8a;
+    cursor: not-allowed;
 }
 
 
@@ -518,6 +553,11 @@
 
 @media (max-width: 1279px) {
 
+    /* בטאבלט הטבלה הרגילה נשארת, רק עם שוליים צרים יותר */
+    .games-page {
+        padding: 0 24px;
+    }
+
     .game-row {
         font-size: 16px;
         padding: 0 8px;
@@ -533,7 +573,7 @@
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 700px) {
 
     /* מתחת לרוחב הזה השורה נערמת: כל שדה בשורה משלו,
        עדיף על טבלה שנדחסת עד שאי אפשר לקרוא אותה */
@@ -557,6 +597,27 @@
     .col-action {
         flex: 0 0 auto;
     }
+
+    /* פריסת מובייל: כותרת/כפתור/מסגרת */
+    .games-page { padding: 0 14px; }
+    .page-header { height: auto; margin-bottom: 6px; }
+    .page-title { padding-top: 18px; font-size: 26px; }
+    .create-btn {
+        position: static;
+        width: 100%;
+        top: auto;
+        right: auto;
+        margin-top: 12px;
+    }
+    .games-head { display: none; }
+
+    /* בלי שורת הכותרות, כל ערך בכרטיס מקבל תווית משלו */
+    .cell-label { display: inline; font-weight: bold; }
+
+    /* במובייל כפתור "מפורסם" מחליף את הצ'ק בוקס */
+    .publish-check { display: none; }
+    .publish-mobile-btn { display: inline-block; }
+    .games-box { padding: 16px 10px; min-height: 0; }
 }
 
 

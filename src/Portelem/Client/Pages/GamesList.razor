@@ -162,8 +162,8 @@
                 {
                     <div class="game-row">
                         <span class="col-name">@game.GameName</span>
-                        <span class="col-code">@game.GameCode</span>
-                        <span class="col-count">@game.QuestionsCount</span>
+                        <span class="col-code"><span class="cell-label">קוד: </span>@game.GameCode</span>
+                        <span class="col-count"><span class="cell-label">מס' שאלות: </span>@game.QuestionsCount</span>
 
                         <span class="col-action">
                             <button class="icon-btn" @onclick="() => OpenEditor(game.ID)">
@@ -186,6 +186,16 @@
                                            disabled="@(CanTogglePublish(game) == false)"
                                            @onchange="() => PublishGame(game)" />
                                 </label>
+
+                                @* במובייל: כפתור "מפורסם" במקום הצ'ק בוקס.
+                                   מלא = מפורסם, מסגרת בלבד = ניתן לפרסם, אפור = לא ניתן *@
+                                <button type="button"
+                                        class="publish-mobile-btn @PublishCheckClass(game)"
+                                        aria-pressed="@(game.IsPublish ? "true" : "false")"
+                                        disabled="@(CanTogglePublish(game) == false)"
+                                        @onclick="() => PublishGame(game)">
+                                    מפורסם
+                                </button>
                             </span>
                         </span>
 
