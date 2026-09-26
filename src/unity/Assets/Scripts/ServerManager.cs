@@ -56,11 +56,10 @@ public class ServerManager : MonoBehaviour
     [SerializeField] private string gameScene = "SampleScene";
 
     [Header("Intro Video")]
-    // סרטון הפתיחה שרץ אחרי טעינת המשחק. הקובץ יושב
-    // ב-Assets/StreamingAssets ולא ב-Assets/Videos, כי בנייה
-    // ל-WebGL אינה תומכת ב-VideoClip מוטמע
-    [SerializeField] private bool playIntroVideo = true;
-    [SerializeField] private string introVideoFile = "Intro.mp4";
+    // סצנת סרטון הפתיחה. היא זו שמנגנת את הסרטון ואז טוענת
+    // את סצנת המשחק בעצמה, ולכן כאן רק עוברים אליה.
+    // ריק = מדלגים על הסרטון ונכנסים ישר למשחק
+    [SerializeField] private string introVideoScene = "IntroVideo";
 
     [Header("Server")]
     // הנתיב לפרויקט. בבנייה ל-Web צריך להחליף לכתובת של השרת האמיתי
@@ -232,15 +231,20 @@ public class ServerManager : MonoBehaviour
             // סרטון הפתיחה רץ רק כאן: אחרי שהקוד נמצא תקין ואחרי
             // שהמשחק כולו כבר ירד מהשרת. כך שחקן שהקליד קוד שגוי
             // רואה את הודעת השגיאה מיד ולא אחרי סרטון.
-            // ההמתנה כאן גם מנצלת את הזמן: הסצנה נטענת רק בסופו
-            if (playIntroVideo == true)
+            //
+            // המעבר הוא לסצנת הסרטון, והיא זו שתטען את סצנת המשחק
+            // בסיומה. מעבר בין סצנות אינו חושף את מסך הקוד לרגע,
+            // בניגוד לשכבה שנפרשת מעל הסצנה הנוכחית
+            // CanStreamedLevelBeLoaded בודק שהסצנה אכן נכללת
+            // ב-Build Settings. בלי הבדיקה, פרויקט שבו הסצנה עוד
+            // לא נוצרה או לא נוספה לרשימה היה נתקע כאן במקום
+            // פשוט להיכנס למשחק
+            if (string.IsNullOrEmpty(introVideoScene) == false &&
+                Application.CanStreamedLevelBeLoaded(introVideoScene) == true)
             {
                 ShowMessage("");
-
-                // holdBlack משאיר מסך שחור מסוף הסרטון ועד שסצנת
-                // המשחק נטענת. בלעדיו מסך הקלדת הקוד נחשף שוב
-                // לכמה פריימים אחרי הסרטון, ורק אז המשחק מתחיל
-                await CutscenePlayer.Play(introVideoFile, true);
+                SceneManager.LoadScene(introVideoScene);
+                return;
             }
 
             SceneManager.LoadScene(gameScene);

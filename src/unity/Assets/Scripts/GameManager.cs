@@ -19,6 +19,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] string pauseScene = "Pause";
     [SerializeField] string endScene = "End";
 
+    // סצנת סרטון הניצחון. נטענת במקום סצנת הסיום כשהמשחק
+    // הסתיים בניצחון, והיא זו שטוענת את סצנת הסיום בסיומה.
+    // ריק = עוברים ישר לסצנת הסיום בלי סרטון
+    [SerializeField] string winVideoScene = "WinVideo";
+
     //מספר השניות שרואים את המסך האחרון לפני המעבר לסצנת הסיום
     [SerializeField] float endSceneDelay = 1.5f;
 
@@ -429,6 +434,20 @@ public class GameManager : MonoBehaviour
 
             if (endSceneTimer <= 0)
             {
+                // בניצחון עוברים דרך סצנת הסרטון, והיא שתמשיך
+                // אל סצנת הסיום. כך הסרטון רץ פעם אחת בדיוק,
+                // בלי תלות במה שקורה בסצנת הסיום עצמה
+                // CanStreamedLevelBeLoaded בודק שהסצנה אכן נכללת
+                // ב-Build Settings, כדי שמשחק שבו היא חסרה יגיע
+                // למסך הסיום כרגיל במקום להיתקע
+                if (DataPass.result == "win" &&
+                    string.IsNullOrEmpty(winVideoScene) == false &&
+                    Application.CanStreamedLevelBeLoaded(winVideoScene) == true)
+                {
+                    SceneManager.LoadScene(winVideoScene);
+                    return;
+                }
+
                 SceneManager.LoadScene(endScene);
                 return;
             }

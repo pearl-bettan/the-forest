@@ -17,6 +17,12 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/End.unity
     guid: af565c41eebd41b1999af19b99bba9d5
+  - enabled: 1
+    path: Assets/Scenes/IntroVideo.unity
+    guid: 73c0fcc62ab5042f882fc9f53d41e2da
+  - enabled: 1
+    path: Assets/Scenes/WinVideo.unity
+    guid: 407a0886ba8e64205885a82580ffbbab
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
