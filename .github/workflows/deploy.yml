@@ -141,8 +141,8 @@ jobs:
 
       # קובץ ה-DB נכלל בפרסום. אסור לו לדרוס את בסיס הנתונים החי
       # שבשרת, ולכן הוא מוצא מהחבילה לפני ההעתקה
-      # - name: Keep Server Database
-      #  run: rm -f src/Portelem/publish/FinalProjectDB.db
+      - name: Keep Server Database
+        run: rm -f src/Portelem/publish/FinalProjectDB.db
 
       - name: Deploy to OCI Server via SSH 📤
         uses: appleboy/scp-action@v0.1.7
