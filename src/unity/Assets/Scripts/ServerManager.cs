@@ -7,7 +7,6 @@ using UnityEngine.SceneManagement;
 
 // חיבור המשחק לשרת
 
-// המחלקות של השרת
 [System.Serializable]
 public class ServerGame
 {
@@ -41,7 +40,7 @@ public class ServerManager : MonoBehaviour
     // כפתור ההתחלה, מכובה בזמן הטעינה כדי שהיוזר לא יוכל ללחוץ עליו פעמיים
     [SerializeField] private GameObject startButton;
 
-    // הודעות לשחקן: ״טוען...״, ״משחק לא קיים״ וכו׳
+    // הודעות לשחקן
     [SerializeField] private TMP_Text messageText;
 
     // הטקסט שמופיע מעל תיבת הקוד עם הקודים של משחקי הדוגמה
@@ -55,13 +54,11 @@ public class ServerManager : MonoBehaviour
     [SerializeField] private string gameScene = "SampleScene";
 
     [Header("Intro Video")]
-    // סצנת סרטון הפתיחה. היא זו שמנגנת את הסרטון ואז טוענת
-    // את סצנת המשחק בעצמה, ולכן כאן רק עוברים אליה.
-    // ריק = מדלגים על הסרטון ונכנסים ישר למשחק
+    // סצנת סרטון הפתיחה
     [SerializeField] private string introVideoScene = "IntroVideo";
 
     [Header("Server")]
-    // הנתיב לפרויקט. בבנייה ל-Web צריך להחליף לכתובת של השרת האמיתי
+    // כתובת  השרת 
     [SerializeField] private string projectURL = "https://localhost:7296/";
 
     // הנתיב לקונטרולר
@@ -81,31 +78,20 @@ public class ServerManager : MonoBehaviour
     // כמה אבנים יש בסצנת המשחק
     private const int MaxAnswers = 10;
 
-    // הכי פחות תשובות שאפשר לסדר בשלב, לפי האפיון
+    // מינימום תשובות
     private const int MinAnswers = 3;
 
     // הגנה מפני שליחה כפולה של אותה בקשה
     private bool isLoading;
 
-    // אתחול מסך הפתיחה: ניקוי הודעות, הצגת קודי הדוגמה, וקביעת
-    // כתובת השרת לפי סביבת ההרצה
+    // אתחול מסך הפתיחה
     void Start()
     {
         ShowMessage("");
         ShowSampleCodes();
-
-        // בעורך משאירים את כתובת ה-localhost. בבנייה ל-Web עוברים
-        // לכתובת יחסית, כי המשחק יושב בתוך wwwroot של המחולל
         SetProjectUrl();
     }
 
-    // ============================================================
-    // כתובת השרת, לפי מצגת ההנחיות "ייצוא פרויקט".
-    //
-    // המשחק יושב ב-<המחולל>/wwwroot/Game/index.html, והשרת הוא
-    // רמה אחת מעליו. לכן "./../" מוביל בדיוק לשורש המחולל, בלי
-    // תלות בשם הדומיין או בתיקייה שבה האתר יושב ב-IIS.
-    // ============================================================
     private void SetProjectUrl()
     {
         if (Application.isEditor == true)
@@ -121,8 +107,8 @@ public class ServerManager : MonoBehaviour
         ReadCodeFromUrl();
     }
 
-    // המחולל מטמיע את המשחק כך: Game/index.html?code=1001
-    // כאן שולפים את הקוד מהכתובת, ממלאים אותו בתיבה ומתחילים לבד
+
+    //  שליפת  הקוד מהכתובת
     private void ReadCodeFromUrl()
     {
         Dictionary<string, string> parameters = GetQueryParams(Application.absoluteURL);
@@ -133,16 +119,13 @@ public class ServerManager : MonoBehaviour
 
         if (string.IsNullOrEmpty(code) == true) return;
 
-        // המחולל שולח code=0 כשנכנסים לעמוד בלי לבחור משחק. אסור להעביר
-        // את זה הלאה: השרת מחזיר "קוד המשחק חייב להיות מספר חיובי",
-        // והשחקן רואה שגיאה עוד לפני שהספיק להקליד משהו
         int number;
 
         if (int.TryParse(code, out number) == false || number <= 0) return;
 
         if (codeInput != null) codeInput.text = code;
 
-        // הקוד הגיע מהמחולל, אז אין סיבה להכריח את השחקן ללחוץ
+        // הקוד הגיע מהמחולל
         CheckCode();
     }
 
@@ -187,16 +170,14 @@ public class ServerManager : MonoBehaviour
     {
         if (sampleCodesText == null) return;
 
-        // חשוב להפוך את המשפט השלם ולא להדביק את המספרים אחרי ההפיכה,
-        // אחרת הקודים והנקודתיים נוחתים בצד הלא נכון של הטקסט
         sampleCodesText.isRightToLeftText = false;
         sampleCodesText.text = HebrewText.Fix("קודים לדוגמה: " + sampleCodes);
     }
 
-    // כפתור התחל משחק מפעיל את הפונקציה
+    // בדיקת קוד המשחק
     public async void CheckCode()
     {
-        // הגנה: לחיצה נוספת בזמן טעינה לא תשלח בקשה שנייה
+        //  לחיצה נוספת בזמן טעינה לא תשלח בקשה שנייה
         if (isLoading == true) return;
 
         string code = "";
@@ -227,17 +208,7 @@ public class ServerManager : MonoBehaviour
             DataPass.NewGame();
             DataPass.Game = newGame;
 
-            // סרטון הפתיחה רץ רק כאן: אחרי שהקוד נמצא תקין ואחרי
-            // שהמשחק כולו כבר ירד מהשרת. כך שחקן שהקליד קוד שגוי
-            // רואה את הודעת השגיאה מיד ולא אחרי סרטון.
-            //
-            // המעבר הוא לסצנת הסרטון, והיא זו שתטען את סצנת המשחק
-            // בסיומה. מעבר בין סצנות אינו חושף את מסך הקוד לרגע,
-            // בניגוד לשכבה שנפרשת מעל הסצנה הנוכחית
-            // CanStreamedLevelBeLoaded בודק שהסצנה אכן נכללת
-            // ב-Build Settings. בלי הבדיקה, פרויקט שבו הסצנה עוד
-            // לא נוצרה או לא נוספה לרשימה היה נתקע כאן במקום
-            // פשוט להיכנס למשחק
+            // סרטון הפתיחה 
             if (string.IsNullOrEmpty(introVideoScene) == false &&
                 Application.CanStreamedLevelBeLoaded(introVideoScene) == true)
             {
@@ -250,14 +221,13 @@ public class ServerManager : MonoBehaviour
             return;
         }
 
-        // לא חזר משחק - מציגים לשחקן למה
+        // הצגת שגיאה לשחקן
         ShowMessage(ErrorForPlayer());
 
         isLoading = false;
         if (startButton != null) startButton.SetActive(true);
     }
 
-    // קריאה ל-API
     async Task<GameData> GetGameFromServer(string code)
     {
         string endPoint = projectURL + apiURL + code;
@@ -271,7 +241,7 @@ public class ServerManager : MonoBehaviour
 
         ServerGame serverGame = JsonUtility.FromJson<ServerGame>(gameJson);
 
-        //במקרה שבו ה-JSON חזר במבנה אחר מהמצופה
+        //שגיאה מהשרת
         if (serverGame == null || serverGame.stages == null)
         {
             lastError = "מבנה המידע שחזר מהשרת אינו מתאים";
@@ -283,18 +253,16 @@ public class ServerManager : MonoBehaviour
         return await ParseGame(serverGame);
     }
 
-    // ממיר משחק שלם מהשרת למחלקת המשחק של היוניטי
+    // ממיר משחקהממידע שמגיע מהשרת למחלקת המשחק של היוניטי
     async Task<GameData> ParseGame(ServerGame serverGame)
     {
         GameData unityGame = new GameData();
         unityGame.gameName = serverGame.gameName;
         unityGame.stagesList = new List<StageData>();
 
-        // מספר החיים קבוע על 3 לפי האפיון, ולא נלקח מהמחולל
+        // מספר החיים קבוע על 3 
         unityGame.startingLives = GameRules.Lives;
 
-        // המספור לצורך האזהרות ב-Console: שלב פסול מדולג, וצריך
-        // לדעת איזה שלב במשחק היה
         for (int i = 0; i < serverGame.stages.Count; i++)
         {
             StageData unityStage = await ParseStage(serverGame.stages[i], i + 1);
@@ -316,16 +284,8 @@ public class ServerManager : MonoBehaviour
         return unityGame;
     }
 
-    // ============================================================
-    // ממירה שלב שהגיע מהשרת למבנה שהמשחק עובד איתו.
-    //
-    // שלב פסול אינו מפיל את הטעינה אלא מוחזר כ-null ומדולג, עם
-    // אזהרה ב-Console. כך משחק שבו שאלה אחת חסרה עדיין ניתן
-    // לשחק במקום להיכשל כולו.
-    //
-    // אסינכרונית כי הפריטים עשויים להיות תמונות, וכל תמונה
-    // דורשת הורדה נפרדת מהשרת
-    // ============================================================
+    // ממירה שלב שהגיע מהשרת למבנה שהמשחק עובד איתו
+
     async Task<StageData> ParseStage(ServerStage serverStage, int stageNumber)
     {
         //מקרה של שלב בלי תשובות
@@ -356,8 +316,7 @@ public class ServerManager : MonoBehaviour
         StageData unityStage = new StageData();
         unityStage.leftTag = serverStage.leftTag;
         unityStage.rightTag = serverStage.rightTag;
-
-        // 0 מהמחולל = ללא הגבלת זמן, וזה מצב חוקי
+        // 0 משמע ללא הגבלת זמן
         unityStage.stageTime = Mathf.Max(0, serverStage.stageTime);
 
         unityStage.answersList = new List<AnswerData>();
@@ -372,7 +331,7 @@ public class ServerManager : MonoBehaviour
         return unityStage;
     }
 
-    // ממיר תשובה אחת- אם היא תמונה- הוא מוריד אותה מהשרת
+    // ממיר תשובה אחת- אם היא תמונה-  מוריד מהשרת
     async Task<AnswerData> ParseAnswer(ServerAnswer serverAnswer)
     {
         AnswerData unityAnswer = new AnswerData();
@@ -383,7 +342,6 @@ public class ServerManager : MonoBehaviour
             unityAnswer.answerImage = await LoadImage(imageEndpoint);
 
             //מקרה שבו התמונה לא קיימת בשרת, האבן תישאר בלי תמונה
-            //ולכן יוצג עליה שם הקובץ (ככה העורך ידע לראות מה חסר)
             if (unityAnswer.answerImage == null)
             {
                 Debug.LogWarning("Image not found on server: " + serverAnswer.content);
@@ -404,16 +362,7 @@ public class ServerManager : MonoBehaviour
         return unityAnswer;
     }
 
-    // ============================================================
-    // פנייה כללית לשרת, שמחזירה את גוף התשובה כטקסט.
-    //
-    // ההמתנה נעשית בלולאת Task.Yield ולא בקורוטינה, כדי שאפשר
-    // יהיה לקרוא לה מתוך שגרות async רגילות.
-    //
-    // שים לב: אם השרת מוגש ב-http ולא ב-https, יוניטי חוסמת את
-    // הפנייה מברירת מחדל. ההגדרה שמתירה זאת היא
-    // insecureHttpOption ב-Player Settings
-    // ============================================================
+    // פנייה  לשרת שמחזירה את גוף התשובה כטקסט.
     async Task<string> GetDataFromServer(string url)
     {
         using var http = UnityWebRequest.Get(url);
@@ -430,7 +379,7 @@ public class ServerManager : MonoBehaviour
             return http.downloadHandler.text;
         }
 
-        // השרת מחזיר הודעה מדויקת: משחק לא קיים / המשחק אינו מפורסם / אין שלבים במשחק
+        // השרת מחזיר הודעה : משחק לא קיים / המשחק אינו מפורסם / אין שלבים במשחק
         lastError = ReadServerError(http);
 
         Debug.LogError("Server error " + http.responseCode + ": " + lastError);
@@ -462,7 +411,7 @@ public class ServerManager : MonoBehaviour
         return body;
     }
 
-    // מוריד תמונה מהשרת ומחזיר אותה כ-Sprite ואם התמונה לא קיימת- תוחזר שגיאה
+    // הורדת התמונה מהשרת
     public async Task<Sprite> LoadImage(string endpoint)
     {
         using var http = UnityWebRequestTexture.GetTexture(endpoint);
@@ -501,8 +450,6 @@ public class ServerManager : MonoBehaviour
     }
 
     // מציגה הודעה לשחקן אחרי שהפכה אותה לסדר תצוגה נכון.
-    // isRightToLeftText מכובה בכוונה: HebrewText כבר הפך את
-    // הטקסט, והפעלת שתי ההיפוכים יחד הייתה מחזירה אותו לשיבוש
     private void ShowMessage(string message)
     {
         if (messageText == null) return;

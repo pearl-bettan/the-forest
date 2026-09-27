@@ -1,7 +1,6 @@
 using System.Text;
 
 // כלי עזר אחד לכל הפרויקט לסידור טקסט בעברית.
-// לפני כן אותו קוד בדיוק היה משוכפל ב-GameManager וב-ServerManager.
 public static class HebrewText
 {
     // הופך את סדר האותיות בעברית ומשאיר אנגלית ומספרים כמו שהם
@@ -20,7 +19,7 @@ public static class HebrewText
             bool isHebrew = IsHebrew(c);
             bool isEnglish = IsEnglishOrNumber(c);
 
-            // תווים ניטרליים (רווח, פיסוק) נצמדים לקבוצה הנוכחית
+            // תווים ניטרליים (רווח, פיסוק) 
             if (isHebrew == false && isEnglish == false)
             {
                 group.Append(c);
@@ -42,7 +41,7 @@ public static class HebrewText
         return result.ToString();
     }
 
-    // מפצל טקסט ארוך לשורות עד maxLength תווים, ומסדר כל שורה בעברית
+    // מפצל טקסט ארוך לשורות
     public static string FixLines(string text, int maxLength)
     {
         if (string.IsNullOrEmpty(text)) return text;
@@ -58,7 +57,7 @@ public static class HebrewText
         {
             string word = words[i];
 
-            // המילה לא נכנסת בשורה הנוכחית - פותחים שורה חדשה
+            // המילה לא נכנסת בשורה הנוכחית - יורד שורה חדשה
             if (line != "" && line.Length + 1 + word.Length > maxLength)
             {
                 AddLine(result, line);
@@ -73,9 +72,7 @@ public static class HebrewText
         return result.ToString();
     }
 
-    // מוסיפה שורה לתוצאה, אחרי שהפכה אותה לסדר הנכון.
-    // ירידת השורה נוספת לפני השורה ולא אחריה, כדי שלא תישאר
-    // שורה ריקה בסוף הטקסט
+    // מוסיפה את השורה , אחרי הפיכת האותיות לסדר הנכון.
     private static void AddLine(StringBuilder result, string line)
     {
         if (line == "") return;

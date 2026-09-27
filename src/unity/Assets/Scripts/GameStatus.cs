@@ -2,29 +2,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-// ============================================================
 //  התצוגה של מצב המשחק: כמה זמן נשאר וכמה שאלות כבר נענו.
-//
-//  הרכיב הזה מאחד שני דברים שהיו קודם שני סקריפטים נפרדים:
-//
-//      הטיימר       - השמש ששוקעת והספירה לאחור
-//      מד ההתקדמות  - שרשרת החרוזים שמתמלאת שאלה אחר שאלה
-//
-//  שניהם מוצגים ב-Menu, שניהם מתעדכנים מה-GameManager באותם
-//  רגעים בדיוק, ושניהם רק מציגים - אין להם לוגיקת משחק משלהם.
-//  לכן הם יושבים ברכיב אחד על אובייקט Menu.
-//
-//  שימוש מהקוד:
-//      gameStatus.SetUnlimited(noTimeLimit);
-//      gameStatus.ShowTime(timeLeft, totalTime);
-//      gameStatus.Build(totalQuestions);
-//      gameStatus.SetProgress(questionsAnswered);
-// ============================================================
+
 public class GameStatus : MonoBehaviour
 {
-    // ============================================================
-    //  חלק ראשון: הטיימר
-    // ============================================================
+    // הטיימר
 
     [Header("Timer Objects")]
     // הספרייט של השמש
@@ -33,14 +15,10 @@ public class GameStatus : MonoBehaviour
     // הטקסט של הספירה לאחור
     [SerializeField] TMP_Text timerText;
 
-    // האבן שהשמש יושבת עליה. נסתרת יחד עם הטיימר כשאין הגבלת זמן.
-    // אם לא חובר בעורך, מחפשים ילד בשם EmptyRock
+    // האבן שהשמש יושבת עליהן
     [SerializeField] GameObject emptyRock;
 
-    // מה פועם כשהטיימר מתחיל לרוץ. הרכיב הזה יושב על Menu,
-    // שמחזיק גם את מד ההתקדמות, ולכן הפעימה חייבת להיות
-    // מכוונת לאובייקט השמש ולא ל-transform של הרכיב עצמו -
-    // אחרת כל התצוגה הייתה גדלה וקטנה יחד עם הטיימר
+    // האובייקט  ההגדלה של השמש    
     [SerializeField] Transform pulseTarget;
 
     [Header("Sun Sprites")]
@@ -48,15 +26,13 @@ public class GameStatus : MonoBehaviour
     [SerializeField] List<Sprite> sunSprites;
 
     // הספרייט האחרון (השקיעה) שמור לשניות האחרונות בלבד.
-    // בלי זה, ברשימה קצרה השמש מגיעה לשקיעה כשעוד נשאר הרבה זמן
     [SerializeField] float lastSunSeconds = 3f;
 
-    // רושם ב-Console לאיזה שלב השמש עברה ובכמה זמן שנשאר.
-    // מכבים אחרי שמוודאים שהסנכרון תקין
+    // לאיזה שלב השמש עברה 
     [SerializeField] bool logSunSteps = false;
 
     [Header("Timer Colors")]
-    // חום כהה, #843D09. זה הצבע לאורך כל הזמן הרגיל
+    //  הצבע  למשך הזמן הרגיל
     [SerializeField] Color normalColor = new Color(0.5176471f, 0.23921569f, 0.03529412f, 1f);
 
     // מתחת לכמה שניות הטקסט הופך לאדום
@@ -74,16 +50,16 @@ public class GameStatus : MonoBehaviour
     // הטקסט שמוצג כשהשלב הוא ללא הגבלת זמן
     [SerializeField] string unlimitedText = "∞";
 
-    // הרשימה בלי תאים ריקים. תא ריק ברשימה שיבש את החישוב
+    // הרשימה בלי תאים ריקים
     private List<Sprite> readySprites;
 
-    // השלב שמוצג כרגע, כדי לא להחליף ספרייט בכל פריים
+    // השלב שמוצג כרגע
     private int shownSunIndex = -1;
 
     // הטיימר עדיין לא התחיל לרוץ (תצוגת האגם בתחילת השאלה)
     private bool frozen;
 
-    // השלב הזה הוא ללא הגבלת זמן
+    // שלב ללא הגבלת זמן
     private bool unlimited;
 
     // הפעימה שמסמנת לשחקן שהזמן התחיל
@@ -93,23 +69,7 @@ public class GameStatus : MonoBehaviour
     private const float pulseLength = 0.6f;
 
 
-    // ============================================================
-    //  חלק שני: מד ההתקדמות
-    //
-    //  המד הוא שרשרת חרוזים על גבי הגבעול: חרוז אחד לכל שאלה.
-    //  שלושת האובייקטים שבסצנה משמשים כעוגנים:
-    //
-    //      StartProgressBar   - החרוז הראשון, בקצה אחד
-    //      EndProgressBar     - החרוז האחרון, בקצה השני
-    //      CenterProgressBar  - תבנית לחרוזים שבאמצע
-    //
-    //  החרוזים שבאמצע נוצרים כשכפולים של תבנית המרכז ומפוזרים
-    //  במרווחים שווים על הקו שבין שני הקצוות. כך המיקום, הסיבוב
-    //  והגודל נקבעים בעורך ולא בקוד.
-    //
-    //  כל שאלה שנענתה הופכת חרוז אחד מאפור לירוק, מהתחלה לסוף.
-    // ============================================================
-
+    //   מד ההתקדמות
     [Header("Progress Sprites")]
     // חרוז הקצה הראשון
     [SerializeField] Sprite startGray;
@@ -124,8 +84,8 @@ public class GameStatus : MonoBehaviour
     [SerializeField] Sprite endGreen;
 
     [Header("Progress Anchors")]
-    // שלושת האובייקטים שמסמנים את המד בסצנה. אם לא חוברו כאן,
-    // הם נמצאים לפי השם בין הצאצאים של האובייקט הזה
+    // שלושת האובייקטים שמסמנים את מד ההתקדמות
+
     [SerializeField] SpriteRenderer startView;
     [SerializeField] SpriteRenderer centerView;
     [SerializeField] SpriteRenderer endView;
@@ -133,49 +93,34 @@ public class GameStatus : MonoBehaviour
     // החרוזים לפי סדר ההתקדמות: ראשון, אמצעיים, אחרון
     private readonly List<SpriteRenderer> beads = new List<SpriteRenderer>();
 
-    // השכפולים שנוצרו בזמן ריצה, כדי לנקות אותם בבנייה מחדש
+    // השכפולים שנוצרו בזמן ריצה
     private readonly List<GameObject> clones = new List<GameObject>();
 
     private int total = 0;
     private int filled = 0;
 
 
-    // ============================================================
     //  אתחול
-    // ============================================================
 
     void Awake()
     {
-        // השמש והטקסט לא מאותרים כאן לפי סוג הרכיב. הרכיב יושב על
-        // Menu, שמחזיק גם את מד ההתקדמות, ו-GetComponentInChildren
-        // היה מחזיר את החרוז הראשון של המד במקום את השמש.
-        // מה שלא חובר בעורך נשאר ריק, ו-CheckSetup מתריע עליו
-        if (pulseTarget == null && sunImage != null) pulseTarget = sunImage.transform;
 
-        // הגודל נשמר כאן ולא ב-Start.
-        // ה-GameManager מקפיא את הטיימר כבר ב-Start שלו, ואם הוא רץ ראשון
-        // אז startScale עדיין היה אפס - והשמש הייתה מתכווצת ונעלמת
+        if (pulseTarget == null && sunImage != null) pulseTarget = sunImage.transform;
 
         startScale = pulseTarget != null ? pulseTarget.localScale : Vector3.one;
 
         FindAnchors();
     }
 
-    // רץ אחרי כל ה-Awake בסצנה: מכין את רשימת הספרייטים ובודק
-    // שההרכבה באינספקטור שלמה. שלב הבדיקה חייב להיות כאן ולא
-    // ב-Awake, כי רק עכשיו כל הרכיבים כבר אותחלו
+  
     void Start()
     {
         BuildReadySprites();
         CheckSetup();
     }
 
-    // ============================================================
-    // מטפל בפעימה הקצרה של השמש ברגע שהטיימר משתחרר.
-    //
-    // יוצא מיד כשאין פעימה פעילה, ולכן הוא זול כמעט בכל פריים.
-    // זו הסיבה שאפשר להשאיר אותו ב-Update ולא להעביר לקורוטינה
-    // ============================================================
+    // מטפל בפעימה הקצרה של השמש 
+   
     void Update()
     {
         // פעימה קצרה ברגע שהטיימר מתחיל לרוץ

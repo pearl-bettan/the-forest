@@ -8,14 +8,13 @@ public class MenuScript : MonoBehaviour
     [SerializeField] string homeScene = "Home";
     [SerializeField] string gameScene = "SampleScene";
 
-    [Header("End Screen Images (סצנת הסיום בלבד)")]
-    // כל התשובות הנכונות הוזנו
+    [Header("End Screen Images")]
     [SerializeField] GameObject winImage;
 
     // נגמר הזמן
     [SerializeField] GameObject timeOutImage;
 
-    // נגמרו הפסילות
+    //  פסילות
     [SerializeField] GameObject noLivesImage;
 
 
@@ -24,23 +23,12 @@ public class MenuScript : MonoBehaviour
     [SerializeField] TMP_Text scoreText;
     [SerializeField] TMP_Text timeText;
 
-    // הכיתוב "זמן" שמעל או מתחת לזמן עצמו.
-    // אם לא חובר בעורך, הקוד מחפש אותו לבד לפי שם
     [SerializeField] GameObject timeTitle;
 
     // מספר הפסילות בכל המשחק
     [SerializeField] TMP_Text mistakesText;
 
 
-    // ============================================================
-    // בסצנת הסיום בלבד: מציג את תוצאת המשחק.
-    //
-    // סרטון הניצחון אינו רץ כאן אלא בסצנת WinVideo, שנטענת לפני
-    // הסצנה הזאת. זה אינו עניין של סגנון אלא הכרח: בסצנה הזאת
-    // יושבים ארבעה רכיבי MenuScript, ו-Screen_Win מתחיל מכובה.
-    // ברגע ש-ShowResultImage מדליק אותו רץ ה-Start שלו בפעם
-    // הראשונה, ולכן סרטון שהיה מופעל מכאן היה מתנגן בשנית
-    // ============================================================
     void Start()
     { 
         if (IsEndScreen() == false) return;
@@ -49,40 +37,34 @@ public class MenuScript : MonoBehaviour
         ShowScoreAndTime();
     }
     
-    // כפתור "התחל משחק"
+    // התחל משחק
     public void StartGame()
     {
         DataPass.NewGame();
         SceneManager.LoadScene(gameScene);
     }
 
-    // כפתור "חזור למשחק"
+    //  חזור למשחק
     public void BackToGame()
     {
         SceneManager.LoadScene(gameScene);
     }
 
-    // כפתור "התחל מחדש"
+    // התחל מחדש
     public void RestartGame()
     {
         DataPass.NewGame();
         SceneManager.LoadScene(gameScene);
     }
 
-    // כפתור "חזרה לתפריט"
+    // חזרה לתפריט
     public void GoHome()
     {
         DataPass.NewGame();
         SceneManager.LoadScene(homeScene);
     }
     
-    // ============================================================
-    // מזהה אם הסקריפט יושב על מסך הסיום או על מסך אחר.
-    //
-    // הזיהוי נעשה לפי השדות שחוברו באינספקטור ולא לפי שם הסצנה:
-    // אותו סקריפט משרת כמה מסכים, ומסך הסיום הוא היחיד שבו
-    // שדות התוצאה ממולאים
-    // ============================================================
+    // האם המסך הנוכחי הוא מסך סיום
     private bool IsEndScreen()
     {
         if (mistakesText != null) return true;
@@ -95,13 +77,7 @@ public class MenuScript : MonoBehaviour
         return false;
     }
 
-    // ============================================================
-    // מציגה את תמונת הסיום המתאימה לתוצאת המשחק.
-    //
-    // שלוש תוצאות אפשריות: ניצחון, נגמר הזמן, ונגמרו הפסילות.
-    // תוצאה ריקה פירושה שהמסך הופעל ישירות ולא דרך המשחק,
-    // ולכן מוצגת תמונת ההפסד עם אזהרה ב-Console
-    // ============================================================
+   // מציג את תמונת הסיום המתאימה: ניצחון, נגמר הזמן או הפסילות 
     private void ShowResultImage()
     {
         HideAll();
@@ -126,17 +102,14 @@ public class MenuScript : MonoBehaviour
         }
     }
 
-    // מכבה את כל תמונות הסיום. נקרא לפני הצגת אחת מהן, כדי
-    // ששתי תמונות לא יוצגו זו מעל זו
+    // מכבה את כל תמונות הסיום
     private void HideAll()
     {
         if (winImage != null) winImage.SetActive(false);
         if (timeOutImage != null) timeOutImage.SetActive(false);
         if (noLivesImage != null) noLivesImage.SetActive(false);
     }
-
-    // מדליקה תמונה אחת. אם השדה לא חובר באינספקטור מודפסת אזהרה
-    // עם שם השדה החסר, כדי שאפשר יהיה למצוא אותו מיד
+    //  מציג את מסך הסיום המתאים
     private void ShowImage(GameObject image, string fieldName)
     {
         if (image == null)
@@ -152,12 +125,9 @@ public class MenuScript : MonoBehaviour
     }
     
 
-    // הכיתוב "זמן" נקרא TimerTitle במסך אחד ו-TimeTitle בשניים האחרים,
-    // ולכן מחפשים את שני השמות. החיפוש רקורסיבי, כי הכיתוב יושב
-    // תחת Canvas בתוך המסך ולא ישירות עליו
     private static readonly string[] TimeTitleNames = { "TimerTitle", "TimeTitle" };
 
-    // מאתרת את כיתוב הזמן בסצנה, ושומרת אותו לפעם הבאה
+    //   כיתוב הזמן 
     private GameObject FindTimeTitle()
     {
         if (timeTitle != null) return timeTitle;
@@ -176,9 +146,7 @@ public class MenuScript : MonoBehaviour
 
         return null;
     }
-
-    // משוב מסכם: זמן כולל, ציון ומספר שגיאות.
-    // מוצג גם במסך סיום מוצלח וגם במסך נגמר הזמן
+    //  מציג את הציון הסופי, הזמן והפסילות 
     private void ShowScoreAndTime()
     {
         if (scoreText != null)
@@ -187,8 +155,7 @@ public class MenuScript : MonoBehaviour
             scoreText.text = DataPass.score.ToString();
         }
 
-        // משחק ללא הגבלת זמן: אין זמן להציג, אז גם המספר וגם
-        // הכיתוב שלידו יורדים מהמסך
+        // משחק ללא הגבלת זמן: אין זמן להציג,
         bool showTime = DataPass.unlimitedTime == false;
 
         GameObject title = FindTimeTitle();

@@ -7,62 +7,41 @@ public class SpriteButtonScript : MonoBehaviour
     [SerializeField] string action = "pause";
 
     [Header("Objects")]
-    //  pause
     public GameManager gameManager;
 
-    // checkCode
     public ServerManager serverManager;
 
-    //  start / backToGame / restart / home
     public MenuScript menu;
 
-    //  lookAtLake ו-lookAtPlayer
     public CameraScript gameCamera;
 
     [Header("Sound Button Only")]
-    // ספרייט אחד שמתחלף בין דלוק לכבוי.
-    // אין אובייקטים שנדלקים ונכבים, ולכן אין מה להשתבש.
-    // אם משאירים את השדה ריק, הסקריפט מוצא את ה-Sprite Renderer לבד
+    // כפתור הסאונד
     [SerializeField] SpriteRenderer soundRenderer;
 
-    // Musicon
+    // סאונד דלוק
     [SerializeField] Sprite soundOnSprite;
 
-    // Musicoff
+    // סאונד כבוי
     [SerializeField] Sprite soundOffSprite;
 
     // אם לא חוברו ספרייטים, הכפתור נהיה דהוי כשהסאונד כבוי
     [SerializeField] Color mutedTint = new Color(1f, 1f, 1f, 0.4f);
 
     [Header("Look")]
-    // כמה הכפתור גדל כשמרחפים עליו
     [SerializeField] float bigScale = 1.1f;
 
     private Vector3 startScale;
 
     private RockScript myRock;
 
-    // ============================================================
-    // אתחול הכפתור: שמירת הגודל המקורי, נרמול שם הפעולה, הבטחת
-    // קוליידר, ואיתור כל המנהלים שהכפתור עשוי לפנות אליהם.
-    //
-    // האיתור האוטומטי נעשה רק כשהשדה ריק, ולכן חיבור ידני
-    // באינספקטור תמיד גובר עליו
-    // ============================================================
     void Awake()
     {
         startScale = transform.localScale;
-
-        // "Sound" או " sound " יעבדו בדיוק כמו "sound".
-        // חשוב: אחרי ההמרה הזאת כל ההשוואות למטה חייבות להיות
-        // באותיות קטנות בלבד - גם lookatlake וגם checkcode
         if (action != null) action = action.Trim().ToLower();
 
-        // בלי קוליידר על האובייקט עצמו, OnMouseDown פשוט לא נקרא
-        // והכפתור נראה תקין אבל לא לחיץ
         EnsureCollider();
 
-        // כפתור הסאונד מוצא את הרנדרר שלו לבד, כדי שיישאר שדה אחד פחות למלא
         if (action == "sound" && soundRenderer == null)
         {
             soundRenderer = GetComponent<SpriteRenderer>();
@@ -76,8 +55,6 @@ public class SpriteButtonScript : MonoBehaviour
         if (gameCamera == null) gameCamera = Object.FindFirstObjectByType<CameraScript>();
     }
 
-    // רץ אחרי שכל ה-Awake בסצנה הסתיימו, ולכן זה המקום לדווח
-    // על תקלות הרכבה - בשלב הזה כבר ידוע מה חובר ומה לא
     void Start()
     {
         ReportSetup();
@@ -85,8 +62,7 @@ public class SpriteButtonScript : MonoBehaviour
         if (action == "sound") ShowRightSoundImage();
     }
 
-    // מדפיס ל-Console מה הכפתור הזה יודע על עצמו.
-    // אם כפתור לא מופיע ברשימה - הסקריפט לא מחובר אליו בכלל
+    // מדווח על מצב הכפתור, כדי לוודא שהכל חובר כמו שצריך
     private void ReportSetup()
     {
         Collider2D hit = GetComponent<Collider2D>();
@@ -126,16 +102,13 @@ public class SpriteButtonScript : MonoBehaviour
         Debug.Log(state);
     }
 
-    // מקשר את הכפתור לאבן מסוימת. נקרא מבחוץ כשהכפתור נבנה
-    // דינמית ליד אבן, ולא הונח מראש בסצנה
+    // מקשר את הסלע לזכוכית מגדלת
     public void SetRock(RockScript rock)
     {
         myRock = rock;
     }
 
-    // מוודא שיש קוליידר שאפשר ללחוץ עליו.
-    // אם הספרייט יושב על אובייקט בן, הקוליידר עדיין נבנה על ההורה,
-    // כדי שהחלפת תמונות (למשל סאונד דלוק/כבוי) לא תבטל את הלחיצה
+    // מאפשר לחיצה על הכפתור ע״י הוספת  collider 
     private void EnsureCollider()
     {
         if (GetComponent<Collider2D>() != null) return;
@@ -152,7 +125,6 @@ public class SpriteButtonScript : MonoBehaviour
 
         BoxCollider2D box = gameObject.AddComponent<BoxCollider2D>();
 
-        // גודל הספרייט ביחידות מקומיות של האובייקט הזה
         Vector3 size = renderer.bounds.size;
         Vector3 scale = transform.lossyScale;
 
@@ -165,26 +137,19 @@ public class SpriteButtonScript : MonoBehaviour
         Debug.Log("Sprite Button '" + name + "' had no collider, so one was added automatically");
     }
 
-    // כפתור UI רגיל יכול לקרוא לפונקציה הזאת ישירות מ-On Click
+    // הכפתור נלחץ
     public void Press()
     {
         DoAction();
     }
 
-    // לחיצה על הספרייט. יוניטי קוראת לזה רק כשיש קוליידר על
-    // האובייקט, וזו הסיבה ש-EnsureCollider רץ ב-Awake
+    // הכפתור נלחץ ע״י העכבר
     private void OnMouseDown()
     {
         DoAction();
     }
 
-    // ============================================================
-    // מפעילה את הפעולה שהוגדרה לכפתור באינספקטור.
-    //
-    // שם הפעולה הוא מחרוזת ולא enum, כדי שאפשר יהיה להוסיף
-    // כפתור חדש בלי לגעת בקוד. המחיר הוא שהשוואת המחרוזות
-    // חייבת להיות באותיות קטנות בלבד - הנרמול נעשה ב-Awake
-    // ============================================================
+    // מבצע את הפעולה לפי סוג הכפתור 
     private void DoAction()
     {
 
@@ -233,7 +198,7 @@ public class SpriteButtonScript : MonoBehaviour
             // הפיכת המצבים: דלוק הופך לכבוי ולהפך
             bool turnOn = !DataPass.soundOn;
 
-            // מנהל הסאונד אחראי על ההשתקה, גם של מוזיקת הרקע
+            //  ההשתקה של מוזיקת הרקע
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.SetSoundOn(turnOn);
@@ -275,8 +240,6 @@ public class SpriteButtonScript : MonoBehaviour
     }
     
     // מחליף את הספרייט של הכפתור לפי מצב הסאונד.
-    // אותו אובייקט, אותו קוליידר, רק התמונה משתנה - ולכן הכפתור
-    // אף פעם לא נעלם ואף פעם לא מפסיק להיות לחיץ
     private void ShowRightSoundImage()
     {
         bool on = DataPass.soundOn;
@@ -286,7 +249,7 @@ public class SpriteButtonScript : MonoBehaviour
 
         if (soundRenderer == null) return;
 
-        // שתי התמונות חוברו - מחליפים ספרייט
+        // מחליפים ספרייט
         if (soundOnSprite != null && soundOffSprite != null)
         {
             soundRenderer.sprite = on ? soundOnSprite : soundOffSprite;
@@ -294,11 +257,11 @@ public class SpriteButtonScript : MonoBehaviour
             return;
         }
 
-        // לא חוברו ספרייטים - לפחות נותנים חיווי בשקיפות
+        // לא חוברו ספרייטים -  נותנים חיווי בשקיפות
         soundRenderer.color = on ? Color.white : mutedTint;
     }
 
-    // הגדלה קלה במעבר עכבר, כחיווי שהכפתור לחיץ
+    // הגדלה  במעבר עכבר, כחיווי שהכפתור לחיץ
     private void OnMouseEnter()
     {
         transform.localScale = startScale * bigScale;
