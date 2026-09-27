@@ -239,7 +239,7 @@ public class SpriteButtonScript : MonoBehaviour
         else Debug.LogWarning("Unknown Action: " + action);
     }
     
-    // מחליף את הספרייט של הכפתור לפי מצב הסאונד.
+    // מחליף את הספרייט של הכפתור לפי מצב הסאונד
     private void ShowRightSoundImage()
     {
         bool on = DataPass.soundOn;
@@ -257,7 +257,7 @@ public class SpriteButtonScript : MonoBehaviour
             return;
         }
 
-        // לא חוברו ספרייטים -  נותנים חיווי בשקיפות
+        // לא חוברו ספרייטים-  נותנים חיווי בשקיפות
         soundRenderer.color = on ? Color.white : mutedTint;
     }
 
