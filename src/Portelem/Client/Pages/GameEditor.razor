@@ -6,14 +6,6 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-@* ==========================================================
-   מסך העורך לפי הפיגמה:
-   בראש המסך שני כרטיסים - ההגדרות הכלליות מימין ותנאי
-   הפרסום משמאל. מתחתם כפתור הוספת שאלה ורשימת השאלות.
-   כל שורת שאלה נפתחת לתצוגה בעזרת החץ, ונפתחת לעריכה
-   בעזרת אייקון העיפרון. בזמן עריכה מוצגת רק השאלה הנערכת
-   ========================================================== *@
-
 <div class="editor-page">
 
     @if (game == null)
@@ -22,7 +14,7 @@
     }
     else
     {
-        @* ---------- חזרה למשחקים שלי ---------- *@
+        @*  חזרה למשחקים שלי  *@
         <div class="top-row">
             <button class="btn-second back-btn"
                     disabled="@IsEditing()"
@@ -31,20 +23,15 @@
             </button>
         </div>
 
-        @* ---------- שני כרטיסי הראש ---------- *@
         <div class="cards-row">
 
-            @* כרטיס ההגדרות הכלליות - הרחב, מימין *@
-            @* הכותרת דו-שורתית כמו "תנאי פרסום": "הגדרות" מעל "כלליות".
-               מימין הכותרת, ומשמאלה שתי שורות - שם המשחק למעלה,
-               זמן לשאלה והעיפרון בשורה מתחת, מיושרות לשורות הכותרת *@
+            @* איזור ההגדרות הכלליות  *@
             <div class="head-card settings-card">
                 <h2 class="card-title">הגדרות<br />כלליות</h2>
 
                 <div class="settings-info">
                     <div class="settings-line">
-                        @* bdi מבודד את שם המשחק, כדי ששם באנגלית או שם
-                           שמתחיל במספר לא יתהפך בתוך המשפט העברי *@
+                        @*  מבודד את שם המשחק, כדי ששם באנגלית שמתחיל במספר לא יתהפך בתוך המשפט בעברית *@
                         <span class="card-item">שם המשחק: <bdi>@game.GameName</bdi></span>
                     </div>
 
@@ -53,7 +40,7 @@
                     </div>
                 </div>
 
-                @* העיפרון ממורכז אנכית וצמוד לקצה השמאלי של הכרטיס *@
+                @* אייקון העריכה ממורכז אנכית וצמוד לקצה השמאלי של הכרטיס *@
                 <span class="tip tip-below settings-pen" data-tip="עריכת ההגדרות הכלליות">
                     <button class="pen-btn"
                             disabled="@IsEditing()"
@@ -63,7 +50,7 @@
                 </span>
             </div>
 
-            @* כרטיס תנאי הפרסום - הצר, משמאל *@
+            @* איזור תנאי הפרסום *@
             <div class="head-card publish-card">
                 <h2 class="card-title">תנאי<br />פרסום</h2>
 
@@ -85,8 +72,6 @@
                     </span>
                 </div>
 
-                @* במסך העריכה זהו כפתור רגיל, בלי צ'ק בוקס.
-                   שלושת המצבים באים לידי ביטוי במראה הכפתור *@
                 <span class="tip tip-below tip-wide tip-anchor-left publish-anchor" data-tip="@PublishTip()">
                     <button class="publish-btn @PublishCheckClass()"
                             disabled="@(IsEditing() || CanTogglePublish() == false)"
@@ -98,9 +83,7 @@
 
         </div>
 
-        @* ---------- שורת הפעולה שמעל רשימת השאלות ---------- *@
-        @* לפי הפיגמה הכפתורים לא נעלמים בזמן עריכת שאלה אלא מוצגים כבויים.
-           היציאה מהשאלה היא רק דרך "שמירה" או "ביטול" שבטופס *@
+        @*  כותרת השאלה  *@
         <div class="action-row @(IsEditing() ? "is-editing" : "")">
             <button class="btn-green add-question-btn"
                     disabled="@(IsEditing() || CanAddQuestion() == false)"
@@ -119,7 +102,7 @@
             </span>
         </div>
 
-        @* ---------- רשימת השאלות ---------- *@
+        @*  רשימת השאלות  *@
         <div class="questions-area @(IsEditing() ? "is-editing" : "")">
 
             @if (questions.Count == 0 && IsEditing() == false)
@@ -129,13 +112,12 @@
                 </div>
             }
 
-            @* השאלות הקיימות. בזמן עריכה הן נשארות ברקע בשקיפות נמוכה
-               ואי אפשר ללחוץ עליהן *@
+            @* השאלות הקיימות בזמן עריכה נשארות ברקע בשקיפות נמוכה ואי אפשר ללחוץ עליהן *@
             @for (int i = 0; i < questions.Count; i++)
             {
                 @if (IsEditing() == true && questions[i].ID == openQuestionId)
                 {
-                    @* השאלה שנערכת - הטופס מוצג במקומה ברשימה *@
+                    @* השאלה שנערכת *@
                     <div class="question-card is-editing" id="editing-question">
 
                         <div class="question-strip">
@@ -174,9 +156,7 @@
 
                     <div class="question-card">
 
-                        @* פס הכותרת הירוק.
-                           לחיצה בכל מקום בשורה פותחת וסוגרת את התצוגה,
-                           לא רק החץ הקטן שבצד *@
+                        @* פס הכותרת הירוק*@
                         <div class="question-strip is-clickable"
                              @onclick="() => ToggleExpand(question.ID)">
 
@@ -225,7 +205,7 @@
                             </span>
                         </div>
 
-                        @* גוף התצוגה - מוצג רק כשהשאלה פתוחה בחץ *@
+                        @* תצוגה- מוצג רק כשהשאלה פתוחה בחץ *@
                         @if (isOpen == true)
                         {
                             <div class="question-view">
@@ -236,7 +216,7 @@
                 }
             }
 
-            @* שאלה חדשה שעוד לא נשמרה - נוספת בסוף הרשימה *@
+            @* שאלה חדשה שעוד לא נשמרה- נוספת בסוף הרשימה *@
             @if (openQuestionId == -1)
             {
                 <div class="question-card is-editing" id="editing-question">
@@ -279,10 +259,7 @@
 </div>
 
 
-@* ==========================================================
-   פופאפ עריכת ההגדרות הכלליות.
-   לפי האפיון: כפתור השמירה מופיע רק אחרי שבוצע שינוי תקין
-   ========================================================== *@
+@* פופאפ עריכת ההגדרות הכלליות*@
 @if (isSettingsOpen == true)
 {
     <div class="popup-background">
@@ -317,8 +294,6 @@
                     }
                 </div>
 
-                @* לפי הפיגמה הכפתור מוצג תמיד, ומנוטרל עד שהטופס מלא
-                   ונעשה בו שינוי *@
                 <div class="popup-actions">
                     <button type="submit" class="btn-main"
                             disabled="@(IsFormReady() == false || HasChanges() == false)">
@@ -336,9 +311,7 @@
 }
 
 
-@* ==========================================================
-   אישור מחיקת שאלה
-   ========================================================== *@
+@* אישור מחיקת שאלה*@
 @if (questionToDelete != null)
 {
     <div class="popup-background">
@@ -363,16 +336,14 @@
 
 @code {
 
-    // מזהה המשחק, מגיע מהכתובת. הבעלות עליו נבדקת בשרת ולא כאן
+    // קוד המשחק
     [Parameter]
     public int GameId { get; set; }
 
-    // המשתמש המחובר, ערך מדורג מ-App.razor. הטעינה מותנית בו
-    // ולכן יושבת ב-OnParametersSetAsync ולא ב-OnInitializedAsync
     [CascadingParameter]
     private User user { get; set; }
 
-    // מספר התווים המרבי לשם משחק, לפי הפיגמה
+    // מספר התווים המרבי לשם משחק
     const int NameMax = 30;
 
     // המשחק שנערך כרגע
@@ -381,13 +352,12 @@
     // השאלות של המשחק
     List<QuestionToEdit> questions = new List<QuestionToEdit>();
 
-    // השאלה שנמצאת כרגע בעריכה. עותק, כדי שביטול לא ישנה את המקור
+    // השאלה שנמצאת כרגע בעריכה, נשמר כעותק, כדי שביטול לא ישנה את המקור
     QuestionToEdit editedQuestion;
 
-    // 0 = אין שאלה בעריכה, 1- = שאלה חדשה, אחרת המזהה של הנערכת
+    // 0 = אין שאלה בעריכה, 1- = שאלה חדשה
     int openQuestionId = 0;
 
-    // מזהי השאלות שפתוחות לתצוגה בעזרת החץ
     HashSet<int> expanded = new HashSet<int>();
 
     // השאלה שממתינה לאישור מחיקה
@@ -406,7 +376,7 @@
     // הודעת השגיאה שמוצגת. ריקה = אין שגיאה
     string msg = "";
 
-    // לפי האפיון: ללא הגבלת זמן, דקה, דקה וחצי, שתי דקות
+    // זמני משחק: ללא הגבלת זמן, דקה, דקה וחצי, שתי דקות
     TimeOption[] timeOptions =
     {
         new TimeOption { Seconds = 0,   Label = "ללא הגבלת זמן" },
@@ -423,12 +393,7 @@
     }
 
 
-    // ==========================================================
     // טעינה
-    // ==========================================================
-
-    // טוען את המשחק ואת השאלות שלו. שתי קריאות נפרדות, כי
-    // רשימת המשחקים אינה נושאת את השאלות עמה
     protected override async Task OnParametersSetAsync()
     {
         if (user != null && user.Id > 0)
@@ -451,9 +416,7 @@
     }
 
 
-    // טוען מחדש את השאלות מהשרת. נקרא אחרי כל שמירה או מחיקה,
-    // כדי שהמזהים והסדר יהיו אלה שבבסיס הנתונים ולא ניחוש מקומי.
-    // כישלון מציב רשימה ריקה ולא משאיר את הקודמת, שכבר אינה נכונה
+    // טוען מחדש את השאלות מהשרת
     async Task LoadQuestions()
     {
         var res = await Http.GetAsync($"api/games/{GameId}/questions");
@@ -469,10 +432,7 @@
     }
 
 
-    // ==========================================================
     // תנאי הפרסום
-    // ==========================================================
-
     // התנאי הראשון לפרסום: לפחות שלוש שאלות במשחק
     bool HasEnoughQuestions()
     {
@@ -501,7 +461,6 @@
 
 
     // פרסום וביטול פרסום אפשריים תמיד, גם בזמן עריכת שאלה.
-    // התנאי היחיד הוא עמידה בתנאי הפרסום, והוא נבדק שוב בשרת
     bool CanTogglePublish()
     {
         if (game.IsPublish == true) return true;
@@ -510,7 +469,6 @@
     }
 
 
-    // מחלקת ה-CSS של סימון הפרסום
     string PublishCheckClass()
     {
         if (game.IsPublish == true) return "is-published";
@@ -519,8 +477,7 @@
     }
 
 
-    // בפיגמה הכיתוב על הכפתור קבוע. המצב נמסר דרך הצבע והטולטיפ,
-    // ולא דרך טקסט ארוך שגולש מהכפתור
+    // בפיגמה הכיתוב על הכפתור קבוע
     string PublishLabel()
     {
         if (game.IsPublish == true) return "מפורסם";
@@ -529,7 +486,7 @@
     }
 
 
-    // הטקסט בטולטיפ של כפתור הפרסום, לפי שלושת המצבים
+    // הטקסט בטולטיפ של כפתור הפרסום
     string PublishTip()
     {
         if (game.CanPublish == false && game.IsPublish == false)
@@ -546,8 +503,7 @@
     }
 
 
-    // מחליף את מצב הפרסום. המשחק מוחלף בזה שחזר מהשרת, ולכן
-    // גם CanPublish מתעדכן ולא רק IsPublish
+    // מחליף את מצב הפרסום, גם IsPublish וגם CanPublish מתעדכנים
     async Task PublishGame()
     {
         var res = await Http.PutAsJsonAsync($"api/games/publishGame/{game.ID}", game.ID);

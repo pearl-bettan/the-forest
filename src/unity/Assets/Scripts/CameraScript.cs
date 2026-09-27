@@ -47,19 +47,28 @@ public class CameraScript : MonoBehaviour
 
     [Header("Screen Fit")]
     // ============================================================
-    // מסגור במקום מתיחה.
+    // גבול ההתרחקות במסך צר מהתכנון.
     //
-    // בלי זה, מסך ביחס שונה מ-1280x720 גורם למצלמה להראות יותר
-    // עולם - ומעבר לגבול האיור מתגלה צבע הרקע של המצלמה. במסך
-    // מלא זה בולט במיוחד, ונראה כמו שוליים ירוקים סביב המשחק.
+    // מסך שיחסו צר מ-16:9 מקבל התרחקות, כדי שכל מה שתוכנן להיראות
+    // יישאר בפנים ושום דבר לא ייחתך. במקום פסים נחשפים עוד שמיים
+    // ועוד דשא מתוך תמונת הרקע.
     //
-    // כשהאפשרות דלוקה, המשחק נשאר תמיד ביחס שאליו הוא עוצב,
-    // והשטח העודף נצבע בשחור - כמו סרט בטלוויזיה
+    // התמונה אינה אינסופית: גובהה כ-22 יחידות עולם והמצלמה נעה
+    // בתוכה, ולכן מעבר לגבול הזה היו נראים שוליים ריקים בצבע הרקע
+    // של המצלמה. 6.6 מכסה בנוחות כל יחס שבין 4:3 ל-16:9, וזה טווח
+    // כל המסכים שמגיעים למצב מסך מלא
     // ============================================================
-    [SerializeField] bool letterbox = true;
+    [SerializeField] float maxOrthographicSize = 6.6f;
 
-    // צבע הפסים שמסביב
-    [SerializeField] Color letterboxColor = Color.black;
+    // ============================================================
+    // תקרה מוחלטת לגודל התצוגה.
+    //
+    // ההתרחקות של הדילוג מתווספת לגודל הבסיסי, ובמסך צר הצירוף
+    // של השתיים יכול לחרוג מהאיור גם כשכל אחת מהן לבדה בסדר.
+    // התקרה נמדדה מול תמונת הרקע ומול הנקודה הנמוכה ביותר
+    // שהמצלמה מגיעה אליה
+    // ============================================================
+    [SerializeField] float hardMaxOrthographicSize = 7.3f;
 
     [Header("Background")]
     // מחליף את הרקע הכחול של יוניטי
@@ -122,10 +131,6 @@ public class CameraScript : MonoBehaviour
 
     // היחס האחרון שחושב, כדי לא לחשב מחדש בכל פריים
     private float lastAspect = -1f;
-
-    // מצלמת הרקע שצובעת את הפסים
-    private Camera letterboxCamera;
-
     // המיקום שבו המצלמה הונחה בסצנה הוא "הבית" שאליו היא תמיד
     // חוזרת. נקבע פעם אחת ב-Awake, לפני ש-Start של סקריפטים
     // אחרים מתחיל להזיז אותה
@@ -257,6 +262,11 @@ public class CameraScript : MonoBehaviour
 
         float goal = baseSize + skipZoom;
 
+        if (hardMaxOrthographicSize > 0f && goal > hardMaxOrthographicSize)
+        {
+            goal = hardMaxOrthographicSize;
+        }
+
         if (Mathf.Abs(myCamera.orthographicSize - goal) < 0.001f)
         {
             myCamera.orthographicSize = goal;
@@ -312,25 +322,40 @@ public class CameraScript : MonoBehaviour
 
         lastAspect = currentAspect;
 
-        if (letterbox == true)
+        // ============================================================
+        // אזור הציור הוא תמיד המסך המלא.
+        //
+        // צמצום camera.rect הוא הדרך המקובלת למסגר, אבל ב-URP צינור
+        // הרינדור צובע את כל שטח היעד בצבע הרקע של המצלמה ורק אחר כך
+        // מצייר לתוך האזור המצומצם - ומשם הגיעו השוליים הירוקים.
+        // לכן ההתאמה נעשית כאן בגודל התצוגה בלבד
+        // ============================================================
+        myCamera.rect = new Rect(0f, 0f, 1f, 1f);
+
+        if (currentAspect >= referenceAspect)
         {
-            ApplyLetterbox(referenceAspect, currentAspect);
+            // המסך רחב מהתכנון - הגובה נשאר, והרוחב העודף מראה
+            // עוד מהעולם בצדדים
+            SetBaseSize(referenceOrthographicSize);
             return;
         }
 
-        // בלי מסגור: אזור הציור חוזר למסך המלא
-        myCamera.rect = new Rect(0f, 0f, 1f, 1f);
+        // ============================================================
+        // המסך צר מהתכנון - מתרחקים.
+        //
+        // הממשק יושב קרוב לשולי המסגרת המתוכננת: כפתור הקול בשמאל
+        // ושעון החול בימין נמצאים פחות מיחידה מהקצה. חיתוך הצדדים
+        // היה מוריד אותם מהמסך, ולכן ההתאמה היא תמיד להראות יותר
+        // ולעולם לא פחות
+        // ============================================================
+        float wanted = referenceOrthographicSize * (referenceAspect / currentAspect);
 
-        if (currentAspect < referenceAspect)
+        if (maxOrthographicSize > 0f && wanted > maxOrthographicSize)
         {
-            // המסך צר יותר מהתכנון - מרחיבים כדי לא לחתוך את הצדדים
-            SetBaseSize(referenceOrthographicSize * (referenceAspect / currentAspect));
+            wanted = maxOrthographicSize;
         }
-        else
-        {
-            // המסך רחב יותר - הגובה נשאר כמו שתוכנן
-            SetBaseSize(referenceOrthographicSize);
-        }
+
+        SetBaseSize(wanted);
     }
 
     // ============================================================
@@ -352,79 +377,6 @@ public class CameraScript : MonoBehaviour
             sizeVelocity = 0f;
         }
     }
-
-    // ============================================================
-    // מצמצם את אזור הציור של המצלמה ליחס שאליו המשחק עוצב,
-    // וממרכז אותו. השטח שנשאר מחוץ לאזור הוא הפס השחור.
-    //
-    // מסך רחב מהתכנון מקבל פסים בצדדים, מסך גבוה מהתכנון מקבל
-    // פסים למעלה ולמטה. גודל התצוגה נשאר תמיד המתוכנן, ולכן
-    // שום שחקן לא רואה יותר עולם משחקן אחר
-    // ============================================================
-    private void ApplyLetterbox(float referenceAspect, float currentAspect)
-    {
-        SetBaseSize(referenceOrthographicSize);
-
-        // ============================================================
-        // הפרש זניח ביחס אינו מצדיק מסגור.
-        //
-        // העמוד כבר מעמיד את הקנבס ביחס 16:9, ומה שנשאר הוא שבריר
-        // אחוז מעיגול של פיקסלים. צמצום אזור הציור בשביל שבריר כזה
-        // מכניס את הרינדור למסלול שבו הוא צובע את השטח שמחוץ לאזור
-        // בצבע הרקע של המצלמה - וזה בדיוק מקור השוליים הירוקים
-        // ============================================================
-        float ratio = currentAspect / referenceAspect;
-
-        if (ratio > 0.99f && ratio < 1.01f)
-        {
-            myCamera.rect = new Rect(0f, 0f, 1f, 1f);
-            return;
-        }
-
-        if (currentAspect > referenceAspect)
-        {
-            float width = referenceAspect / currentAspect;
-            myCamera.rect = new Rect((1f - width) / 2f, 0f, width, 1f);
-        }
-        else
-        {
-            float height = currentAspect / referenceAspect;
-            myCamera.rect = new Rect(0f, (1f - height) / 2f, 1f, height);
-        }
-
-        BuildLetterboxCamera();
-    }
-
-    // ============================================================
-    // מצלמת רקע שמנקה את כל המסך לשחור.
-    //
-    // מצלמה שאזור הציור שלה מצומצם מנקה רק את האזור הזה, והשטח
-    // שמסביב שומר את מה שצויר בו בפריים הקודם - מה שמייצר מריחה.
-    // מצלמה נוספת שמציירת כלום ומנקה הכול פותרת את זה.
-    //
-    // Depth נמוך יותר מבטיח שהיא מציירת ראשונה, ו-cullingMask
-    // ריק מבטיח שהיא לא מציירת שום אובייקט בעצמה
-    // ============================================================
-    private void BuildLetterboxCamera()
-    {
-        if (letterboxCamera != null)
-        {
-            letterboxCamera.backgroundColor = letterboxColor;
-            return;
-        }
-
-        GameObject item = new GameObject("LetterboxCamera");
-        item.transform.SetParent(transform, false);
-
-        letterboxCamera = item.AddComponent<Camera>();
-        letterboxCamera.clearFlags = CameraClearFlags.SolidColor;
-        letterboxCamera.backgroundColor = letterboxColor;
-        letterboxCamera.cullingMask = 0;
-        letterboxCamera.depth = myCamera.depth - 100;
-        letterboxCamera.rect = new Rect(0f, 0f, 1f, 1f);
-        letterboxCamera.orthographic = true;
-    }
-
     // מחזיר את המצלמה אל תוך המלבן שבין עמדת הבית לתצוגת האגם
     private void ClampInsideLevel()
     {

@@ -1,16 +1,3 @@
-@* ==========================================================
-   מסך מצב, לפי הפיגמה: לוגו גדול, כותרת, פס התקדמות וגמד.
-   משמש גם לטעינה וגם לשגיאה. במצב שגיאה מעבירים גמד אחר
-   ותוכן משלנו במקום פס ההתקדמות
-
-   שימוש:
-       <StatusScreen />
-       <StatusScreen Title="אוי לא משהו השתבש..."
-                     Image="assets-images/dwarf-error.png">
-           <button ...>ניסיון חוזר</button>
-       </StatusScreen>
-   ========================================================== *@
-
 <div class="status-screen">
 
     <img src="assets-images/logo-forest-big.png" alt="יער הידע"
@@ -24,8 +11,7 @@
     }
     else
     {
-        @* אין דיווח אחוזים אמיתי, ולכן הפס נע הלוך ושוב
-           במקום להעמיד פנים שהוא מודד התקדמות *@
+        @* מסך טעינה*@
         <div class="status-progress" role="progressbar"
              aria-label="@Title" aria-busy="true">
             <span class="status-progress-fill"></span>
@@ -43,7 +29,7 @@
     [Parameter]
     public string Title { get; set; } = "עוד רגע יוצאים לדרך...";
 
-    // האיור שמתחת לפס
+    // התמונה של הגמד
     [Parameter]
     public string Image { get; set; } = "assets-images/dwarf-waiting.png";
 

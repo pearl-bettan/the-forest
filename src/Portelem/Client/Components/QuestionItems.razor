@@ -1,22 +1,15 @@
-@* ==========================================================
-   תצוגת הפריטים של שאלה, לקריאה בלבד.
-   משמשת את מסך העורך כשפותחים שאלה בעזרת החץ.
-   לפי הפיגמה כל פריט הוא כרטיס לבן שבתוכו סלע, ומשני
-   הצדדים כרטיסי היבשות עם ערכי הקיצון
-   ========================================================== *@
-
 @using AuthTemplate.Shared.Models.Games
 
 <div class="items-row">
 
-    @* ---------- יבשת ימין ---------- *@
+    @*  יבשת ימין  *@
     <div class="item-card">
         <div class="item-media tag-media">
             <span class="item-text">@TagText(Question.RightTag)</span>
         </div>
     </div>
 
-    @* ---------- הפריטים ---------- *@
+    @*  אבני התשובה  *@
     @foreach (AnswerToEdit answer in Question.Answers)
     {
         <div class="item-card">
@@ -34,7 +27,7 @@
         </div>
     }
 
-    @* ---------- יבשת שמאל ---------- *@
+    @*  יבשת שמאל  *@
     <div class="item-card">
         <div class="item-media tag-media">
             <span class="item-text">@TagText(Question.LeftTag)</span>
@@ -55,7 +48,7 @@
     public bool ReadOnly { get; set; } = true;
 
 
-    // כל עוד לא הוזן ערך קיצון, מוצג טקסט מציין מקום
+    // כל עוד לא הוזן ערך קיצון, מוצג טקסט ברירת מחדל
     string TagText(string tag)
     {
         if (string.IsNullOrWhiteSpace(tag))
@@ -66,11 +59,7 @@
         return tag;
     }
 
-    // ============================================================
-    // מחזירה את מחלקת הגודל של הטקסט שעל הסלע.
-    // כל התווים חייבים להיראות, ולכן ככל שהטקסט ארוך יותר הגופן
-    // קטן יותר במקום שהטקסט ייחתך בשלוש נקודות
-    // ============================================================
+    
     string TextSize(string text)
     {
         int length = (text == null) ? 0 : text.Length;

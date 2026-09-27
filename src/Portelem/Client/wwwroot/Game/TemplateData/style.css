@@ -34,13 +34,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
 /* ==========================================================
    מסך מלא
    ==========================================================
-   הכפתור פורש את #unity-container, ולא את הקנבס עצמו. כאן
-   מחזיקים את הקנבס ביחס 16:9 שאליו המשחק עוצב, וצובעים שחור
-   את מה שנשאר מסביב.
+   הכפתור פורש את #unity-container, ולא את הקנבס עצמו, והקנבס
+   ממלא אותו לגמרי - בלי פסים.
 
-   כך יוניטי מקבלת בדיוק את היחס המתוכנן, המצלמה אינה מצמצמת
-   את אזור הציור שלה, וצינור הרינדור אינו צובע שוליים בצבע
-   הרקע של המצלמה - הירוק שהיה נראה קודם.
+   ההתאמה ליחס המסך נעשית במצלמה ולא כאן: במסך צר מ-16:9 היא
+   מתרחקת ומראה עוד שמיים ועוד דשא מתוך תמונת הרקע, במקום
+   פסים שחורים. חיתוך הצדדים לא בא בחשבון - הממשק יושב קרוב
+   לשולי המסגרת המתוכננת, וכפתור הקול ושעון החול היו יורדים
+   מהמסך.
+
+   את המסגור דרך camera.rect הסרנו לגמרי: ב-URP הוא צובע את
+   מה שמחוץ לאזור בצבע הרקע של המצלמה, וזה היה מקור השוליים
+   הירוקים.
 
    ה-!important דרוש כי הסקריפט של התבנית קובע לקנבס רוחב
    וגובה בשורת סגנון, ושורת סגנון גוברת על גיליון.
@@ -62,20 +67,18 @@ html, body { width: 100%; height: 100%; overflow: hidden; }
 }
 
 #unity-container:fullscreen #unity-canvas {
-  width: min(100vw, calc(100vh * 16 / 9)) !important;
-  height: auto !important;
-  aspect-ratio: 16 / 9;
-  max-width: 100vw; max-height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
   margin: 0 !important;
+  display: block;
   background: #000;
 }
 
 #unity-container:-webkit-full-screen #unity-canvas {
-  width: min(100vw, calc(100vh * 16 / 9)) !important;
-  height: auto !important;
-  aspect-ratio: 16 / 9;
-  max-width: 100vw; max-height: 100vh;
+  width: 100vw !important;
+  height: 100vh !important;
   margin: 0 !important;
+  display: block;
   background: #000;
 }
 
