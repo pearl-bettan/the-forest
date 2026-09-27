@@ -4,37 +4,17 @@ using Data;
 
 namespace UsersManager.Server
 {
-    // ============================================================
-    // מימוש הרשימה השחורה מעל טבלת BlackList בבסיס הנתונים.
-    //
-    // בחירה בבסיס נתונים ולא בזיכרון נועדה לכך שהתנתקות תישאר
-    // בתוקף גם אחרי הפעלה מחדש של השרת. כל שורה מחזיקה את
-    // תאריך התפוגה של הטוקן, וכך שירות הרקע יודע מה למחוק
-    // ============================================================
     public class DbTokenBlacklistService : ITokenBlacklistService
     {
         private readonly DbRepository _db;
         private readonly ILogger<DbTokenBlacklistService> _logger;
 
-        // הגישה לבסיס הנתונים והיומן מוזרקות, כדי שהמחלקה
-        // לא תיצור חיבור משלה
         public DbTokenBlacklistService(DbRepository db, ILogger<DbTokenBlacklistService> logger)
         {
             _db = db;
             _logger = logger;
         }
 
-        // ============================================================
-        // מוסיף טוקן לרשימה בהתנתקות.
-        //
-        // תאריך התפוגה נשלף מתוך הטוקן עצמו ולא מחושב מחדש, כדי
-        // שהשורה תימחק בדיוק כשהטוקן ממילא כבר לא תקף.
-        // ה-INSERT מותנה ב-NOT EXISTS כדי שהתנתקות כפולה לא
-        // תיצור שתי שורות לאותו טוקן.
-        //
-        // כישלון כאן נזרק הלאה: אם לא הצלחנו לפסול טוקן, אסור
-        // לדווח למשתמש שההתנתקות הצליחה
-        // ============================================================
         public void AddToBlacklist(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -75,15 +55,6 @@ namespace UsersManager.Server
             }
         }
 
-        // ============================================================
-        // בודק אם הטוקן נפסל. נקרא בכל בקשה מאומתת.
-        //
-        // התנאי על ExpiresAt מוודא ששורות ישנות שטרם נוקו אינן
-        // משפיעות על התוצאה.
-        //
-        // בשגיאה מוחזר false ולא true: תקלה בבסיס הנתונים לא
-        // תנעל את כל המשתמשים מחוץ למערכת
-        // ============================================================
         public bool IsBlacklisted(string token)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -116,9 +87,6 @@ namespace UsersManager.Server
             }
         }
 
-        // מוחק מהרשימה שורות שתוקפן פג. מופעל פעם ביום על ידי
-        // TokenCleanupBackgroundService. שגיאה נרשמת ביומן ולא
-        // נזרקת, כדי שתקלה בניקוי לא תפיל את שירות הרקע
         public void RemoveExpiredTokens()
         {
             try

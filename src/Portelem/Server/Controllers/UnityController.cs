@@ -4,16 +4,8 @@ using ForestGame.Shared.UnityDtos;
 
 namespace AuthTemplate.Server.Controllers
 {
-    // ============================================================
-    // נקודת הכניסה היחידה של משחק היוניטי אל השרת.
-    //
-    // השחקן מקליד קוד משחק במסך הפתיחה, והיוניטי פונה לכאן
-    // ומקבלת את המשחק כולו בתשובה אחת.
-    //
-    // הבקר הזה אינו דורש התחברות בכוונה: שחקן אינו משתמש רשום
-    // של המחולל, הוא רק מקליד קוד. לכן מוגשים כאן אך ורק משחקים
-    // מפורסמים, ולא מוחזר שום מידע על הבעלים או על מזהים פנימיים
-    // ============================================================
+    // נקודת הכניסה  של משחק היוניטי אל השרת
+   
     [Route("api/[controller]")]
     [ApiController]
     public class UnityController : ControllerBase
@@ -21,30 +13,16 @@ namespace AuthTemplate.Server.Controllers
         // החיבור לבסיס הנתונים
         private readonly DbRepository _db;
 
-        //מספר הפסילות הקבוע של המשחק, לפי האפיון
+        //מספר הפסילות הקבוע של המשחק
         private const int FixedLives = 3;
 
-        // הבקר צריך רק את בסיס הנתונים - אין כאן העלאות קבצים
-        // ואין אימות משתמש
         public UnityController(DbRepository db)
         {
             _db = db;
         }
 
         
-        // ============================================================
-        // מחזיר משחק שלם לפי קוד המשחק: GET api/Unity/{gameCode}
-        //
-        // הסדר: אימות הקוד, שליפת המשחק, בדיקת פרסום, שליפת
-        // השלבים, ואז שליפת הפריטים של כל שלב.
-        //
-        // הפריטים נשלפים בשאילתה נפרדת לכל שלב ולא ב-JOIN אחד,
-        // כדי שהרכבת המבנה ההיררכי תישאר פשוטה. מספר השלבים
-        // במשחק קטן, ולכן זה לא מכביד.
-        //
-        // הפריטים חוזרים ממוינים לפי CorrectPlace - כלומר בסדר
-        // הנכון. הערבוב נעשה ביוניטי ולא כאן
-        // ============================================================
+        // מחזיר משחק  לפי קוד המשחק:
         [HttpGet("{gameCode}")]
         public async Task<ActionResult<GameForUnityDto>> GetGameByCode(string gameCode)
         {
@@ -54,9 +32,7 @@ namespace AuthTemplate.Server.Controllers
                 return BadRequest("לא התקבל קוד משחק");
             }
 
-            // בודק שהקוד שהתקבל הוא מספר חיובי.
-            // קוד המשחק נשמר כמספר, ולכן קלט שאינו מספר חיובי
-            // לא יכול להתאים לאף משחק
+            // בודק שהקוד הוא מספר חיובי
             int codeNumber;
 
             if (int.TryParse(gameCode, out codeNumber) == false || codeNumber <= 0)
@@ -64,9 +40,7 @@ namespace AuthTemplate.Server.Controllers
                 return BadRequest("קוד המשחק חייב להיות מספר חיובי");
             }
 
-            // בודק שאכן קיים משחק עם הקוד שהוצב
-            // StartingLives אינו נשלף: מספר הפסילות קבוע לפי האפיון
-            // ונקבע כאן, ולא נלקח מהמשחק
+            // בודק שאכן קיים משחק עם הקוד 
             string gameQuery = @"SELECT Id, GameName, IsPublish FROM Games WHERE GameCode = @GameCode";
             var games = await _db.GetRecordsAsync<GameRow>(gameQuery, new { GameCode = codeNumber });
             // אם השאילתה נכשלה, מוחזרת הודעת שגיאה
@@ -100,7 +74,7 @@ namespace AuthTemplate.Server.Controllers
             // בניית ה-DTO 
             GameForUnityDto gameDto = new GameForUnityDto();
             gameDto.GameName = game.GameName;
-            //לפי האפיון מספר הפסילות קבוע על 3 ואינו ניתן לשינוי מהמחולל
+            //מספר הפסילות קבוע על 3 ואינו ניתן לשינוי 
             gameDto.StartingLives = FixedLives;
             gameDto.Stages = new List<StageForUnityDto>();
 
@@ -132,20 +106,15 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // מחלקות עזר פנימיות
-        //
-        // Dapper ממפה שורת תוצאה לאובייקט לפי שמות העמודות, ולכן
-        // דרוש טיפוס שתואם בדיוק לשאילתה. המחלקות האלה פרטיות
-        // כי הן מייצגות את מבנה הטבלה ולא את מה שנשלח החוצה
-        // ============================================================
+        // מחלקות עזר
+        // מחלקה שמייצגת שורה של משחק מהטבלה 
         private class GameRow
         {
             public int Id { get; set; }
             public string GameName { get; set; }
             public bool IsPublish { get; set; }
         }
-
+        //  מחלקה שמייצגת שורה של שלב מהטבלה
         private class StageRow
         {
             public int Id { get; set; }
