@@ -432,14 +432,14 @@
 
             if (gameRes.IsSuccessStatusCode == true)
             {
-                game = gameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+                game = await gameRes.Content.ReadFromJsonAsync<GameToTable>();
                 msg = "";
 
                 await LoadQuestions();
             }
             else
             {
-                string error = gameRes.Content.ReadAsStringAsync().Result;
+                string error = await gameRes.Content.ReadAsStringAsync();
                 ShowError(error);
             }
         }
@@ -455,7 +455,7 @@
 
         if (res.IsSuccessStatusCode == true)
         {
-            questions = res.Content.ReadFromJsonAsync<List<QuestionToEdit>>().Result;
+            questions = await res.Content.ReadFromJsonAsync<List<QuestionToEdit>>();
         }
         else
         {
@@ -549,12 +549,12 @@
 
         if (res.IsSuccessStatusCode == true)
         {
-            game = res.Content.ReadFromJsonAsync<GameToTable>().Result;
+            game = await res.Content.ReadFromJsonAsync<GameToTable>();
             msg = "";
         }
         else
         {
-            string error = res.Content.ReadAsStringAsync().Result;
+            string error = await res.Content.ReadAsStringAsync();
             ShowError(error);
         }
     }
@@ -965,13 +965,13 @@
 
         if (editRes.IsSuccessStatusCode == true)
         {
-            game = editRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            game = await editRes.Content.ReadFromJsonAsync<GameToTable>();
             isSettingsOpen = false;
             msg = "";
         }
         else
         {
-            string error = editRes.Content.ReadAsStringAsync().Result;
+            string error = await editRes.Content.ReadAsStringAsync();
             ShowError(error);
         }
     }
@@ -989,7 +989,7 @@
 
         if (gameRes.IsSuccessStatusCode == true)
         {
-            game = gameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            game = await gameRes.Content.ReadFromJsonAsync<GameToTable>();
         }
     }
 
@@ -1034,6 +1034,12 @@
                 break;
             case "Publish not changed":
                 msg = "אירעה תקלה בשינוי מצב הפרסום";
+                break;
+
+            // שגיאה שלא הוגדרה כאן, למשל תקלת שרת. בלי המקרה
+            // הזה העורכת לא הייתה מקבלת שום חיווי
+            default:
+                msg = "אירעה תקלה, נסו שוב";
                 break;
         }
     }

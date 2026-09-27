@@ -72,6 +72,20 @@
     color: black;
     text-align: center;
     word-break: break-word;
+
+    /* הכיוון לפי התו החזק הראשון, כמו במצב עריכה. בלי זה
+       "1 two three" מוצג בסדר מילים הפוך */
+    unicode-bidi: plaintext;
+}
+
+/* הטקסט מוגבל לשטח השטוח של הסלע, כמו במצב עריכה */
+.rock-media .item-text {
+    max-width: 78%;
+    max-height: 100%;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .item-img {

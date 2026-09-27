@@ -357,8 +357,10 @@ namespace AuthTemplate.Server.Controllers
                 }
 
                 //השאלות מוחזרות לפי הסדר שקבע העורך
+                // המיון המשני לפי Id מבטיח סדר יציב גם במשחקים ישנים
+                // שבהם קיימות שתי שאלות עם אותו StageOrder
                 string questionsQuery = "SELECT Id, GameId, Topic, LeftTag, RightTag, StageOrder AS QuestionOrder " +
-                                        "FROM Stages WHERE GameId = @GameId ORDER BY StageOrder";
+                                        "FROM Stages WHERE GameId = @GameId ORDER BY StageOrder, Id";
 
                 var records = await _db.GetRecordsAsync<QuestionToEdit>(questionsQuery, new { GameId = gameId });
 
@@ -429,9 +431,16 @@ namespace AuthTemplate.Server.Controllers
                 //זמן השאלה נלקח מההגדרות הכלליות של המשחק
                 GameToTable game = await GetGameById(question.GameId);
 
-                //השאלה החדשה נכנסת בסוף הרשימה
+                // ============================================================
+                // השאלה החדשה נכנסת בסוף הרשימה.
+                //
+                // הסדר נגזר מהמקסימום הקיים ולא מספירת השורות: אחרי
+                // מחיקת שאלה הספירה יורדת, והשאלה הבאה הייתה מקבלת
+                // מספר סדר שכבר תפוס. אז שתי שאלות מקבלות אותו סדר
+                // ו-ORDER BY מפסיק להיות חד-משמעי
+                // ============================================================
                 var orders = await _db.GetRecordsAsync<int>(
-                    "SELECT COUNT(*) + 1 FROM Stages WHERE GameId = @GameId",
+                    "SELECT COALESCE(MAX(StageOrder), 0) + 1 FROM Stages WHERE GameId = @GameId",
                     new { GameId = question.GameId });
 
                 int questionOrder = orders == null ? 1 : orders.FirstOrDefault();
@@ -521,18 +530,25 @@ namespace AuthTemplate.Server.Controllers
                 //שמות קבצי התמונות שהיו בשאלה לפני העריכה
                 List<string> oldImages = await GetQuestionImages(question.ID);
 
-                //הפריטים נכתבים מחדש. כך המקומות נשארים רציפים ולפי הסדר שבמסך
-                await _db.SaveDataAsync("DELETE FROM Answers WHERE StageId = @StageId",
-                                        new { StageId = question.ID });
-
-                await SaveAnswers(question.ID, question.Answers);
+                //הפריטים נכתבים מחדש, כדי שהמקומות יישארו רציפים ולפי
+                //הסדר שבמסך. המחיקה והכתיבה רצות יחד כיחידה אחת
+                await _db.RunBatchAsync(
+                    AnswerStatements(question.ID, question.Answers, true));
 
                 //תמונה שהוחלפה או שהפריט שלה נמחק - הקובץ שלה מיותר עכשיו.
                 //מוחקים אותו כדי שתיקיית התמונות תישאר מסונכרנת עם בסיס הנתונים
                 DeleteUnusedImages(oldImages, question.Answers);
 
-                //אחרי עריכת שאלה - עדכון מצב הפרסום (טיוטה מורידה מפרסום)
-                await SyncPublishState(question.GameId);
+                // ============================================================
+                // המשחק נשלף מבסיס הנתונים ולא נלקח מהבקשה.
+                //
+                // הבעלות נבדקה לפי מזהה השאלה, ולכן GameId שהגיע מהלקוח
+                // אינו מאומת. הוא משמש רק לעדכון מצב הפרסום, אבל ערך
+                // שגוי היה מעדכן משחק אחר
+                // ============================================================
+                int gameId = await GetQuestionGameId(question.ID);
+
+                if (gameId > 0) await SyncPublishState(gameId);
 
                 return Ok(question);
             }
@@ -599,7 +615,21 @@ namespace AuthTemplate.Server.Controllers
                     return BadRequest("No image");
                 }
 
-                string fileName = await _files.SaveFile(image.ImageBase64, image.Extension, "uploadedFiles");
+                string fileName;
+
+                // ============================================================
+                // קובץ פגום, פורמט שאינו תמונה, או base64 שבור - כל אלה
+                // גורמים ל-Image.Load לזרוק חריגה. בלי הטיפול כאן הלקוח
+                // מקבל 500 בלי הסבר, והעורכת רואה פופאפ שנתקע
+                // ============================================================
+                try
+                {
+                    fileName = await _files.SaveFile(image.ImageBase64, image.Extension, "uploadedFiles");
+                }
+                catch (Exception)
+                {
+                    return BadRequest("Image not valid");
+                }
 
                 if (string.IsNullOrWhiteSpace(fileName))
                 {
@@ -725,21 +755,97 @@ namespace AuthTemplate.Server.Controllers
         //המקום הנכון נקבע לפי הסדר ברשימה שהגיעה מהעורך
         private async Task SaveAnswers(int questionId, List<AnswerToEdit> answers)
         {
+            await _db.RunBatchAsync(AnswerStatements(questionId, answers));
+        }
+
+        // ============================================================
+        // בונה את פקודות הכתיבה של פריטי השאלה.
+        //
+        // deleteFirst מוסיף מחיקה של הפריטים הקיימים בראש הרשימה,
+        // וכך העריכה כולה - מחיקה וכתיבה מחדש - רצה כיחידה אחת.
+        // בלי זה תקלה באמצע הייתה משאירה שאלה בלי פריטים בכלל
+        // ============================================================
+        private List<KeyValuePair<string, object>> AnswerStatements(
+            int questionId, List<AnswerToEdit> answers, bool deleteFirst = false)
+        {
+            var list = new List<KeyValuePair<string, object>>();
+
+            if (deleteFirst == true)
+            {
+                list.Add(new KeyValuePair<string, object>(
+                    "DELETE FROM Answers WHERE StageId = @StageId",
+                    new { StageId = questionId }));
+            }
+
             string query = "INSERT INTO Answers (StageId, Content, IsImage, CorrectPlace) " +
                            "VALUES (@StageId, @Content, @IsImage, @CorrectPlace)";
 
             for (int i = 0; i < answers.Count; i++)
             {
-                await _db.SaveDataAsync(query, new
+                list.Add(new KeyValuePair<string, object>(query, new
                 {
                     StageId = questionId,
                     Content = answers[i].Content,
                     IsImage = answers[i].IsImage,
                     CorrectPlace = i
-                });
+                }));
             }
+
+            return list;
         }
 
+
+        // ============================================================
+        // מוחק קובץ תמונה שהועלה ולא נשמר בסופו של דבר:
+        // DELETE api/Games/deleteImage/{fileName}
+        //
+        // העורך מעלה את התמונה לשרת ברגע הבחירה, עוד לפני שהשאלה
+        // נשמרת. בלי הניקוי הזה כל ביטול וכל החלפת תמונה בפופאפ
+        // משאירים קובץ יתום בתיקייה לתמיד.
+        //
+        // ההגנה החשובה: קובץ שמופיע באיזושהי תשובה בבסיס הנתונים
+        // לא יימחק. בלעדיה אפשר היה לשלוח שם של תמונה בשימוש
+        // ולמחוק אותה ממשחק של מישהו אחר
+        // ============================================================
+        [HttpDelete("deleteImage/{fileName}")]
+        public async Task<IActionResult> DeleteImage(int authUserId, string fileName)
+        {
+            if (authUserId <= 0)
+            {
+                return Unauthorized("user is not authenticated");
+            }
+
+            if (string.IsNullOrWhiteSpace(fileName) == true)
+            {
+                return BadRequest("No file name");
+            }
+
+            var used = await _db.GetRecordsAsync<int>(
+                "SELECT COUNT(*) FROM Answers WHERE Content = @Content AND IsImage = 1",
+                new { Content = fileName });
+
+            if (used != null && used.FirstOrDefault() > 0)
+            {
+                // הקובץ בשימוש. לא שגיאה - פשוט אין מה למחוק
+                return Ok("in use");
+            }
+
+            _files.DeleteFile(fileName, "uploadedFiles");
+
+            return Ok("deleted");
+        }
+
+        // מחזירה את המשחק שאליו שייכת השאלה, או 0 אם אינה קיימת
+        private async Task<int> GetQuestionGameId(int questionId)
+        {
+            var rows = await _db.GetRecordsAsync<int>(
+                "SELECT GameId FROM Stages WHERE Id = @ID",
+                new { ID = questionId });
+
+            if (rows == null) return 0;
+
+            return rows.FirstOrDefault();
+        }
 
         //בדיקה שהשאלה שייכת למשחק של המשתמש המחובר
         private async Task<bool> IsMyQuestion(int questionId, int userId)
@@ -853,13 +959,8 @@ namespace AuthTemplate.Server.Controllers
         //   2. אין אף שאלה עם פחות משלושה פריטים
         //
         // התנאי השני נבדק בשאילתה אחת עם תת-שאילתה, ולא בלולאה
-        // על השאלות, כדי לא לפנות לבסיס הנתונים פעם לכל שאלה.
-        //
-        // שים לב שההערה הישנה מתחת מדברת על שלב אחד ושתי תשובות -
-        // הקוד מחמיר ממנה. הקוד הוא הקובע
+        // על השאלות, כדי לא לפנות לבסיס הנתונים פעם לכל שאלה
         // ============================================================
-        //בדיקת עמידה בתנאי הפרסום.
-        //משחק ניתן לפרסום אם יש בו לפחות שלב אחד, ובכל שלב לפחות שתי תשובות
         private async Task<bool> CheckCanPublish(int gameId)
         {
             object param = new

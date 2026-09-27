@@ -269,7 +269,6 @@ public class GameManager : MonoBehaviour
             // משחק חדש - מנקים את הסימונים מהמשחק הקודם
             if (resuming == false)
             {
-                question.markedWrong = false;
                 question.answeredCorrectly = false;
             }
 
@@ -510,9 +509,7 @@ public class GameManager : MonoBehaviour
         canAnswer = false;
 
         // **לא** מוסיפים פסילה כאן. פסילה היא לב שירד, וסיום הזמן
-        // לא מוריד לב. הספירה נשארת זהה למה שהשחקן ראה על המסך.
-        // השאלה עדיין מסומנת כשגויה לצורך מאגר השאלות
-        if (currentStage != null) currentStage.markedWrong = true;
+        // לא מוריד לב. הספירה נשארת זהה למה שהשחקן ראה על המסך
 
         //נגמר הזמן
         EndGame("timeout");
@@ -524,20 +521,6 @@ public class GameManager : MonoBehaviour
         totalMistakes = totalMistakes + 1;
         livesLeft = livesLeft - 1;
         UpdateHearts();
-    }
-
-    // מחזיר את השאלה הנוכחית למאגר ומסמן אותה כשגויה
-    private void ReturnQuestionToPool()
-    {
-        if (currentStage == null) return;
-        if (questionPool == null) return;
-
-        currentStage.markedWrong = true;
-
-        if (questionPool.Contains(currentStage) == false)
-        {
-            questionPool.Add(currentStage);
-        }
     }
 
     // ============================================================
@@ -1011,7 +994,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        //כאן הוצגה בעבר ההודעה "כל הכבוד!". הפאנל הוסר, העצירה נשארה
+        //סיום שאלה: אי אפשר לענות עד שהשאלה הבאה מתחילה
         StopPlay();
 
         //תחילת ספירה לשאלה הבאה
@@ -1067,10 +1050,8 @@ public class GameManager : MonoBehaviour
     // ============================================================
     // עוצרת את המשחק: אי אפשר לענות יותר, והשאלה נחשבת סגורה.
     //
-    // קודם לכן זו הייתה ShowMessage, שגם הציגה כיתוב על המסך.
-    // פאנל ההודעות הוסר, אבל שתי ההשמות כאן אינן תצוגה אלא מצב
-    // משחק, והן חייבות להישאר: בלעדיהן אפשר ללחוץ על אבנים
-    // אחרי סיום שאלה ואחרי סיום המשחק
+    // נקראת בסיום שאלה ובסיום משחק. בלעדיה אפשר ללחוץ על אבנים
+    // בזמן שהמשחק כבר עבר לשלב הבא
     // ============================================================
     private void StopPlay()
     {
@@ -1135,8 +1116,18 @@ public class GameManager : MonoBehaviour
 
         pauseRequested = true;
 
-        // הניסיון הנוכחי לא נספר ולא משפיע על הציון,
-        // ולכן השאלה חוזרת למאגר בלי סימון שגיאה
+        // ============================================================
+        // השאלה חוזרת למאגר ותישאל שוב.
+        //
+        // חשוב לדעת מה כן נשמר ומה לא: הלבבות שאבדו נשמרים
+        // (DataPass.keepLives), וכך גם הזמן, הניקוד ומונה הטעויות
+        // הכולל. מה שמתאפס הוא stageMistakes - מונה הטעויות של
+        // השאלה עצמה - כי השאלה מתחילה מחדש.
+        //
+        // המשמעות: שחקן שטעה, השהה וענה נכון יקבל על השאלה ניקוד
+        // מלא, אף שכבר איבד לב. זו הקלה מכוונת ולא פרצה: המחיר
+        // בלבבות משולם, והלבבות הם מה שמסיים את המשחק
+        // ============================================================
         if (gameOver == false)
         {
             if (questionPool != null && questionPool.Contains(currentStage) == false)

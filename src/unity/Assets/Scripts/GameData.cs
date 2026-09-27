@@ -35,9 +35,6 @@ public class StageData
     // כמה שניות יש לשאלה. 0 = ללא הגבלת זמן
     public int stageTime = 60;
 
-    // סומנה כשגויה בעבר (נענתה לא נכון או שנגמר הזמן) וחזרה למאגר
-    [System.NonSerialized] public bool markedWrong;
-
     // נענתה נכון ולכן היא כבר לא חוזרת למאגר.
     // נשמר על השאלה עצמה כדי שההתקדמות תישרד גם מעבר לסצנת ההשהייה
     [System.NonSerialized] public bool answeredCorrectly;

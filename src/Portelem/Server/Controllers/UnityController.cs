@@ -65,7 +65,9 @@ namespace AuthTemplate.Server.Controllers
             }
 
             // בודק שאכן קיים משחק עם הקוד שהוצב
-            string gameQuery = @"SELECT Id, GameName, StartingLives, IsPublish FROM Games WHERE GameCode = @GameCode";
+            // StartingLives אינו נשלף: מספר הפסילות קבוע לפי האפיון
+            // ונקבע כאן, ולא נלקח מהמשחק
+            string gameQuery = @"SELECT Id, GameName, IsPublish FROM Games WHERE GameCode = @GameCode";
             var games = await _db.GetRecordsAsync<GameRow>(gameQuery, new { GameCode = codeNumber });
             // אם השאילתה נכשלה, מוחזרת הודעת שגיאה
             if (games == null)
@@ -142,7 +144,6 @@ namespace AuthTemplate.Server.Controllers
         {
             public int Id { get; set; }
             public string GameName { get; set; }
-            public int StartingLives { get; set; }
             public bool IsPublish { get; set; }
         }
 

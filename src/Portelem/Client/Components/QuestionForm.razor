@@ -202,6 +202,18 @@
                            accept=".png,.jpg,.jpeg" hidden />
             </div>
 
+            @* חיווי שההעלאה בתהליך, כדי שקובץ גדול לא ייראה כתקיעה *@
+            @if (isUploading == true)
+            {
+                <p class="upload-note">מעלה תמונה...</p>
+            }
+
+            @* שגיאת העלאה. קודם לכן כישלון היה שקט לגמרי *@
+            @if (uploadMsg != "")
+            {
+                <p class="upload-error" role="alert">@uploadMsg</p>
+            }
+
             @* החלפת סוג התוכן אחרי שכבר נבחר *@
             @if (itemType != "")
             {
@@ -226,7 +238,7 @@
                 @if (itemType != "")
                 {
                     <button type="button" class="btn-main btn-ctx-green"
-                            disabled="@(CanSaveItem() == false || HasItemChanged() == false)"
+                            disabled="@(CanSaveItem() == false || HasItemChanged() == false || isUploading == true)"
                             @onclick="SaveItem">
                         שמירה
                     </button>
@@ -450,9 +462,11 @@
     }
 
 
-    // סוגר את פופאפ הפריט בלי לשמור
-    void CloseItemPopup()
+    // סוגר את פופאפ הפריט בלי לשמור, ומנקה תמונות שהועלו לחינם
+    async Task CloseItemPopup()
     {
+        await CleanUploads("");
+
         isItemPopupOpen = false;
     }
 
@@ -462,35 +476,128 @@
     {
         itemType = "image";
 
-        await JS.InvokeVoidAsync("eval",
-            "document.getElementById('itemFileInput').click()");
+        await JS.InvokeVoidAsync("forestGame.clickElement", "itemFileInput");
     }
 
 
-    // קריאת הקובץ, שליחתו לשרת ושמירת שם הקובץ שחזר
+    // האם העלאה מתבצעת כרגע. חוסמת שמירה ומציגה חיווי
+    bool isUploading = false;
+
+    // הודעת שגיאה של ההעלאה. ריקה = אין שגיאה
+    string uploadMsg = "";
+
+    // ============================================================
+    // קוראת את הקובץ, שולחת אותו לשרת ושומרת את שם הקובץ שחזר.
+    //
+    // שלושה דברים שלא היו קודם:
+    //   1. חיווי שההעלאה בתהליך, כדי שקובץ גדול לא ייראה כתקיעה
+    //   2. הודעה לעורכת כשההעלאה נכשלה, במקום כישלון שקט
+    //   3. תפיסת חריגות רשת, שאחרת מפילות את הפופאפ בלי הסבר
+    // ============================================================
     async Task UploadImage(InputFileChangeEventArgs e)
     {
         IBrowserFile file = e.File;
 
-        // שימוש ב-MemoryStream מבטיח שכל הקובץ נקרא,
-        // גם כשהוא מגיע בכמה חלקים
-        using (var stream = file.OpenReadStream(5 * 1024 * 1024))
+        if (file == null) return;
+
+        isUploading = true;
+        uploadMsg = "";
+
+        try
         {
-            MemoryStream memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
-            byte[] buffer = memory.ToArray();
-
-            ImageToUpload image = new ImageToUpload();
-            image.ImageBase64 = Convert.ToBase64String(buffer);
-            image.Extension = Path.GetExtension(file.Name).Replace(".", "");
-
-            var res = await Http.PostAsJsonAsync("api/games/uploadImage/", image);
-
-            if (res.IsSuccessStatusCode == true)
+            // שימוש ב-MemoryStream מבטיח שכל הקובץ נקרא,
+            // גם כשהוא מגיע בכמה חלקים
+            using (var stream = file.OpenReadStream(MaxUploadBytes))
             {
-                itemFile = res.Content.ReadAsStringAsync().Result;
+                MemoryStream memory = new MemoryStream();
+                await stream.CopyToAsync(memory);
+                byte[] buffer = memory.ToArray();
+
+                ImageToUpload image = new ImageToUpload();
+                image.ImageBase64 = Convert.ToBase64String(buffer);
+                image.Extension = Path.GetExtension(file.Name).Replace(".", "");
+
+                var res = await Http.PostAsJsonAsync("api/games/uploadImage/", image);
+
+                if (res.IsSuccessStatusCode == true)
+                {
+                    string saved = await res.Content.ReadAsStringAsync();
+
+                    // הקובץ הקודם של הפופאפ הזה כבר לא בשימוש
+                    RememberUpload(saved);
+
+                    itemFile = saved;
+                }
+                else
+                {
+                    string error = await res.Content.ReadAsStringAsync();
+
+                    uploadMsg = error == "Image not valid"
+                        ? "הקובץ אינו תמונה תקינה"
+                        : "העלאת התמונה נכשלה, נסו שוב";
+                }
             }
         }
+        catch (IOException)
+        {
+            // OpenReadStream זורק את זה כשהקובץ גדול מהמגבלה
+            uploadMsg = "הקובץ גדול מדי. הגודל המרבי הוא 5 מגהבייט";
+        }
+        catch (Exception)
+        {
+            uploadMsg = "העלאת התמונה נכשלה, נסו שוב";
+        }
+        finally
+        {
+            isUploading = false;
+        }
+    }
+
+    // הגודל המרבי לקובץ שנקרא מהדפדפן
+    const int MaxUploadBytes = 5 * 1024 * 1024;
+
+    // ============================================================
+    // ניקוי תמונות שהועלו ולא נשמרו.
+    //
+    // התמונה עולה לשרת ברגע הבחירה, עוד לפני שהשאלה נשמרת. ולכן
+    // כל ביטול, וכל החלפת תמונה בתוך הפופאפ, משאירים קובץ יתום
+    // בתיקייה. הרשימה הזאת זוכרת מה הועלה בפופאפ הנוכחי, וכשהוא
+    // נסגר נמחק כל מה שלא נבחר בסוף.
+    //
+    // השרת מסרב למחוק קובץ שמופיע באיזושהי תשובה, ולכן תמונה
+    // שכבר בשימוש מוגנת גם אם משהו כאן ישתבש
+    // ============================================================
+    List<string> uploadedInPopup = new List<string>();
+
+    void RememberUpload(string fileName)
+    {
+        if (string.IsNullOrWhiteSpace(fileName) == true) return;
+
+        if (uploadedInPopup.Contains(fileName) == false) uploadedInPopup.Add(fileName);
+    }
+
+    // מוחקת מהשרת את מה שהועלה בפופאפ ולא נשמר.
+    // keep הוא הקובץ שנבחר בסוף, או ריק כשבוטל הכול
+    async Task CleanUploads(string keep)
+    {
+        foreach (string name in uploadedInPopup)
+        {
+            if (name == keep) continue;
+
+            // הקובץ המקורי של פריט שנערך אינו שלנו למחוק
+            if (name == origItemFile) continue;
+
+            try
+            {
+                await Http.DeleteAsync("api/games/deleteImage/" + name);
+            }
+            catch (Exception)
+            {
+                // ניקוי שנכשל אינו סיבה לעצור את העורכת
+            }
+        }
+
+        uploadedInPopup.Clear();
     }
 
 
@@ -628,6 +735,9 @@
 
         isItemPopupOpen = false;
 
+        // כל מה שהועלה בפופאפ ולא נבחר בסוף - מיותר עכשיו
+        await CleanUploads(answer.IsImage == true ? answer.Content : "");
+
         await OnItemsChanged.InvokeAsync();
     }
 
@@ -653,8 +763,9 @@
     // מחיקת פריט
     // ==========================================================
 
-    // לפי האפיון שאלה מכילה לפחות שלושה פריטים,
-    // ולכן אי אפשר למחוק את השלישי
+    // מותר למחוק כל פריט כל עוד נשאר לפחות אחד.
+    // מגבלת שלושת הפריטים היא תנאי לפרסום ולא לשמירה: שאלה עם
+    // פחות משלושה פריטים נשמרת כטיוטה, והמשחק לא ניתן לפרסום
     bool CanRemove()
     {
         return Question.Answers.Count > 0;

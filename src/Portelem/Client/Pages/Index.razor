@@ -8,6 +8,8 @@
    מדורג מרכיב האב, ולכן אין בעמוד קריאת API כלל
    ========================================================== *@
 
+@inject IConfiguration _config
+
 <PageTitle>יער הידע</PageTitle>
 
 @* מעטפת העמוד. כל התוכן שבתוכה נקבע לפי מצב ההתחברות *@
@@ -38,10 +40,11 @@
                 כדי ליצור ולערוך משחקים יש להתחבר דרך הפורטל"מ
             </p>
 
-            @* כיתוב הכפתור מפנה לפורטל, אך היעד בפועל הוא רשימת המשחקים *@
-            <NavLink class="btn-second home-link" href="./GamesList">
+            @* קישור חיצוני לפורטל"מ, ולכן a ולא NavLink: NavLink
+               מיועד לניווט פנימי בתוך האתר *@
+            <a class="btn-second home-link" href="@_config["portelem:mainUrl"]">
                 מעבר לפורטל״מ
-            </NavLink>
+            </a>
         </NotAuthorized>
 
     </AuthorizeView>

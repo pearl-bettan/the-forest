@@ -140,6 +140,45 @@ namespace Data
         // בשימוש בהוספת משחק ובהוספת שאלה, ששם צריך את המזהה
         // כדי לקשר אליו את הפריטים
         // ============================================================
+        // ============================================================
+        // מריץ כמה שאילתות כתיבה כיחידה אחת.
+        //
+        // או שכולן נכתבות, או שאף אחת. עריכת שאלה מוחקת את הפריטים
+        // הקיימים ואז כותבת אותם מחדש, ותקלה באמצע הייתה משאירה
+        // את השאלה בלי פריטים כלל.
+        //
+        // הרשימה היא זוגות של שאילתה והפרמטרים שלה, לפי הסדר
+        // ============================================================
+        public async Task RunBatchAsync(List<KeyValuePair<string, object>> statements)
+        {
+            if (statements == null || statements.Count == 0) return;
+
+            OpenConnection();
+
+            using (IDbTransaction transaction = _dbConnection.BeginTransaction())
+            {
+                try
+                {
+                    foreach (KeyValuePair<string, object> statement in statements)
+                    {
+                        await _dbConnection.ExecuteAsync(
+                            statement.Key, statement.Value, transaction,
+                            commandType: CommandType.Text);
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception)
+                {
+                    transaction.Rollback();
+                    CloseConnection();
+                    throw;
+                }
+            }
+
+            CloseConnection();
+        }
+
         public async Task<int> InsertReturnIdAsync(string query, object parameters = null)
         {
             try

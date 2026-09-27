@@ -1,4 +1,4 @@
-@attribute [Authorize]
+﻿@attribute [Authorize]
 @page "/GamesList"
 
 @using AuthTemplate.Shared.Models.Games
@@ -474,11 +474,11 @@
 
             if (gamesRes.IsSuccessStatusCode == true)
             {
-                MyGamesList = gamesRes.Content.ReadFromJsonAsync<List<GameToTable>>().Result;
+                MyGamesList = await gamesRes.Content.ReadFromJsonAsync<List<GameToTable>>();
             }
             else
             {
-                string error = gamesRes.Content.ReadAsStringAsync().Result;
+                string error = await gamesRes.Content.ReadAsStringAsync();
                 ShowError(error);
             }
 
@@ -586,7 +586,7 @@
 
         if (newGameRes.IsSuccessStatusCode == true)
         {
-            GameToTable newGame = newGameRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            GameToTable newGame = await newGameRes.Content.ReadFromJsonAsync<GameToTable>();
 
             isPopupOpen = false;
             msg = "";
@@ -595,7 +595,7 @@
         }
         else
         {
-            string error = newGameRes.Content.ReadAsStringAsync().Result;
+            string error = await newGameRes.Content.ReadAsStringAsync();
             ShowError(error);
         }
     }
@@ -667,13 +667,13 @@
 
         if (publishRes.IsSuccessStatusCode == true)
         {
-            GameToTable updatedGame = publishRes.Content.ReadFromJsonAsync<GameToTable>().Result;
+            GameToTable updatedGame = await publishRes.Content.ReadFromJsonAsync<GameToTable>();
             UpdateGameInList(updatedGame);
             msg = "";
         }
         else
         {
-            string error = publishRes.Content.ReadAsStringAsync().Result;
+            string error = await publishRes.Content.ReadAsStringAsync();
             ShowError(error);
         }
     }
@@ -717,7 +717,7 @@
         }
         else
         {
-            string error = deleteRes.Content.ReadAsStringAsync().Result;
+            string error = await deleteRes.Content.ReadAsStringAsync();
             gameToDelete = null;
             ShowError(error);
         }
@@ -770,6 +770,12 @@
                 break;
             case "Game not deleted":
                 msg = "אירעה תקלה במחיקת המשחק";
+                break;
+
+            // שגיאה שלא הוגדרה כאן, למשל תקלת שרת. בלי המקרה
+            // הזה העורכת לא הייתה מקבלת שום חיווי
+            default:
+                msg = "אירעה תקלה, נסו שוב";
                 break;
         }
     }
