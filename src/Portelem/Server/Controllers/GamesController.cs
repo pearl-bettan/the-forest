@@ -5,25 +5,8 @@ using AuthTemplate.Shared.Models.Games;
 
 namespace AuthTemplate.Server.Controllers
 {
-    // ============================================================
-    // הבקר המרכזי של המחולל: כל מה שעורכת עושה עם משחקים,
-    // שאלות, פריטים ותמונות עובר כאן.
-    //
-    // מבנה הנתונים בשלוש רמות:
-    //   Games   - משחק, ולו קוד שהשחקן מקליד
-    //   Stages  - שאלה במשחק. בקוד ובמסכים היא "שאלה",
-    //             בבסיס הנתונים וביוניטי היא "שלב"
-    //   Answers - פריט בודד שהשחקן מסדר, עם המקום הנכון שלו
-    //
-    // [ServiceFilter(typeof(AuthCheck))] חל על כל הבקר, ולכן כל
-    // פעולה כאן מקבלת את authUserId כפרמטר ראשון. הפרמטר הזה
-    // אינו מגיע מהלקוח אלא מוזרק מהטוקן, ולכן אי אפשר לזייף אותו.
-    //
-    // כלל שחוזר בכל פעולה: לפני כל נגיעה בנתונים נבדק שהמשחק
-    // או השאלה אכן שייכים למשתמש המחובר, דרך IsMyGame או
-    // IsMyQuestion. בלי זה כל אחד היה יכול לערוך משחק של אחר
-    // רק בכך שינחש מזהה
-    // ============================================================
+    // המחלקה הראשית - ניהול המשחקים
+   
     [Route("api/[controller]")]
     [ApiController]
     //בדיקה שהמשתמש מחובר
@@ -37,7 +20,6 @@ namespace AuthTemplate.Server.Controllers
         //שמירת קבצי תמונה בשרת
         private readonly FilesManage _files;
 
-        // שתי התלויות של הבקר: בסיס הנתונים וניהול קבצי התמונות
         public GamesController(DbRepository db, FilesManage files)
         {
             _db = db;
@@ -45,23 +27,20 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // מחזיר את טבלת "המשחקים שלי": GET api/Games
-        // רק המשחקים של המשתמש המחובר, עם ספירת השאלות לכל אחד
-        //שליפת כל המשחקים של המשתמש המחובר
+        // מחזיר את טבלת המשחקים של המשתמש המחובר
         [HttpGet]
         public async Task<IActionResult> GetUserGames(int authUserId)
         {
             //בדיקה שיש משתמש מחובר
             if (authUserId > 0)
             {
-                //יצירת פרמטר עם המזהה של המשתמש
+                //שמירת המזהה של המשתמש
                 object param = new
                 {
                     UserId = authUserId
                 };
 
                 //שליפת המשחקים של המשתמש.
-                //מספר השלבים נספר בתת-שאילתה, כך שגם משחק ללא שלבים יוחזר
                 string gameQuery = "SELECT Id, GameName, GameCode, TimePerQuestion, IsPublish, CanPublish, " +
                                    "(SELECT COUNT(*) FROM Stages WHERE Stages.GameId = Games.Id) AS QuestionsCount " +
                                    "FROM Games WHERE UserId = @UserId";
@@ -69,7 +48,7 @@ namespace AuthTemplate.Server.Controllers
                 var gamesRecords = await _db.GetRecordsAsync<GameToTable>(gameQuery, param);
                 List<GameToTable> GamesList = gamesRecords.ToList();
 
-                //במידה ויש משחקים - החזרתם
+                //אם יש משחקים למשתמש  - בודקים כל משחק אם ניתן לפרסום
                 if (GamesList.Count > 0)
                 {
                     //עדכון תנאי הפרסום של כל משחק, כדי שהטבלה תציג מצב מעודכן
@@ -91,11 +70,7 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // מחזיר משחק אחד לעמוד העריכה: GET api/Games/{gameId}
-        // מחזיר שגיאה גם כשהמשחק קיים אך שייך למשתמש אחר, כדי
-        // לא לחשוף שהמזהה הזה תפוס
-        //שליפת משחק אחד לפי המזהה שלו, עבור מסך העורך
+        //שליפת משחק  לפי המזהה שלו
         [HttpGet("{gameId}")]
         public async Task<IActionResult> GetOneGame(int authUserId, int gameId)
         {
@@ -125,9 +100,6 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // יוצר משחק חדש: POST api/Games/addGame
-        // קוד המשחק נקבע בשרת ולא מגיע מהלקוח, כדי שיהיה ייחודי
         //הוספת משחק חדש
         [HttpPost("addGame")]
         public async Task<IActionResult> AddGames(int authUserId, GameToAdd gameToAdd)
@@ -136,7 +108,6 @@ namespace AuthTemplate.Server.Controllers
             if (authUserId > 0)
             {
                 //יצירת משחק חדש עם ערכי ברירת מחדל.
-                //קוד המשחק יהיה 0 בינתיים - נעדכן אותו מיד אחרי שנקבל את המזהה
                 object newGameParam = new
                 {
                     GameName = gameToAdd.GameName,
@@ -209,16 +180,13 @@ namespace AuthTemplate.Server.Controllers
 
                 string updateQuery = "UPDATE Games SET GameName = @GameName, TimePerQuestion = @TimePerQuestion WHERE Id = @ID";
                 int isUpdate = await _db.SaveDataAsync(updateQuery, param);
-
-                // הזמן נשמר גם על כל שאלה בטבלת Stages, וזה מה שהמשחק ביוניטי
-                // קורא. בלי העדכון הזה שינוי הזמן חל רק על שאלות חדשות,
-                // והשאלות הקיימות ממשיכות לרוץ עם הזמן הישן
+                // שמירת הזמן בבסיס הנתונים
                 string updateStagesQuery = "UPDATE Stages SET StageTime = @TimePerQuestion WHERE GameId = @ID";
                 await _db.SaveDataAsync(updateStagesQuery, param);
 
                 if (isUpdate > 0)
                 {
-                    //החזרת המשחק המעודכן, כדי שהטבלה תציג את הערכים החדשים
+                    // החזרת המשחק המעודכן
                     GameToTable updatedGame = await GetGameById(gameToEdit.ID);
                     return Ok(updatedGame);
                 }
@@ -231,14 +199,6 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // ============================================================
-        // מחליף את מצב הפרסום: PUT api/Games/publishGame/{gameId}
-        //
-        // פרסום הוא מה שהופך משחק לזמין לשחקנים - UnityController
-        // מגיש רק משחקים מפורסמים. לכן תנאי הפרסום נבדקים כאן
-        // בשרת ולא רק במסך, כדי שקריאה ישירה ל-API לא תעקוף אותם
-        // ============================================================
         //שינוי מצב הפרסום של משחק
         [HttpPut("publishGame/{gameId}")]
         public async Task<IActionResult> PublishGame(int authUserId, int gameId)
@@ -257,11 +217,10 @@ namespace AuthTemplate.Server.Controllers
                 //שליפת המצב הנוכחי של המשחק
                 GameToTable game = await GetGameById(gameId);
 
-                //המצב החדש הוא ההפך מהמצב הנוכחי
+                //החלפת מצב הפרסום
                 bool newValue = !game.IsPublish;
 
                 //בדיקת עמידה בתנאי הפרסום.
-                //כיבוי הפרסום מותר תמיד, הדלקה רק אם המשחק תקין
                 bool canPublish = await CheckCanPublish(gameId);
 
                 if (newValue == true && canPublish == false)
@@ -294,15 +253,7 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // מוחק משחק: DELETE api/Games/deleteGame/{gameId}
-        //
-        // השאלות והפריטים נמחקים מאליהם בזכות מחיקה מדורגת -
-        // ולכן חשוב ש-PRAGMA foreign_keys נדלק ב-DbRepository.
-        // קבצי התמונות אינם חלק מבסיס הנתונים ולכן נמחקים כאן
-        // במפורש, אחרת היו נשארים יתומים בתיקייה לנצח
-        // ============================================================
-        //מחיקת משחק. השלבים והתשובות נמחקים אוטומטית בזכות ה-CASCADE
+       // מחיקת משחק 
         [HttpDelete("deleteGame/{gameId}")]
         public async Task<IActionResult> DeleteGame(int authUserId, int gameId)
         {
@@ -318,7 +269,7 @@ namespace AuthTemplate.Server.Controllers
                 //אוספים את שמות הקבצים לפני המחיקה, אחריה כבר אי אפשר לשלוף אותם
                 List<string> images = await GetGameImages(gameId);
 
-                //התנאי על UserId מוודא שעורך לא יוכל למחוק משחק של עורך אחר
+                // בדיקה שהמשחק שייך למשתמש שמחובר
                 string deleteQuery = "DELETE FROM Games WHERE Id = @ID AND UserId = @UserId";
                 int isDelete = await _db.SaveDataAsync(deleteQuery, param);
 
@@ -338,11 +289,6 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // ==========================================================
-        // שאלות
-        // ==========================================================
-
         //שליפת כל השאלות של משחק, כולל הפריטים של כל שאלה
         [HttpGet("{gameId}/questions")]
         public async Task<IActionResult> GetQuestions(int authUserId, int gameId)
@@ -356,9 +302,7 @@ namespace AuthTemplate.Server.Controllers
                     return BadRequest("Game not found");
                 }
 
-                //השאלות מוחזרות לפי הסדר שקבע העורך
-                // המיון המשני לפי Id מבטיח סדר יציב גם במשחקים ישנים
-                // שבהם קיימות שתי שאלות עם אותו StageOrder
+                //השאלות מוחזרות לפי הסדר 
                 string questionsQuery = "SELECT Id, GameId, LeftTag, RightTag, StageOrder AS QuestionOrder " +
                                         "FROM Stages WHERE GameId = @GameId ORDER BY StageOrder, Id";
 
@@ -385,15 +329,6 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // ============================================================
-        // מוסיף שאלה למשחק: POST api/Games/addQuestion
-        //
-        // השאלה והפריטים שלה נשמרים יחד: קודם השאלה, כדי לקבל
-        // את המזהה שלה, ואז הפריטים שמצביעים עליו.
-        // בסיום נקרא SyncPublishState, כי הוספת שאלה חסרה עלולה
-        // להוציא משחק מפורסם ממצב שניתן לפרסום
-        // ============================================================
         //הוספת שאלה חדשה
         [HttpPost("addQuestion")]
         public async Task<IActionResult> AddQuestion(int authUserId, QuestionToEdit question)
@@ -412,7 +347,7 @@ namespace AuthTemplate.Server.Controllers
                     question.Answers = new List<AnswerToEdit>();
                 }
 
-                //בסצנת היוניטי יש 10 אבנים, ולכן זו המגבלה
+               // בתכנון ועיצוב המשחק יש 10 אבנים 
                 if (question.Answers.Count > 10)
                 {
                     return BadRequest("Too many answers");
@@ -431,14 +366,7 @@ namespace AuthTemplate.Server.Controllers
                 //זמן השאלה נלקח מההגדרות הכלליות של המשחק
                 GameToTable game = await GetGameById(question.GameId);
 
-                // ============================================================
-                // השאלה החדשה נכנסת בסוף הרשימה.
-                //
-                // הסדר נגזר מהמקסימום הקיים ולא מספירת השורות: אחרי
-                // מחיקת שאלה הספירה יורדת, והשאלה הבאה הייתה מקבלת
-                // מספר סדר שכבר תפוס. אז שתי שאלות מקבלות אותו סדר
-                // ו-ORDER BY מפסיק להיות חד-משמעי
-                // ============================================================
+                // השאלה החדשה נכנסת בסוף הרשימה.               
                 var orders = await _db.GetRecordsAsync<int>(
                     "SELECT COALESCE(MAX(StageOrder), 0) + 1 FROM Stages WHERE GameId = @GameId",
                     new { GameId = question.GameId });
@@ -469,7 +397,7 @@ namespace AuthTemplate.Server.Controllers
                 question.ID = questionId;
                 question.QuestionOrder = questionOrder;
 
-                //אחרי הוספת שאלה - עדכון מצב הפרסום (טיוטה מורידה מפרסום)
+                //אחרי הוספת שאלה - עדכון מצב הפרסום 
                 await SyncPublishState(question.GameId);
 
                 return Ok(question);
@@ -480,15 +408,6 @@ namespace AuthTemplate.Server.Controllers
             }
         }
 
-
-        // ============================================================
-        // מעדכן שאלה קיימת: PUT api/Games/editQuestion
-        //
-        // הפריטים אינם מעודכנים אחד-אחד אלא נמחקים ונכתבים מחדש
-        // מהרשימה שהגיעה. זה פשוט יותר מהשוואת רשימות, ומבטיח
-        // שהמקום הנכון של כל פריט תואם לסדר שבמסך.
-        // לפני הכתיבה נמחקים קבצי התמונות שכבר אינם בשימוש
-        // ============================================================
         //עדכון שאלה קיימת והפריטים שלה
         [HttpPut("editQuestion")]
         public async Task<IActionResult> EditQuestion(int authUserId, QuestionToEdit question)
@@ -527,22 +446,14 @@ namespace AuthTemplate.Server.Controllers
                 //שמות קבצי התמונות שהיו בשאלה לפני העריכה
                 List<string> oldImages = await GetQuestionImages(question.ID);
 
-                //הפריטים נכתבים מחדש, כדי שהמקומות יישארו רציפים ולפי
-                //הסדר שבמסך. המחיקה והכתיבה רצות יחד כיחידה אחת
+                // שמירה בבסיס הנתונים
                 await _db.RunBatchAsync(
                     AnswerStatements(question.ID, question.Answers, true));
 
-                //תמונה שהוחלפה או שהפריט שלה נמחק - הקובץ שלה מיותר עכשיו.
-                //מוחקים אותו כדי שתיקיית התמונות תישאר מסונכרנת עם בסיס הנתונים
+                //  מחיקת קובץ התמונה שנמחקה
                 DeleteUnusedImages(oldImages, question.Answers);
 
-                // ============================================================
-                // המשחק נשלף מבסיס הנתונים ולא נלקח מהבקשה.
-                //
-                // הבעלות נבדקה לפי מזהה השאלה, ולכן GameId שהגיע מהלקוח
-                // אינו מאומת. הוא משמש רק לעדכון מצב הפרסום, אבל ערך
-                // שגוי היה מעדכן משחק אחר
-                // ============================================================
+                // המשחק נשלף מבסיס הנתונים     
                 int gameId = await GetQuestionGameId(question.ID);
 
                 if (gameId > 0) await SyncPublishState(gameId);
@@ -556,7 +467,7 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        //מחיקת שאלה. הפריטים נמחקים אוטומטית בזכות ה-CASCADE
+        //מחיקת שאלה
         [HttpDelete("deleteQuestion/{questionId}")]
         public async Task<IActionResult> DeleteQuestion(int authUserId, int questionId)
         {
@@ -569,7 +480,7 @@ namespace AuthTemplate.Server.Controllers
                     return BadRequest("Question not found");
                 }
 
-                //אוספים את שמות הקבצים לפני המחיקה, אחריה כבר אי אפשר לשלוף אותם
+                //אוספים את שמות הקבצים לפני המחיקה
                 List<string> images = await GetQuestionImages(questionId);
 
                 //שומרים את מזהה המשחק לפני המחיקה, לצורך עדכון מצב הפרסום
@@ -597,11 +508,7 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // מעלה תמונה לפריט: POST api/Games/uploadImage
-        // מוחזר שם הקובץ בלבד, והוא זה שנשמר בעמודת התוכן של
-        // הפריט. התמונה עצמה יושבת כקובץ תחת wwwroot
-        //העלאת תמונה עבור פריט תשובה.
-        //הקובץ נשמר בתיקיית uploadedFiles, ומוחזר שמו כדי שיישמר בבסיס הנתונים
+        // מעלה תמונה
         [HttpPost("uploadImage")]
         public async Task<IActionResult> UploadImage(int authUserId, ImageToUpload image)
         {
@@ -613,12 +520,7 @@ namespace AuthTemplate.Server.Controllers
                 }
 
                 string fileName;
-
-                // ============================================================
-                // קובץ פגום, פורמט שאינו תמונה, או base64 שבור - כל אלה
-                // גורמים ל-Image.Load לזרוק חריגה. בלי הטיפול כאן הלקוח
-                // מקבל 500 בלי הסבר, והעורכת רואה פופאפ שנתקע
-                // ============================================================
+                // שמירת התמונה פורמט base64
                 try
                 {
                     fileName = await _files.SaveFile(image.ImageBase64, image.Extension, "uploadedFiles");
@@ -642,15 +544,8 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ==========================================================
-        // שיטות עזר
-        // ==========================================================
-
-        // ==========================================================
-        // ניהול קבצי התמונות
-        // תיקיית uploadedFiles חייבת להישאר מסונכרנת מול בסיס הנתונים,
-        // ולכן כל מחיקה או החלפה של תמונה מוחקת גם את הקובץ שכבר לא בשימוש
-        // ==========================================================
+        
+        // פונקציות עזר
 
         //שמות קבצי התמונות של שאלה אחת
         private async Task<List<string>> GetQuestionImages(int questionId)
@@ -695,7 +590,7 @@ namespace AuthTemplate.Server.Controllers
                 return;
             }
 
-            //שמות הקבצים שנשארו בשימוש אחרי העריכה
+            //שמות הקבצים שבשימוש 
             HashSet<string> stillUsed = new HashSet<string>();
 
             if (newAnswers != null)
@@ -740,28 +635,14 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // כותבת את פריטי השאלה.
-        //
-        // המקום הנכון אינו שדה שהעורכת מזינה אלא נגזר מהמיקום
-        // ברשימה: הפריט הראשון מקבל מקום ראשון וכן הלאה. לכן
-        // שינוי סדר במסך הוא כל מה שצריך כדי לשנות את התשובה
-        // הנכונה, ואין שדה נפרד שעלול לצאת מסנכרון
-        // ============================================================
-        //שמירת הפריטים של שאלה.
-        //המקום הנכון נקבע לפי הסדר ברשימה שהגיעה מהעורך
+
+        //שמירת פרטי השאלה
         private async Task SaveAnswers(int questionId, List<AnswerToEdit> answers)
         {
             await _db.RunBatchAsync(AnswerStatements(questionId, answers));
         }
 
-        // ============================================================
-        // בונה את פקודות הכתיבה של פריטי השאלה.
-        //
-        // deleteFirst מוסיף מחיקה של הפריטים הקיימים בראש הרשימה,
-        // וכך העריכה כולה - מחיקה וכתיבה מחדש - רצה כיחידה אחת.
-        // בלי זה תקלה באמצע הייתה משאירה שאלה בלי פריטים בכלל
-        // ============================================================
+        // פונקציה שמחזירה רשימת של שמות פרמטרים לשמירת הפריטים של שאלה
         private List<KeyValuePair<string, object>> AnswerStatements(
             int questionId, List<AnswerToEdit> answers, bool deleteFirst = false)
         {
@@ -792,18 +673,7 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // מוחק קובץ תמונה שהועלה ולא נשמר בסופו של דבר:
-        // DELETE api/Games/deleteImage/{fileName}
-        //
-        // העורך מעלה את התמונה לשרת ברגע הבחירה, עוד לפני שהשאלה
-        // נשמרת. בלי הניקוי הזה כל ביטול וכל החלפת תמונה בפופאפ
-        // משאירים קובץ יתום בתיקייה לתמיד.
-        //
-        // ההגנה החשובה: קובץ שמופיע באיזושהי תשובה בבסיס הנתונים
-        // לא יימחק. בלעדיה אפשר היה לשלוח שם של תמונה בשימוש
-        // ולמחוק אותה ממשחק של מישהו אחר
-        // ============================================================
+        //פונקציה למחיקת קובץ שהועלה ולא נשמר 
         [HttpDelete("deleteImage/{fileName}")]
         public async Task<IActionResult> DeleteImage(int authUserId, string fileName)
         {
@@ -832,7 +702,7 @@ namespace AuthTemplate.Server.Controllers
             return Ok("deleted");
         }
 
-        // מחזירה את המשחק שאליו שייכת השאלה, או 0 אם אינה קיימת
+        // פונקציה שמחזירה את המשחק שאליו שייכת השאלה, או 0 אם אינה קיימת
         private async Task<int> GetQuestionGameId(int questionId)
         {
             var rows = await _db.GetRecordsAsync<int>(
@@ -878,7 +748,7 @@ namespace AuthTemplate.Server.Controllers
             var gameRecord = await _db.GetRecordsAsync<GameToTable>(gameQuery, param);
             GameToTable game = gameRecord.FirstOrDefault();
 
-            //תנאי הפרסום מחושבים ולא נשלפים, כדי שהערך תמיד יהיה מעודכן
+            // חישוב תנאי הפרסום של המשחק 
             if (game != null)
             {
                 game.CanPublish = await CheckCanPublish(gameId);
@@ -909,21 +779,8 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // מעדכנת את שני דגלי הפרסום אחרי כל שינוי בשאלות.
-        //
-        // CanPublish - האם המשחק עומד בתנאים
-        // IsPublish  - האם הוא מפורסם בפועל
-        //
-        // המעבר הוא חד-כיווני בכוונה: משחק שחדל לעמוד בתנאים
-        // יורד מפרסום מיד, אבל משחק שחזר לעמוד בהם אינו עולה
-        // לפרסום מאליו - העורכת צריכה לפרסם אותו שוב.
-        //
-        // בלי הקריאה הזו אחרי כל הוספה, עריכה ומחיקה של שאלה,
-        // משחק מפורסם היה יכול להישאר מוגש לשחקנים במצב שבור
-        // ============================================================
-        //סנכרון מצב הפרסום אחרי שינוי בשאלות.
-        //אם משחק מפורסם כבר לא עומד בתנאים (למשל נוצרה טיוטה) - מורידים אותו מפרסום
+ 
+        //עדכון מצב הפרסום אחרי שינוי בשאלות
         private async Task SyncPublishState(int gameId)
         {
             bool canPublish = await CheckCanPublish(gameId);
@@ -950,14 +807,7 @@ namespace AuthTemplate.Server.Controllers
         }
 
 
-        // ============================================================
-        // בודקת אם המשחק עומד בתנאי הפרסום שבאפיון:
-        //   1. לפחות שלוש שאלות במשחק
-        //   2. אין אף שאלה עם פחות משלושה פריטים
-        //
-        // התנאי השני נבדק בשאילתה אחת עם תת-שאילתה, ולא בלולאה
-        // על השאלות, כדי לא לפנות לבסיס הנתונים פעם לכל שאלה
-        // ============================================================
+       // בדיקת עמידה בתנאי הפרסום 
         private async Task<bool> CheckCanPublish(int gameId)
         {
             object param = new

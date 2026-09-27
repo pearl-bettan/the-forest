@@ -24,7 +24,6 @@
   </ItemGroup>
 
 
-  <!-- קובץ ה-DB של SQLite: נכלל בפרסום ומועתק לתיקיית ההרצה -->
   <ItemGroup>
     <None Remove="FinalProjectDB.db" />
     <Content Include="FinalProjectDB.db">
@@ -33,7 +32,6 @@
     </Content>
   </ItemGroup>
 
-  <!-- קביעת <base href> בפרסום: dotnet publish -c Release -p:BaseHref=/FinalProject/ -->
   <UsingTask TaskName="SetBaseHref"
              TaskFactory="RoslynCodeTaskFactory"
              AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll">

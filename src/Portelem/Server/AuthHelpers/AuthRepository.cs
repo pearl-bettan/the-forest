@@ -8,17 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace UsersManager.Server
 {
-    // ============================================================
-    // כל לוגיקת ההתחברות שמאחורי AuthController.
-    //
-    // הבקר מטפל ב-HTTP ובתקשורת מול פורטלם, והמחלקה הזו מטפלת
-    // במשתמש עצמו: איתור בבסיס הנתונים, רישום, הנפקת טוקן,
-    // חידושו והתנתקות.
-    //
-    // כל שגרה כאן עוטפת את עצמה ב-try: כישלון מוחזר כקוד תוצאה
-    // ולא כחריגה, כדי שהבקר יוכל להחזיר תשובת HTTP מתאימה
-    // ============================================================
-    //ניהול תהליכי התחברות
     public class AuthRepository
     {
         private readonly TokenService _tokenService;
@@ -40,17 +29,6 @@ namespace UsersManager.Server
         }
 
 
-        // ============================================================
-        // מאתר משתמש קיים לפי הדוא"ל ומנפיק לו טוקן.
-        //
-        // מחזיר NoUser אם אין משתמש כזה - וזה אינו כישלון אלא
-        // הסימן ל-AuthController שצריך לרשום את המשתמש עכשיו.
-        //
-        // ההשוואה היא COLLATE NOCASE: פורטלם עשוי להחזיר את אותו
-        // דוא"ל באותיות גדולות או קטנות, ובלי זה אותו אדם היה
-        // נספר כשני משתמשים שונים
-        // ============================================================
-        //התחברות
         public async Task<string> Login(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -65,20 +43,17 @@ namespace UsersManager.Server
                 {
                     Email = email
                 };
-                //שליפת פרטי המשתמש
-                //COLLATE NOCASE כדי ששינוי אותיות גדולות/קטנות במייל
-                //שמגיע מהפורטל"מ לא ייצור משתמש חדש
+            
                 string query = "SELECT Id, FirstName, LastName, Email FROM Users WHERE Email = @Email COLLATE NOCASE";
                 UserFromDB userFromDB = (await _db.GetRecordsAsync<UserFromDB>(query, user)).FirstOrDefault();
 
-                //אם המשתמש לא קיים
                 if (userFromDB == null)
                 {
                     _logger.LogInformation("Login: User not found with email {Email}", email);
                     return AuthConstants.NoUser;
                 }
 
-                var token = CreateToken(userFromDB); //יצירת TOKEN
+                var token = CreateToken(userFromDB);
                 _logger.LogInformation("Login: User {UserId} logged in successfully", userFromDB.Id);
                 return token;
             }
@@ -89,24 +64,7 @@ namespace UsersManager.Server
             }
         }
 
-        // ============================================================
-        // רושם משתמש חדש, או משייך מחדש משתמש קיים, ומנפיק טוקן.
-        //
-        // בפועל זו פעולת "עדכן או הוסף" בשלושה מסלולים, לפי הסדר:
-        //
-        //   1. קיים לפי PortelemId - מרעננים לו את הדוא"ל והשם.
-        //      זה המסלול של מי ששינה את פרטיו בפורטלם.
-        //   2. קיים לפי דוא"ל אבל בלי PortelemId - משלימים לו
-        //      את המזהה. זה המסלול של משתמש ותיק מלפני החיבור
-        //      לפורטלם.
-        //   3. לא קיים בכלל - הוספה חדשה.
-        //
-        // הסדר הזה הוא לב העניין: בטבלה יש אילוץ ייחודיות גם על
-        // הדוא"ל וגם על PortelemId. חיפוש לפי דוא"ל בלבד היה
-        // יוצר נעילה הדדית - ההתחברות לא מוצאת את המשתמש לפי
-        // הדוא"ל החדש, וההוספה נכשלת כי המזהה כבר תפוס
-        // ============================================================
-        //הרשמה
+
         public async Task<string> Signup(PortelemUser newUser)
         {
             if (newUser == null || string.IsNullOrWhiteSpace(newUser.Email))
@@ -117,12 +75,6 @@ namespace UsersManager.Server
 
             try
             {
-                //הזהות שמגיעה מהפורטל"מ היא PortelemId, לא המייל. לטבלה יש
-                //אילוץ ייחודיות על שני השדות, ולכן אם המייל בפורטל"מ השתנה
-                //ההכנסה הייתה נכשלת על PortelemId והמשתמש היה ננעל בחוץ:
-                //ההתחברות לא מוצאת אותו לפי המייל החדש, וההרשמה לא יכולה
-                //ליצור אותו כי המזהה כבר תפוס.
-                //לכן קודם מחפשים לפי המזהה, ואם הוא קיים מרעננים את הפרטים
                 UserFromDB byPortelemId = (await _db.GetRecordsAsync<UserFromDB>(
                         "SELECT Id, FirstName, LastName, Email FROM Users WHERE PortelemId = @PortelemId",
                         newUser))
@@ -144,8 +96,6 @@ namespace UsersManager.Server
                     return CreateToken(byPortelemId);
                 }
 
-                //שורה עם אותו מייל אבל בלי המזהה - משלימים לה אותו.
-                //אין סכנת התנגשות, כי כבר ווידאנו שאף שורה לא מחזיקה במזהה
                 UserFromDB byEmail = (await _db.GetRecordsAsync<UserFromDB>(
                         "SELECT Id, FirstName, LastName, Email FROM Users WHERE Email = @Email COLLATE NOCASE",
                         newUser))
@@ -174,7 +124,6 @@ namespace UsersManager.Server
                     return CreateToken(byEmail);
                 }
 
-                //משתמש חדש לגמרי - הכנסה לDB
                 string query =
                     "INSERT INTO Users (Email,FirstName,LastName,PortelemId) VALUES (@Email,@FirstName,@LastName,@PortelemId)";
 
@@ -193,7 +142,7 @@ namespace UsersManager.Server
                     Id = userID,
                 };
 
-                var token = CreateToken(userFromDb); //יצירת TOKEN
+                var token = CreateToken(userFromDb); 
                 _logger.LogInformation("Signup: User {UserId} signed up successfully", userID);
                 return token;
             }
@@ -204,17 +153,6 @@ namespace UsersManager.Server
             }
         }
 
-
-        // ============================================================
-        // מחדש את הטוקן שבבקשה הנוכחית.
-        //
-        // הטוקן נשלף מכותרת Authorization ולא מפרמטר, כדי שלא
-        // יהיה אפשר לבקש חידוש לטוקן של מישהו אחר.
-        //
-        // טוקן לא תקין גורר התנתקות מיידית: אם הוא ממילא פסול,
-        // עדיף לפסול אותו סופית מאשר להשאיר אותו תלוי באוויר
-        // ============================================================
-        //עדכון TOKEN שעומד לפוג
         public async Task<string> RefreshToken()
         {
             try
@@ -230,7 +168,6 @@ namespace UsersManager.Server
                     return AuthConstants.TokenInvalid;
                 }
 
-                //האם הטוקן תקין
                 var principal = _tokenService.ValidateToken(token);
                 if (principal == null)
                 {
@@ -256,27 +193,15 @@ namespace UsersManager.Server
             }
         }
 
-        // ============================================================
-        // מנתק את המשתמש בכך שהוא מוסיף את הטוקן לרשימה השחורה.
-        //
-        // מחיקת הטוקן מהדפדפן לבדה אינה מספיקה: מי שהעתיק אותו
-        // היה יכול להמשיך להשתמש בו עד שיפוג. כאן הוא נפסל בשרת.
-        //
-        // שגיאה נרשמת ביומן ואינה נזרקת, כי גם התנתקות שנכשלה
-        // חלקית לא צריכה להחזיר שגיאה למשתמש שכבר עזב
-        // ============================================================
-        //התנתקות
         public async Task Logout()
         {
             try
             {
-                //קבלת מזהה משתמש
                 var authorizationHeader = _context.HttpContext.Request.Headers["Authorization"].ToString();
                 var token = authorizationHeader.StartsWith(AuthConstants.BearerPrefix)
                     ? authorizationHeader.Substring(AuthConstants.BearerPrefix.Length).Trim()
                     : authorizationHeader;
                 
-                //הוספה לבלאקליסט
                 if (!string.IsNullOrWhiteSpace(token))
                 {
                     _tokenBlacklistService.AddToBlacklist(token);
@@ -293,16 +218,6 @@ namespace UsersManager.Server
             }
         }
 
-        // ============================================================
-        // מחזיר את פרטי המשתמש המחובר, כולם מתוך הטוקן עצמו.
-        //
-        // אין כאן פנייה לבסיס הנתונים בכוונה: הפרטים כבר יושבים
-        // בתביעות הטוקן, והוא חתום ולכן אי אפשר לזייף אותם.
-        //
-        // שלוש בדיקות לפני שמחזירים משהו: יש טוקן, הוא תקף, והוא
-        // לא נפסל בהתנתקות. כל כישלון מחזיר null
-        // ============================================================
-        //קבלת פרטי משתמש מהיוזר
         public async Task<User> GetUser()
         {
             try
@@ -312,7 +227,6 @@ namespace UsersManager.Server
                     ? authorizationHeader.Substring(AuthConstants.BearerPrefix.Length).Trim()
                     : authorizationHeader;
 
-                //אין טוקן
                 if (string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogWarning("GetUser: No token provided");
@@ -321,7 +235,6 @@ namespace UsersManager.Server
 
                 var principal = _tokenService.ValidateToken(token);
 
-                //אם טוקן לא תקין
                 if (principal == null)
                 {
                     _logger.LogWarning("GetUser: Invalid token");
@@ -329,14 +242,12 @@ namespace UsersManager.Server
                     return null;
                 }
 
-                //אם טוקן בבלאקליסט
                 if (_tokenBlacklistService.IsBlacklisted(token))
                 {
                     _logger.LogWarning("GetUser: Token is blacklisted");
                     return null;
                 }
 
-                //פירוק לClaims
                 var userIdClaim = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
                 if (string.IsNullOrWhiteSpace(userIdClaim) || !short.TryParse(userIdClaim, out short userId))
                 {
@@ -361,17 +272,6 @@ namespace UsersManager.Server
             }
         }
 
-        // ============================================================
-        // בונה את רשימת התביעות מתוך שורת המשתמש, ומנפיק טוקן.
-        //
-        // שגרת העזר שכל שלושת מסלולי ההרשמה וההתחברות מסתיימים
-        // בה, כדי שהטוקן ייבנה במקום אחד בלבד.
-        //
-        // NameId הוא המזהה הפנימי של המחולל - זה מה ש-AuthCheck
-        // יקרא בכל בקשה כדי לדעת מי המשתמש. שדות ריקים מוחלפים
-        // במחרוזת ריקה, כי תביעה עם ערך null נכשלת בבנייה
-        // ============================================================
-        //יצירת Claims 
         private string CreateToken(UserFromDB user)
         {
             if (user == null)
@@ -380,7 +280,7 @@ namespace UsersManager.Server
                 throw new ArgumentNullException(nameof(user));
             }
 
-            var claims = new List<Claim> // יצירת מזהה משתמש
+            var claims = new List<Claim> 
             {
                 new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
@@ -388,7 +288,7 @@ namespace UsersManager.Server
                 new Claim(JwtRegisteredClaimNames.FamilyName, user.LastName ?? string.Empty),
             };
 
-            var token = _tokenService.GenerateToken(claims); //יצירת TOKEN
+            var token = _tokenService.GenerateToken(claims);
             return token;
         }
     }
