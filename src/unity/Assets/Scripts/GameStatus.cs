@@ -141,7 +141,7 @@ public class GameStatus : MonoBehaviour
         pulseTarget.localScale = SafeScale() * (1f + grow);
     }
 
-    // רשת ביטחון: אם משום מה הגודל שנשמר הוא אפס, לא מכווצים את הטיימר
+    //  אם משום מה הגודל שנשמר הוא אפס, לא מכווצים את הטיימר
     private Vector3 SafeScale()
     {
         if (startScale == Vector3.zero) return Vector3.one;
@@ -150,12 +150,7 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // ============================================================
-    //  הטיימר: ממשק ציבורי
-    // ============================================================
-
     // הטיימר קפוא בזמן שהמצלמה מראה את האגם, ומתחיל לרוץ כשהיא חוזרת.
-    // כשהוא מתחיל, הוא פועם רגע כדי שהשחקן יראה שהזמן התחיל.
     public void SetFrozen(bool isFrozen)
     {
         if (frozen == isFrozen) return;
@@ -176,7 +171,6 @@ public class GameStatus : MonoBehaviour
     }
 
     // שלב ללא הגבלת זמן.
-    // אין מה להציג, ולכן השמש, האבן והמספר יורדים מהמסך לגמרי
     public void SetUnlimited(bool isUnlimited)
     {
         unlimited = isUnlimited;
@@ -193,16 +187,7 @@ public class GameStatus : MonoBehaviour
         }
     }
 
-    // ============================================================
-    // מעדכנת את תצוגת הזמן. נקראת מה-GameManager בכל פריים.
-    //
-    // מקבלת גם את הזמן שנותר וגם את הזמן הכולל, כי מיקום השמש
-    // הוא היחס ביניהם ולא ערך מוחלט. כך אותו קוד עובד לשאלה
-    // בת דקה ולשאלה בת שתי דקות.
-    //
-    // במצב ללא הגבלת זמן מוצג כיתוב קבוע במקום מספר, והשמש
-    // אינה זזה בכלל
-    // ============================================================
+
     public void ShowTime(float timeLeft, float totalTime)
     {
         // ללא הגבלת זמן - אין ספירה לאחור ואין שקיעה של השמש
@@ -217,11 +202,8 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // ============================================================
-    //  הטיימר: פנימי
-    // ============================================================
 
-    // בונה רשימה נקייה בלי תאים ריקים, פעם אחת
+    // בונה רשימה  בלי תאים ריקים
     private void BuildReadySprites()
     {
         readySprites = new List<Sprite>();
@@ -244,12 +226,11 @@ public class GameStatus : MonoBehaviour
         if (rock != null) rock.SetActive(show);
     }
 
-    // האבן לא תמיד מחוברת בעורך, ולכן מחפשים אותה גם לפי שם
+    // החיפוש אבן לפי שם
     private GameObject FindEmptyRock()
     {
         if (emptyRock != null) return emptyRock;
 
-        // השמש והאבן יושבות תחת אותו הורה
         Transform parent = sunImage != null ? sunImage.transform.parent : transform;
 
         if (parent == null) return null;
@@ -261,9 +242,7 @@ public class GameStatus : MonoBehaviour
         return emptyRock;
     }
 
-    // מחילה את המראה הדהוי של טיימר שעוד לא התחיל לרוץ:
-    // שמש שקופה למחצה ומספר אפור. זה החיווי לשחקן שהספירה
-    // עדיין לא רצה ואפשר להסתכל על השאלה בנחת
+   
     private void ApplyFrozenLook()
     {
         if (sunImage != null)
@@ -279,15 +258,7 @@ public class GameStatus : MonoBehaviour
         }
     }
 
-    // ============================================================
-    // מציגה את הספירה לאחור במספרים.
-    //
-    // Ceil ולא Floor: כך השחקן רואה "1" בשנייה האחרונה ולא "0",
-    // והאפס מופיע רק כשהזמן באמת נגמר.
-    //
-    // הצבע מעביר מידע נוסף - אפור לפני ההתחלה, ואזהרה בשניות
-    // האחרונות
-    // ============================================================
+    // הצגת  הספירה לאחור במספרים
     private void ShowNumbers(float timeLeft)
     {
         if (timerText == null) return;
@@ -313,10 +284,8 @@ public class GameStatus : MonoBehaviour
         }
     }
 
-    // בוחר את שלב השמש לפי הזמן שנשאר.
-    // השלב האחרון שמור לשניות האחרונות, וכל שאר השלבים
-    // נפרסים באופן שווה על כל הזמן שלפניהן. ככה השמש לא
-    // מגיעה לשקיעה בזמן שעוד נשארו עשרות שניות
+    // בחירת  שלב השמש לפי הזמן שנשאר
+  
     private void ShowSun(float timeLeft, float totalTime)
     {
         if (sunImage == null) return;
@@ -337,8 +306,7 @@ public class GameStatus : MonoBehaviour
         }
         else
         {
-            // כמה שניות שמורות לשלב האחרון. לא יותר מרבע מזמן השאלה,
-            // כדי שגם בשאלה קצרה הפריסה תישאר הגיונית
+            //  השניות השמורות לשלב האחרון
             float tail = Mathf.Min(lastSunSeconds, totalTime * 0.25f);
 
             if (timeLeft <= tail)
@@ -359,7 +327,7 @@ public class GameStatus : MonoBehaviour
 
                 if (index < 0) index = 0;
 
-                // השלב האחרון מגיע רק דרך התנאי שלמעלה
+                // השלב האחרון 
                 if (index > lastIndex - 1) index = lastIndex - 1;
             }
         }
@@ -377,11 +345,8 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // ============================================================
-    //  מד ההתקדמות: ממשק ציבורי
-    // ============================================================
-
-    // בונה את המד מחדש לפי מספר השאלות במשחק
+    // מד ההתקדמות
+    // בניית  המד מחדש לפי מספר השאלות במשחק
     public void Build(int questionCount)
     {
         FindAnchors();
@@ -400,8 +365,7 @@ public class GameStatus : MonoBehaviour
         beads.Add(startView);
         if (startView != null) startView.gameObject.SetActive(true);
 
-        // חרוזי האמצע: הראשון שבהם הוא תבנית המרכז עצמה,
-        // והשאר שכפולים שלה
+        // חרוזי האמצע
         int middleCount = total - 2;
 
         if (middleCount > 0 && centerView != null)
@@ -462,12 +426,7 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // ============================================================
-    //  מד ההתקדמות: פנימי
-    // ============================================================
-
     // מפזר את חרוזי האמצע במרווחים שווים בין שני הקצוות.
-    // הקצוות עצמם נשארים בדיוק במקום שנקבע להם בעורך
     private void Spread()
     {
         if (startView == null || endView == null) return;
@@ -501,9 +460,7 @@ public class GameStatus : MonoBehaviour
         return green == true ? middleGreen : middleGray;
     }
 
-    // אם העוגנים לא חוברו ב-Inspector, מאתרים אותם לפי השם.
-    // החיפוש עובר על כל הצאצאים ולא רק על הילדים הישירים, כי
-    // החרוזים יושבים תחת ProgressBar ולא ישירות תחת Menu
+    // חיםוש מד ההתקדמות לפי שם 
     private void FindAnchors()
     {
         if (startView == null) startView = FindByName("StartProgressBar");
@@ -511,8 +468,7 @@ public class GameStatus : MonoBehaviour
         if (endView == null) endView = FindByName("EndProgressBar");
     }
 
-    // מחפשת רכיב בן לפי שם, כולל בנים מכובים. משמשת לאיתור
-    // עוגני מד ההתקדמות כשהם לא חוברו ידנית באינספקטור
+    // חיםוש רכיב  לפי שם 
     private SpriteRenderer FindByName(string childName)
     {
         foreach (Transform child in GetComponentsInChildren<Transform>(true))
@@ -523,7 +479,7 @@ public class GameStatus : MonoBehaviour
         return null;
     }
 
-    // מדליקה או מכבה את שלושת עוגני מד ההתקדמות יחד
+    // מדליקים או מכבים את שלושת עוגני מד ההתקדמות 
     private void ShowAnchors(bool on)
     {
         if (startView != null) startView.gameObject.SetActive(on);
@@ -531,8 +487,7 @@ public class GameStatus : MonoBehaviour
         if (endView != null) endView.gameObject.SetActive(on);
     }
 
-    // מוחקת את החרוזים שנוצרו בבנייה הקודמת. נקראת לפני כל
-    // בנייה מחדש, אחרת חרוזים של משחק קודם היו נשארים על המסך
+    // ניקוי החרוזים שנוצרו בבנייה הקודמת
     private void ClearClones()
     {
         for (int i = 0; i < clones.Count; i++)
@@ -545,10 +500,7 @@ public class GameStatus : MonoBehaviour
         clones.Clear();
     }
 
-
-    // ============================================================
-    //  בדיקת חיווט. רצה פעם אחת ב-Start
-    // ============================================================
+    // בדיקת האיתחול של האוביקטים בסצנה
     private void CheckSetup()
     {
         if (timerText == null)
