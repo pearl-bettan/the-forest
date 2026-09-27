@@ -3,8 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 
-// מנהל המשחק. מחלקות הנתונים שלו נמצאות ב-GameData.cs
-
+// מנהל המשחק
 
 public class GameManager : MonoBehaviour
 {
@@ -19,27 +18,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] string pauseScene = "Pause";
     [SerializeField] string endScene = "End";
 
-    // סצנת סרטון הניצחון. נטענת במקום סצנת הסיום כשהמשחק
-    // הסתיים בניצחון, והיא זו שטוענת את סצנת הסיום בסיומה.
-    // ריק = עוברים ישר לסצנת הסיום בלי סרטון
+    // סצנת סרטון הניצחון
     [SerializeField] string winVideoScene = "WinVideo";
 
     //מספר השניות שרואים את המסך האחרון לפני המעבר לסצנת הסיום
     [SerializeField] float endSceneDelay = 1.5f;
 
-    // ============================================================
-    // שני הכוונונים של גובה המצלמה בזמן אנימציית הדילוג:
-    //
-    //   Skip Top Margin - כמה אוויר להשאיר מעל ראש הגמד.
-    //                     הגדלה = יותר מרווח מעליו.
-    //
-    //   Skip Max Zoom Out - כמה מותר למצלמה להתרחק בסך הכול.
-    //                       0 מבטל את ההתאמה לגמרי.
-    //
-    // המצלמה מתרחקת ולא מתרוממת: הרמה מזיזה את המסגרת מעלה
-    // ומקצצת את מה שבתחתית, כמו תגית ההתחלה. התרחקות מגדילה
-    // את התמונה סביב אותו מרכז, ולכן שום דבר גלוי אינו נעלם
-    // ============================================================
+    // גובה המצלמה בזמן אנימציית הדילוג
     [SerializeField] float skipTopMargin = 0.3f;
     [SerializeField] float skipMaxZoomOut = 2f;
 
@@ -49,7 +34,7 @@ public class GameManager : MonoBehaviour
     // כמה שניות רואים את האגם בתחילת כל שאלה, לפני שהטיימר מתחיל
     [SerializeField] float introLakeTime = 3;
 
-    //מספר השניות שרואים את המסך הרגיל לפני שהמצלמה יוצאת לאגם
+    //מספר השניות שרואים את המסך לפני שהמצלמה זזה לכיוון האגם
     [SerializeField] float introStartDelay = 1;
 
     // ההודעה שמסמנת לשחקן שהטיימר התחיל לרוץ
@@ -60,32 +45,26 @@ public class GameManager : MonoBehaviour
     // האבנים שנמצאות בסצנה
     [SerializeField] List<RockScript> rocks;
 
-    //ה-Slots על האגם
+    // מיקומים באגם
     [SerializeField] List<Transform> slots;
 
-    // תצוגת מצב המשחק: הטיימר עם השמש, ומד ההתקדמות
+    // תצוגת מצב המשחק: הטיימר  השמש, ומד ההתקדמות
     [SerializeField] GameStatus gameStatus;
 
-    //מסך שמציג תמונת תשובה בגדול
+    //מסך ההגדלה
     [SerializeField] ZoomPanelScript zoomPanel;
 
     // כפתורי ההגדלה
     [SerializeField] List<GameObject> magnifiers;
 
     [Header("Free Walk")]
-    // אזור הדשא. לחיצה בתוכו שולחת את הגמד לטייל לשם.
-    // היה סקריפט נפרד על אובייקט הדשא, ועכשיו זה שדה אחד כאן
+    // אזור הדשא. לחיצה בתוכו שולחת את הגמד לנקודה .
     [SerializeField] Collider2D grassArea;
 
     [Header("Skipping")]
     // הנקודה שאליה הגמד מדלג בסוף - התגית השמאלית.
-    // בלי זה הוא עוצר על אבן התשובה האחרונה ולא מגיע עד התגית
     [SerializeField] Transform leftTagPoint;
 
-    [Header("Slots Layout")]
-    // המיקומים של ה-Slots כפי שסודרו ידנית בסצנה נשמרים בהתחלה.
-    // כשיש פחות תשובות ממספר ה-Slots, האבנים מתפזרות במידה שווה
-    // לאורך אותו מסלול, בין התגית הימנית לתגית השמאלית
     [SerializeField] bool spreadSlotsEvenly = true;
 
     [Header("Texts")]
@@ -96,7 +75,6 @@ public class GameManager : MonoBehaviour
     [SerializeField] List<GameObject> hearts;
 
     [Header("Sounds")]
-    // גיבוי אם אין AudioManager בסצנה
     [SerializeField] AudioSource feedbackAudio;
     [SerializeField] AudioClip correctSound;
     [SerializeField] AudioClip wrongSound;
@@ -106,12 +84,10 @@ public class GameManager : MonoBehaviour
     // מסדר את סדר האותיות בעברית
     [SerializeField] bool fixHebrewOrder = true;
 
-    // כמה תווים נכנסים בשורה אחת על אבן תשובה.
-    // חשוב: בלי שבירת שורות משלנו, TMP שובר את הטקסט אחרי
-    // שכבר הפכנו אותו, ואז סדר המילים במשפט יוצא הפוך
+    // כמה תווים נכנסים בשורה אחת על אבן תשובה  
     [SerializeField] int rockMaxChars = 12;
 
-    // אותו דבר לתגיות שמשמאל ומימין לאגם
+    // כמה תווים נכנסים בשורה אחת לתגיות שמשמאל ומימין לאגם
     [SerializeField] int tagLineLength = 7;
 
     // האם מותר ללחוץ על אבן כרגע
@@ -127,14 +103,14 @@ public class GameManager : MonoBehaviour
     // כמה שאלות כבר נענו נכון
     private int questionsAnswered;
 
-    //ה-Slot הבא שצריך למלא
+    // מיקום התשובה הנכונה הבאה 
     private int nextSlot;
 
     private float stageTimer;
     private int livesLeft;
     private bool gameOver;
 
-    // הטיימר קפוא עד שהתצוגה של האגם נגמרת
+    // עצירת הטיימר
     private bool timerRunning;
 
     // כמה תשובות נכונות וכמה טעויות בשאלה הנוכחית
@@ -171,18 +147,10 @@ public class GameManager : MonoBehaviour
     // הגמד באמצע אנימציית הדילוג בסיום שאלה
     private bool skipping;
 
-    // המיקומים שסודרו ידנית בסצנה, נשמרים לפני שנוגעים בהם
+    // המיקומים שסודרו בסצנה
     private List<Vector3> manualSlotPositions;
 
-    // ============================================================
-    // ההפעלה של המשחק, לפי הסדר:
-    //   בניית פאנל ההגדלה, שמירת מיקומי האבנים שסודרו ידנית
-    //   בסצנה, בדיקת הרכבה, שליפת המשחק, והתחלת השאלה הראשונה.
-    //
-    // שמירת המיקומים חייבת לקרות לפני StartStage, כי משם ואילך
-    // הקוד מזיז את האבנים לפי מספר הפריטים בשאלה - ואז כבר אי
-    // אפשר לדעת איפה הן הונחו במקור
-    // ============================================================
+    // ההפעלה של המשחק
     void Start()
     {
         BuildZoomPanel();
@@ -193,8 +161,6 @@ public class GameManager : MonoBehaviour
     }
 
     // בתחילת כל שאלה המצלמה נוסעת לאגם ועומדת שם כמה שניות,
-    // ככה השחקן רואה לאן הוא אמור לסדר את האבנים ובאיזה סדר.
-    // הטיימר קפוא בזמן הזה ומתחיל רק כשהמצלמה חוזרת.
     private void ShowLakeIntro()
     {
         if (gameCamera == null)
@@ -246,7 +212,7 @@ public class GameManager : MonoBehaviour
             game = DataPass.Game;
         }
 
-        //מופעל במקרה שבו לא נטען משחק
+        //הודעה במקרה שבו לא נטען משחק
         if (game == null || game.stagesList == null || game.stagesList.Count == 0)
         {
             Debug.LogError("No game data. Enter a game code in the Home scene, " +
@@ -254,7 +220,7 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // חזרה מהשהייה - ממשיכים עם המאגר שהיה, ולא מתחילים משחק חדש
+        // חזרה מהשהייה
         bool resuming = DataPass.keepLives;
 
         // מאגר השאלות. שאלה שנענתה נכון יוצאת ממנו ולא חוזרת
@@ -283,7 +249,7 @@ public class GameManager : MonoBehaviour
         gameTime = 0;
         totalMistakes = 0;
 
-        // מספר החיים קבוע על 3 ולא ניתן לשינוי מהמחולל
+        // מספר החיים   
         livesLeft = GameRules.Lives;
 
         // לא יכולים להציג יותר לבבות ממה שיש בסצנה
@@ -294,7 +260,7 @@ public class GameManager : MonoBehaviour
             livesLeft = hearts.Count;
         }
 
-        // חזרה מהשהייה - ממשיכים מאיפה שהפסקנו
+        // חזרה מהשהייה 
         if (DataPass.keepLives == true)
         {
             livesLeft = DataPass.livesLeft;
@@ -311,16 +277,7 @@ public class GameManager : MonoBehaviour
         UpdateProgressBar();
     }
 
-    // ============================================================
-    // בודקת שכל השדות חוברו באינספקטור, ומשלימה מה שאפשר לבד.
-    //
-    // במקום להיכשל בזמן ריצה עם שגיאת null במקום אקראי, נאספת
-    // כאן רשימה של כל מה שחסר ומודפסת בבת אחת - כך רואים את
-    // כל הבעיות יחד ולא אחת בכל הרצה.
-    //
-    // הקישור של הגמד והאבנים למנהל נעשה כאן פעם אחת, במקום
-    // חיפוש בכל פריים
-    // ============================================================
+    // בדיקת תקינות האוביקטים 
     private void CheckSetup()
     {
         string missing = "";
@@ -338,9 +295,7 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogWarning("Empty fields in GameManager: " + missing);
         }
-
-        // המצלמה מחפשת את עצמה פעם אחת אם היא לא חוברה ב-Inspector.
-        // בלי זה תצוגת האגם בתחילת שאלה פשוט לא רצה
+        // חיפוש המצלמה
         if (gameCamera == null)
         {
             gameCamera = Object.FindFirstObjectByType<CameraScript>();
@@ -352,8 +307,7 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // הגמד והאבנים צריכים לדעת מי מנהל אותם. עושים את זה פעם אחת כאן
-        // ולא בכל פריים עם Find
+        // חיבור הגמד למנהל המשחק ולמצלמה
         if (dwarf != null)
         {
             dwarf.gameManager = this;
@@ -361,21 +315,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ============================================================
     // הלולאה הראשית של המשחק, רצה בכל פריים.
-    //
-    // מטפלת בטיימר, בהודעות שנעלמות מעצמן, בהבזק האדום, בלחיצה
-    // על הדשא ובמעבר לשאלה הבאה.
-    //
-    // היציאה המוקדמת כשאין שאלה פעילה היא מה שמונע ממנה לרוץ
-    // בזמן הטעינה ובמסכי הביניים
-    // ============================================================
+ 
     void Update()
     {
         //אם השאלה לא התחילה - אין מה לעדכן
         if (currentStage == null) return;
 
-        // לחיצה על הדשא שולחת את הגמד לטייל
+        // לחיצה על הדשא שולחת את הגמד לנקודה
         HandleGrassClick();
 
         // המצלמה מראה את האגם - הזמן לא רץ ואי אפשר לענות
@@ -409,12 +356,8 @@ public class GameManager : MonoBehaviour
 
             if (endSceneTimer <= 0)
             {
-                // בניצחון עוברים דרך סצנת הסרטון, והיא שתמשיך
-                // אל סצנת הסיום. כך הסרטון רץ פעם אחת בדיוק,
-                // בלי תלות במה שקורה בסצנת הסיום עצמה
-                // CanStreamedLevelBeLoaded בודק שהסצנה אכן נכללת
-                // ב-Build Settings, כדי שמשחק שבו היא חסרה יגיע
-                // למסך הסיום כרגיל במקום להיתקע
+                // בניצחון עוברים דרך סצנת הסרטון
+               
                 if (DataPass.result == "win" &&
                     string.IsNullOrEmpty(winVideoScene) == false &&
                     Application.CanStreamedLevelBeLoaded(winVideoScene) == true)
@@ -464,8 +407,7 @@ public class GameManager : MonoBehaviour
 
     }
 
-    // לחיצה על הדשא שולחת את הגמד לטייל לשם.
-    // הלחיצה נבדקת כאן ולא בסקריפט נפרד על אובייקט הדשא
+    // לחיצה על הדשא שולחת את הגמד לנקודה 
     private void HandleGrassClick()
     {
         if (grassArea == null) return;
@@ -508,9 +450,6 @@ public class GameManager : MonoBehaviour
         timerRunning = false;
         canAnswer = false;
 
-        // **לא** מוסיפים פסילה כאן. פסילה היא לב שירד, וסיום הזמן
-        // לא מוריד לב. הספירה נשארת זהה למה שהשחקן ראה על המסך
-
         //נגמר הזמן
         EndGame("timeout");
     }
@@ -523,13 +462,9 @@ public class GameManager : MonoBehaviour
         UpdateHearts();
     }
 
-    // ============================================================
     // מתחילה שאלה חדשה: איפוס מצב, פיזור האבנים לפי מספר
     // הפריטים, הצגת הנושא ותגיות הקיצון, והפעלת הטיימר.
-    //
-    // גם נקודת הכניסה לשאלה הראשונה וגם המעבר לכל שאלה הבאה,
-    // ולכן כל מה שנשאר משאלה קודמת חייב להתאפס כאן
-    // ============================================================
+    
     public void StartStage()
     {
         if (game == null || game.stagesList == null || game.stagesList.Count == 0)
@@ -563,12 +498,11 @@ public class GameManager : MonoBehaviour
         SetWrappedText(leftTagText, currentStage.leftTag, tagLineLength);
         SetWrappedText(rightTagText, currentStage.rightTag, tagLineLength);
 
-        // טיימר. 0 = ללא הגבלת זמן, וזה מצב חוקי מהמחולל
+        // טיימר. 0 = ללא הגבלת זמן
         stageTimer = currentStage.stageTime;
 
         bool noTimeLimit = currentStage.stageTime <= 0;
 
-        // מסכי הסיום צריכים לדעת אם היה זמן בכלל
         DataPass.unlimitedTime = noTimeLimit;
 
         if (gameStatus != null)
@@ -599,7 +533,7 @@ public class GameManager : MonoBehaviour
         ShowLakeIntro();
     }
 
-    // שומר את הסידור הידני של ה-Slots בסצנה, פעם אחת בתחילת המשחק
+    // שמירת המיקומים באגם 
     private void SaveManualSlotPositions()
     {
         manualSlotPositions = new List<Vector3>();
@@ -614,9 +548,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // כשיש מספר תשובות מלא - משתמשים בסידור הידני כמו שהוא.
-    // כשיש פחות - מפזרים את האבנים במידה שווה לאורך אותו מסלול,
-    // כך שהראשונה צמודה לתגית הימנית והאחרונה לתגית השמאלית
+    // סידןר המיקומים באגם
     private void LayoutSlots()
     {
         if (slots == null || slots.Count == 0) return;
@@ -625,7 +557,7 @@ public class GameManager : MonoBehaviour
         int answersCount = currentStage.answersList.Count;
         if (answersCount <= 0) return;
 
-        // מספר התשובות המלא, או שהפיזור כבוי - מחזירים את הסידור הידני
+        // מספר התשובות המלא
         if (spreadSlotsEvenly == false || answersCount >= manualSlotPositions.Count)
         {
             RestoreManualSlots();
@@ -649,9 +581,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // מחזירה את האבנים למקומות שסודרו ידנית בסצנה. נקראת לפני
-    // כל פיזור מחדש, כדי שהחישוב יתחיל תמיד מהמצב המקורי ולא
-    // יצטבר על גבי פיזור קודם
+    // איחזור סידור המיקומים באגם
     private void RestoreManualSlots()
     {
         for (int i = 0; i < slots.Count && i < manualSlotPositions.Count; i++)
@@ -662,8 +592,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // מחזיר נקודה על המסלול שסודר ידנית, לפי מרחק יחסי לאורכו.
-    // ככה הפיזור נשאר על אותו קו שסידרת, גם כשיש פחות אבנים
+    // פונקציית עזר לסידור הציקוצים באגם
+    // מחזיר נקודה על המסלול
     private Vector3 PointOnManualPath(float t)
     {
         int count = manualSlotPositions.Count;
@@ -705,7 +635,7 @@ public class GameManager : MonoBehaviour
         return manualSlotPositions[count - 1];
     }
 
-    // מדליק רק את מספר ה-Slots שהוקצבו בשאלה הזאת
+    // הצגת המיקומים באגם לפי מספר התשובות בשאלה הנוכחית
     private void ShowSlots()
     {
         int answersCount = currentStage.answersList.Count;
@@ -747,7 +677,7 @@ public class GameManager : MonoBehaviour
                 rocks[i].gameManager = this;
                 rocks[i].zoomPanel = zoomPanel;
 
-                // מחברים לאבן את כפתור ההגדלה שממוקם לידה בסצנה
+                // מחברים לאבן את כפתור ההגדלה 
                 rocks[i].SetMagnifier(GetMagnifier(i));
 
                 rocks[i].SetRock(FixRockText(answer.answerContent), answer.answerImage, place);
@@ -782,7 +712,7 @@ public class GameManager : MonoBehaviour
             result.Add(i);
         }
 
-        // ערבוב פישר-ייטס: מעבר אחד על הרשימה במקום בנייה של רשימה שנייה
+        // ערבוב הרשימה
         for (int i = result.Count - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
@@ -808,7 +738,7 @@ public class GameManager : MonoBehaviour
 
         canAnswer = false;
 
-        // התשובה נכונה אם המקום של האבן הוא בדיוק ה-Slot הבא בתור
+        // התשובה נכונה אם המיקום של האבן תואם למיקום הבא באגם
         bool isCorrect = (rock.correctPlace == nextSlot);
 
         Vector2 target;
