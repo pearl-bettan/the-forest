@@ -2,7 +2,7 @@
 
 <nav class="top-nav">
 
-    @* ---------- צד ימין: הלוגו ופרטי המשתמש ---------- *@
+    @*  צד ימין: הלוגו ופרטי המשתמש  *@
     <div class="nav-brand">
 
         @* הלוגו כפי שיוצא מהאפיון *@
@@ -21,7 +21,7 @@
         </AuthorizeView>
     </div>
 
-    @* ---------- צד שמאל: קישורי הניווט ---------- *@
+    @*  צד שמאל: קישורי הניווט  *@
     <div class="nav-links">
 
         <NavLink class="nav-link" href="" Match="NavLinkMatch.All">למשחק</NavLink>
@@ -36,8 +36,7 @@
                 <span class="nav-divider">|</span>
 
                 <button class="btn-nav btn-logout" @onclick="() => { _Auth.Logout(); }">
-                    @* אייקון ההתנתקות מורכב משני ווקטורים באפיון:
-                       הדלת והחץ. שניהם ממוקמים זה מעל זה בתוך תיבה אחת *@
+                    @* אייקון ההתנתקות *@
                     <span class="logout-icon">
                         <img src="assets-images/Vector.svg" alt=""
                              class="logout-door" width="12" height="15" />
@@ -52,9 +51,7 @@
     </div>
 </nav>
 
-@* ---------- חלונית האודות ----------
-   נמצאת מחוץ ל-Authorized ול-NotAuthorized, כי היא צריכה
-   להיות זמינה תמיד ללא תלות בחיבור המשתמש *@
+@*  חלונית האודות שזמינה למשתמשים גם אם הם לא מחוברים לפורטל״מ *@
 @if (isShow == true)
 {
     <div class="popup-background">
