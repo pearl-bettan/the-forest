@@ -786,7 +786,7 @@ namespace AuthTemplate.Server.Controllers
             bool canPublish = await CheckCanPublish(gameId);
             GameToTable game = await GetGameById(gameId);
 
-            //ברירת מחדל - נשארים במצב הנוכחי, אלא אם אי אפשר לפרסם יותר
+            //ברירת מחדל- נשארים במצב הנוכחי, אלא אם אי אפשר לפרסם יותר
             bool isPublish = game.IsPublish;
 
             if (canPublish == false)
@@ -815,7 +815,7 @@ namespace AuthTemplate.Server.Controllers
                 GameId = gameId
             };
 
-            //תנאי ראשון - יש במשחק לפחות שלוש שאלות
+            //תנאי ראשון- יש במשחק לפחות שלוש שאלות
             string stagesQuery = "SELECT COUNT(*) FROM Stages WHERE GameId = @GameId";
             var stagesCount = await _db.GetRecordsAsync<int>(stagesQuery, param);
 
@@ -824,7 +824,7 @@ namespace AuthTemplate.Server.Controllers
                 return false;
             }
 
-            //תנאי שני - אין שאלה עם פחות משלושה פריטים
+            //תנאי שני- אין שאלה עם פחות משלושה פריטים
             string badStagesQuery = "SELECT COUNT(*) FROM Stages WHERE GameId = @GameId " +
                                     "AND (SELECT COUNT(*) FROM Answers WHERE Answers.StageId = Stages.Id) < 3";
 

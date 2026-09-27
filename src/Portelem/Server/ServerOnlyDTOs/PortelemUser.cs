@@ -11,6 +11,6 @@ public class PortelemUser
 
     public string Email { get; set; }
 
-    // המזהה של המשתמש בפורטלם, כפי שהוא מופיע בטוקן  
+    // המזהה של המשתמש בפורטל״מ, כפי שהוא מופיע בטוקן  
     public int PortelemId { get; set; }
 }
