@@ -150,7 +150,7 @@ public class RockScript : MonoBehaviour
    
     public void SetCarried(bool carried)
     {
-        // הכפתור נעלם בזמן שהאבן באוויר, וחוזר ליד האבן כשהיא נוחתת.
+        // הכפתור נעלם בזמן שהאבן באוויר, וחוזר ליד האבן כשהיא נוחתת
         if (magnifierButton != null && currentImage != null)
         {
             if (carried == true)
@@ -556,7 +556,7 @@ public class ZoomPanelScript : MonoBehaviour
         return point;
     }
 
-    // בונה את הפאנל עם הרקע, התמונה וכפתור הסגירה. הפאנל נשאר כבוי עד שהשחקן לוחץ על זכוכית המגדלת. 
+    // בונה את הפאנל עם הרקע, התמונה וכפתור הסגירה. הפאנל נשאר כבוי עד שהשחקן לוחץ על זכוכית המגדלת
     private void BuildPanel()
     {
         if (panel != null && bigImage != null && closeButton != null) return;
@@ -769,7 +769,7 @@ public class ZoomPanelScript : MonoBehaviour
 }
 
 
-// הרקע הכהה של הפאנל - לחיצה עליו סוגרת
+// הרקע הכהה של הפאנל- לחיצה עליו סוגרת
 public class ZoomBackgroundScript : MonoBehaviour
 {
     public ZoomPanelScript zoomPanel;

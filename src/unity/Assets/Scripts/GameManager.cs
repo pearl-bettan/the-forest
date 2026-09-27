@@ -1211,8 +1211,7 @@ public class GameManager : MonoBehaviour
         target.text = HebrewText.FixLines(text, maxLength);
     }
 
-    // טקסט של אבן תשובה. שוברים לשורות בעצמנו ורק אז הופכים כל שורה,
-    // אחרת המשפט מופיע על האבן בסדר מילים אחר מזה שבמחולל
+    // מתקן את טקסט האבן לפי סדר האותיות בעברית
     private string FixRockText(string text)
     {
         if (fixHebrewOrder == false) return text;

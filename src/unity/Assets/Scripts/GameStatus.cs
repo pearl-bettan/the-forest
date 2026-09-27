@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-//  התצוגה של מצב המשחק: כמה זמן נשאר וכמה שאלות כבר נענו.
+//  התצוגה של מצב המשחק: כמה זמן נשאר וכמה שאלות כבר נענו
 
 public class GameStatus : MonoBehaviour
 {
@@ -25,7 +25,7 @@ public class GameStatus : MonoBehaviour
     // שלבי השמש לפי הסדר
     [SerializeField] List<Sprite> sunSprites;
 
-    // הספרייט האחרון (השקיעה) שמור לשניות האחרונות בלבד.
+    // הספרייט האחרון (השקיעה) שמור לשניות האחרונות בלבד
     [SerializeField] float lastSunSeconds = 3f;
 
     // לאיזה שלב השמש עברה 
@@ -150,7 +150,7 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // הטיימר קפוא בזמן שהמצלמה מראה את האגם, ומתחיל לרוץ כשהיא חוזרת.
+    // הטיימר קפוא בזמן שהמצלמה מראה את האגם, ומתחיל לרוץ כשהיא חוזרת
     public void SetFrozen(bool isFrozen)
     {
         if (frozen == isFrozen) return;
@@ -170,7 +170,7 @@ public class GameStatus : MonoBehaviour
         ApplyFrozenLook();
     }
 
-    // שלב ללא הגבלת זמן.
+    // שלב ללא הגבלת זמן
     public void SetUnlimited(bool isUnlimited)
     {
         unlimited = isUnlimited;
@@ -190,7 +190,7 @@ public class GameStatus : MonoBehaviour
 
     public void ShowTime(float timeLeft, float totalTime)
     {
-        // ללא הגבלת זמן - אין ספירה לאחור ואין שקיעה של השמש
+        // ללא הגבלת זמן- אין ספירה לאחור ואין שקיעה של השמש
         if (unlimited == true)
         {
             if (timerText != null) timerText.text = unlimitedText;
@@ -361,11 +361,11 @@ public class GameStatus : MonoBehaviour
             return;
         }
 
-        // חרוז ראשון
+        // מד התקדמות ראשון
         beads.Add(startView);
         if (startView != null) startView.gameObject.SetActive(true);
 
-        // חרוזי האמצע
+        // מדי ההתקדמות שבאמצע
         int middleCount = total - 2;
 
         if (middleCount > 0 && centerView != null)
@@ -394,7 +394,7 @@ public class GameStatus : MonoBehaviour
             centerView.gameObject.SetActive(false);
         }
 
-        // חרוז אחרון. כששאלה אחת בלבד אין קצה שני
+        // מד ההתקדמות האחרון. כששאלה אחת בלבד אין קצה שני
         if (total >= 2)
         {
             beads.Add(endView);
@@ -409,7 +409,7 @@ public class GameStatus : MonoBehaviour
         SetProgress(filled);
     }
 
-    // מסמן כמה שאלות כבר נענו. אלה שנענו מקבלות חרוז ירוק
+    // מסמן כמה שאלות כבר נענו. אלה שנענו מקבלות אייקון ירוק
     public void SetProgress(int answered)
     {
         if (answered < 0) answered = 0;
@@ -426,7 +426,7 @@ public class GameStatus : MonoBehaviour
     }
 
 
-    // מפזר את חרוזי האמצע במרווחים שווים בין שני הקצוות.
+    // מפזר את אייקוני האמצע במרווחים שווים בין שני הקצוות
     private void Spread()
     {
         if (startView == null || endView == null) return;
@@ -444,7 +444,7 @@ public class GameStatus : MonoBehaviour
         }
     }
 
-    // החרוז הראשון והאחרון מקבלים את ספרייטי הקצה
+    // האייקון הראשון והאחרון מקבלים את ספרייטי הקצה
     private Sprite SpriteFor(int index, bool green)
     {
         if (index == 0)
@@ -460,7 +460,7 @@ public class GameStatus : MonoBehaviour
         return green == true ? middleGreen : middleGray;
     }
 
-    // חיםוש מד ההתקדמות לפי שם 
+    // חיפוש מד ההתקדמות לפי שם 
     private void FindAnchors()
     {
         if (startView == null) startView = FindByName("StartProgressBar");
@@ -479,7 +479,7 @@ public class GameStatus : MonoBehaviour
         return null;
     }
 
-    // מדליקים או מכבים את שלושת עוגני מד ההתקדמות 
+    // מדליקים או מכבים את שלושת מיקומי מד ההתקדמות 
     private void ShowAnchors(bool on)
     {
         if (startView != null) startView.gameObject.SetActive(on);
@@ -487,7 +487,7 @@ public class GameStatus : MonoBehaviour
         if (endView != null) endView.gameObject.SetActive(on);
     }
 
-    // ניקוי החרוזים שנוצרו בבנייה הקודמת
+    // ניקוי האייקונים שנוצרו בבנייה הקודמת
     private void ClearClones()
     {
         for (int i = 0; i < clones.Count; i++)
@@ -500,7 +500,7 @@ public class GameStatus : MonoBehaviour
         clones.Clear();
     }
 
-    // בדיקת האיתחול של האוביקטים בסצנה
+    // בדיקת האיתחול של אובייקטים בסצנה
     private void CheckSetup()
     {
         if (timerText == null)

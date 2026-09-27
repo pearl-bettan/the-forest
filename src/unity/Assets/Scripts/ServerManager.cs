@@ -253,7 +253,7 @@ public class ServerManager : MonoBehaviour
         return await ParseGame(serverGame);
     }
 
-    // ממיר משחקהממידע שמגיע מהשרת למחלקת המשחק של היוניטי
+    // ממיר משחק מהמידע שמגיע מהשרת למחלקת המשחק של היוניטי
     async Task<GameData> ParseGame(ServerGame serverGame)
     {
         GameData unityGame = new GameData();

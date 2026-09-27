@@ -1,6 +1,6 @@
 using System.Text;
 
-// כלי עזר אחד לכל הפרויקט לסידור טקסט בעברית.
+// כלי עזר אחד לכל הפרויקט לסידור טקסט בעברית
 public static class HebrewText
 {
     // הופך את סדר האותיות בעברית ומשאיר אנגלית ומספרים כמו שהם
@@ -26,7 +26,7 @@ public static class HebrewText
                 continue;
             }
 
-            // התחלפה השפה - סוגרים את הקבוצה הקודמת
+            // התחלפה השפה- סוגרים את הקבוצה הקודמת
             if (group.Length > 0 && isEnglish != groupIsEnglish)
             {
                 CloseGroup(result, group, groupIsEnglish);
@@ -57,7 +57,7 @@ public static class HebrewText
         {
             string word = words[i];
 
-            // המילה לא נכנסת בשורה הנוכחית - יורד שורה חדשה
+            // המילה לא נכנסת בשורה הנוכחית- יורד שורה חדשה
             if (line != "" && line.Length + 1 + word.Length > maxLength)
             {
                 AddLine(result, line);
@@ -72,7 +72,7 @@ public static class HebrewText
         return result.ToString();
     }
 
-    // מוסיפה את השורה , אחרי הפיכת האותיות לסדר הנכון.
+    // מוסיפה את השורה , אחרי הפיכת האותיות לסדר הנכון
     private static void AddLine(StringBuilder result, string line)
     {
         if (line == "") return;
