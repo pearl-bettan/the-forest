@@ -117,6 +117,42 @@
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
               }).then((unityInstance) => {
                 document.querySelector("#unity-loading-bar").style.display = "none";
+
+                // ============================================================
+                // שחרור מנוע הקול.
+                //
+                // דפדפנים יוצרים את מנוע הקול במצב מושהה, ומחזירים אותו
+                // לפעולה רק אחרי מגע או לחיצה של המשתמש. בנייד הכלל
+                // נאכף בחומרה, והמשחק רץ כאן בתוך מסגרת בתוך עמוד אחר -
+                // מצב שבו יוניטי לא תמיד מצליחה לשחרר אותו בעצמה.
+                // התוצאה הייתה משחק שקט לגמרי: לא מוזיקת רקע, לא אפקטים
+                // ולא פסקול הסרטונים, שכולם עוברים דרך אותו מנוע.
+                //
+                // המאזינים נשארים בתוקף ולא מוסרים אחרי הפעם הראשונה,
+                // כי המנוע חוזר להשהיה כשהלשונית יורדת לרקע
+                // ============================================================
+                function unlockGameAudio() {
+                  try {
+                    var web = unityInstance.Module && unityInstance.Module.WEBAudio;
+                    var ctx = web ? web.audioContext : null;
+
+                    if (ctx && ctx.state !== "running" && ctx.resume) {
+                      ctx.resume();
+                    }
+                  } catch (e) {
+                    // דפדפן שאינו חושף את מנוע הקול - אין מה לעשות כאן
+                  }
+                }
+
+                ["pointerdown", "touchstart", "touchend", "mousedown", "keydown"]
+                  .forEach(function (eventName) {
+                    document.addEventListener(eventName, unlockGameAudio, true);
+                    window.addEventListener(eventName, unlockGameAudio, true);
+                  });
+
+                document.addEventListener("visibilitychange", function () {
+                  if (document.hidden === false) unlockGameAudio();
+                });
                 // ============================================================
                 // מסך מלא על המכל, לא על הקנבס.
                 //

@@ -1,7 +1,4 @@
-/* ==========================================================
-   CSS לוקאלי - חל רק על עמוד "המשחקים שלי".
-   כל הערכים לפי קובץ הפיגמה "Ui מחולל"
-   ========================================================== */
+
 
 .games-page {
     position: relative;
@@ -10,7 +7,7 @@
 }
 
 
-/* ---------- כותרת וכפתור יצירה ---------- */
+/*  כותרת וכפתור יצירה */
 
 .page-header {
     position: relative;
@@ -49,7 +46,7 @@
 }
 
 
-/* ---------- מסגרת המשחקים ---------- */
+/*  מסגרת המשחקים  */
 
 .games-box {
     border: 1px solid black;
@@ -60,15 +57,14 @@
     flex-direction: column;
 }
 
-/* שורת הכותרות והשורות עצמן חולקות את אותה חלוקה לעמודות,
-   כדי שהערכים יישארו מיושרים מתחת לכותרת המתאימה */
+/* שורת הכותרות והשורות עצמן חולקות את אותה חלוקה לעמודות, כדי שהערכים יישארו מיושרים מתחת לכותרת המתאימה */
 .games-head, .game-row {
     display: flex;
     align-items: center;
     text-align: center;
 }
 
-/* שורת הכותרות - פס צהוב בהיר עם צל, לפי הפיגמה */
+/* שורת הכותרות- פס צהוב בהיר עם צל */
 .games-head {
     background-color: var(--table-head);
     box-shadow: 0 4px 4px 0 rgba(0, 0, 0, 0.25);
@@ -88,7 +84,7 @@
     gap: 6px;
 }
 
-/* השורות - כרטיסים נפרדים בגוון שנהב */
+/* שורות המשחקים */
 .games-rows {
     display: flex;
     flex-direction: column;
@@ -110,9 +106,7 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
 
-/* רוחב העמודות - מבוסס על המידות באפיון.
-   הבסיס הוא הרוחב הרצוי, אבל העמודות יכולות להצטמצם
-   כדי שהטבלה לא תגלוש בחלון צר */
+/* רוחב העמודות */
 .col-name   { flex: 1 1 200px; min-width: 0; }
 .col-code   { flex: 1 1 170px; min-width: 0; }
 .col-count  { flex: 1 1 170px; min-width: 0; }
@@ -122,7 +116,7 @@
 .cell-label { display: none; }
 
 
-/* ---------- כפתורי האייקונים בשורה ---------- */
+/*  כפתורי האייקונים בשורה  */
 
 .icon-btn {
     background-color: unset;
@@ -143,8 +137,7 @@
 }
 
 
-/* ---------- כפתור הפרסום ----------
-   באפיון החדש הפרסום הוא כפתור ולא מתג */
+/*  כפתור הפרסום- באפיון למובייל הפרסום הוא כפתור ולא מתג */
 
 .publish-btn {
     background-color: var(--publish);
@@ -165,7 +158,7 @@
     box-shadow: 0 1px 1px 0 var(--publish-shadow);
 }
 
-/* משחק שכבר מפורסם - הכפתור מודגש */
+/* משחק שכבר מפורסם- הכפתור מודגש */
 .publish-btn.is-published {
     background-color: var(--gold);
     border-color: var(--gold-dark);
@@ -179,9 +172,9 @@
 }
 
 
-/* ---------- צ'ק בוקס הפרסום - שלושה מצבים ---------- */
+/*  צ'ק בוקס הפרסום- שלושה מצבים */
 
-/* צ'ק בוקס בלבד, בלי טקסט - הקופסה צמודה סביבו */
+/* צ'ק בוקס בלבד, בלי טקסט- הקופסה צמודה סביבו */
 .publish-check {
     display: inline-flex;
     align-items: center;
@@ -209,21 +202,20 @@
     flex: 0 0 auto;
 }
 
-/* מסומן ופעיל - המשחק מפורסם */
+/* מסומן ופעיל- המשחק מפורסם */
 .publish-check-on {
     background-color: var(--gold);
     border-color: var(--gold-dark);
     font-weight: bold;
 }
 
-/* לא מסומן ופעיל - עומד בתנאים וניתן לפרסם */
+/* לא מסומן ופעיל- עומד בתנאים וניתן לפרסם */
 .publish-check-off:hover {
     transform: translateY(1px);
     box-shadow: 0 1px 1px 0 var(--publish-shadow);
 }
 
-/* לא מסומן ולא פעיל - לא עומד בתנאי הפרסום.
-   בפיגמה הוא אפור מלא ולא רק שקוף */
+/* לא מסומן ולא פעיל- לא עומד בתנאי הפרסום */
 .publish-check-disabled {
     background-color: #e6e6e6;
     border-color: var(--disabled);
@@ -237,7 +229,7 @@
 }
 
 
-/* כפתור "מפורסם" - מחליף את הצ'ק בוקס רק במובייל (מוסתר במחשב) */
+/* כפתור ״מפורסם״- מחליף את הצ'ק בוקס רק במובייל (מוסתר במחשב) */
 .publish-mobile-btn {
     display: none;
     font-family: var(--font);
@@ -251,7 +243,7 @@
     cursor: pointer;
 }
 
-/* מפורסם - הכפתור צבוע */
+/* מפורסם- הכפתור צבוע */
 .publish-mobile-btn.publish-check-on {
     background-color: var(--gold);
     border-color: var(--gold-dark);
@@ -259,7 +251,7 @@
     font-weight: bold;
 }
 
-/* לא עומד בתנאי הפרסום - אפור ומנוטרל */
+/* לא עומד בתנאי הפרסום- אפור ומנוטרל */
 .publish-mobile-btn.publish-check-disabled {
     background-color: #e6e6e6;
     border-color: var(--disabled);
@@ -296,10 +288,9 @@
 }
 
 
-/* ---------- מקרא מצבי הפרסום שבטולטיפ הכותרת ---------- */
+/*  מקרא מצבי הפרסום שבטולטיפ הכותרת  */
 
 .publish-legend {
-    /* השורות לא נשברות, ולכן הרוחב נקבע מהן ולא ממגבלה קבועה */
     max-width: none;
     display: flex;
     flex-direction: column;
@@ -309,7 +300,6 @@
     line-height: 17px;
 }
 
-/* הריבוע מימין והכיתוב לצדו, כמו בפיגמה */
 .legend-row {
     display: flex;
     justify-content: flex-start;
@@ -354,7 +344,7 @@
 }
 
 
-/* ---------- מצב ריק ---------- */
+/*  מצב ריק  */
 
 .empty-state {
     flex: 1 1 auto;
@@ -373,7 +363,7 @@
 
 
 
-/* ---------- הודעות ---------- */
+/*  הודעות  */
 
 .page-msg {
     font-family: var(--font);
@@ -384,9 +374,7 @@
 }
 
 
-/* ==========================================================
-   הפופאפ - יצירת משחק ומחיקה
-   ========================================================== */
+/*  הפופאפ - יצירת משחק ומחיקה*/
 
 .popup-background {
     background-color: rgba(0, 0, 0, .56);
@@ -404,7 +392,6 @@
     right: 50%;
     transform: translateX(50%) translateY(-50%);
 
-    /* 570px השאירו 480px תוכן, וארבעת כפתורי הזמן דורשים כ-530px */
     width: 700px;
     background-color: var(--sky);
     border-radius: 35px;
@@ -457,7 +444,7 @@
 }
 
 
-/* ---------- שם המשחק ומונה התווים ---------- */
+/*  שם המשחק ומונה התווים  */
 
 .field-label {
     display: block;
@@ -483,15 +470,14 @@
     outline: 2px solid var(--gold-dark);
 }
 
-/* הגעה למקסימום התווים - מסגרת אדומה, כמו בפיגמה */
+/* הגעה למקסימום התווים- מסגרת אדומה */
 .game-name-input.is-full,
 .game-name-input.is-full:focus {
     border-color: var(--danger);
     outline: 2px solid var(--danger);
 }
 
-/* מונה התווים יושב מתחת לתיבה, בפינה השמאלית.
-   באפיון הוא ירוק כשהשם תקין ואדום בחריגה */
+/* מונה התווים יושב מתחת לתיבה, בפינה השמאלית */
 .chars-counter {
     display: block;
     text-align: left;
@@ -505,7 +491,7 @@
 .chars-counter.chars-short { color: var(--gray); }
 
 
-/* ---------- כפתורי הזמן ---------- */
+/*  כפתורי הזמן  */
 
 /* ארבעת הכפתורים בשורה אחת וממורכזים */
 .time-options {
@@ -517,7 +503,7 @@
 }
 
 .time-btn {
-    /* רוחב וגובה קבועים גרמו ל"ללא הגבלת זמן" להישבר ולגלוש */
+    /*  רוחב וגובה קבועים גרמו ל״ללא הגבלת זמן״ להישבר ולגלוש */
     min-width: 0;
     min-height: 39px;
     padding: 7px 16px;
@@ -533,7 +519,7 @@
     cursor: pointer;
 }
 
-/* האפשרות שנבחרה - רקע זהב מלא וצל נמוך יותר, כאילו נלחצה */
+/* רקע זהב מלא וצל נמוך יותר */
 .time-btn-selected {
     background-color: var(--gold);
     box-shadow: 0 2px 0 0 var(--gold-press);
@@ -545,15 +531,10 @@
 }
 
 
-/* ==========================================================
-   רספונסיביות - טבלת המשחקים
-   העמודות כבר מוגדרות ב-flex עם בסיס גמיש, כאן רק מצמצמים
-   מרווחים וגדלים כדי שהשורה תישאר קריאה במסך צר
-   ========================================================== */
+/* רספונסיביות של טבלת המשחקים */
 
 @media (max-width: 1279px) {
 
-    /* בטאבלט הטבלה הרגילה נשארת, רק עם שוליים צרים יותר */
     .games-page {
         padding: 0 24px;
     }
@@ -575,8 +556,6 @@
 
 @media (max-width: 700px) {
 
-    /* מתחת לרוחב הזה השורה נערמת: כל שדה בשורה משלו,
-       עדיף על טבלה שנדחסת עד שאי אפשר לקרוא אותה */
     .game-row {
         height: auto;
         flex-wrap: wrap;
@@ -598,7 +577,7 @@
         flex: 0 0 auto;
     }
 
-    /* פריסת מובייל: כותרת/כפתור/מסגרת */
+    /* פריסה למובייל */
     .games-page { padding: 0 14px; }
     .page-header { height: auto; margin-bottom: 6px; }
     .page-title { padding-top: 18px; font-size: 26px; }
@@ -611,19 +590,16 @@
     }
     .games-head { display: none; }
 
-    /* בלי שורת הכותרות, כל ערך בכרטיס מקבל תווית משלו */
     .cell-label { display: inline; font-weight: bold; }
 
-    /* במובייל כפתור "מפורסם" מחליף את הצ'ק בוקס */
+    /* במובייל כפתור ״מפורסם״ מחליף את הצ׳ק בוקס */
     .publish-check { display: none; }
     .publish-mobile-btn { display: inline-block; }
     .games-box { padding: 16px 10px; min-height: 0; }
 }
 
 
-/* ==========================================================
-   סרגל הסינון ומיון הטבלה
-   ========================================================== */
+/* סרגל הסינון ומיון הטבלה*/
 
 .filter-row {
     display: flex;
@@ -656,7 +632,6 @@
     outline-offset: -1px;
 }
 
-/* כפתור ניקוי החיפוש, בקצה השמאלי של התיבה */
 .search-clear {
     position: absolute;
     left: 6px;
@@ -709,7 +684,7 @@
     white-space: nowrap;
 }
 
-/* כותרת עמודה שאפשר למיין לפיה */
+/* כותרת עמודה שמשמשת למיון */
 .sort-btn {
     background: none;
     border: none;
