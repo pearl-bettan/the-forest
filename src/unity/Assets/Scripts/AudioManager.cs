@@ -1,9 +1,5 @@
 using UnityEngine;
-
-// מנהל הסאונד של המשחק.
-// אובייקט אחד ששורד בין הסצנות, מנגן מוזיקת רקע רציפה ואפקטים.
-// אפשר לשים עותק של ה-Prefab בכל סצנה: הראשון שנוצר שורד, השאר מוחקים את עצמם,
-// ככה מוזיקת הרקע לא מתחילה מחדש בכל מעבר מסך.
+// מנהל הסאונד של המשחק 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
@@ -37,7 +33,6 @@ public class AudioManager : MonoBehaviour
 
     void Awake()
     {
-        // כבר יש מנהל סאונד פעיל - העותק הזה מיותר
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -52,14 +47,12 @@ public class AudioManager : MonoBehaviour
         ApplyMute();
     }
 
-    // מוזיקת הרקע מתחילה ב-Start ולא ב-Awake, כדי שנגני הסאונד
-    // כבר ייבנו ומצב ההשתקה כבר ייקבע לפני שמשמיעים משהו
     void Start()
     {
         PlayMusic();
     }
-
-    // יוצר את נגני הסאונד אם לא חוברו ב-Inspector
+   
+    //Inspectorיוצר את נגני הסאונד אם לא חוברו ב
     private void BuildSources()
     {
         if (musicSource == null)
@@ -81,7 +74,7 @@ public class AudioManager : MonoBehaviour
         sfxSource.volume = sfxVolume;
     }
 
-    // מתחיל את מוזיקת הרקע. אם היא כבר מתנגנת - לא מפריעים לה
+    // מתחיל את מוזיקת הרקע
     public void PlayMusic()
     {
         if (musicSource == null) return;
@@ -116,8 +109,7 @@ public class AudioManager : MonoBehaviour
         PlaySfx(stageCompleteSound);
     }
 
-    // משמיע צליל בודד. PlayOneShot ולא Play, כדי ששני צלילים
-    // שנופלים יחד לא יקטעו זה את זה
+    // שיהיה אפשר לנגן בו זמנית, והסאונדים לא יקטעו אחד את השני
     private void PlaySfx(AudioClip clip)
     {
         if (sfxSource == null) return;
@@ -126,13 +118,7 @@ public class AudioManager : MonoBehaviour
         sfxSource.PlayOneShot(clip, sfxVolume);
     }
 
-    // ============================================================
-    // משהה את מוזיקת הרקע בלי לאבד את מקום הניגון.
-    //
-    // נקרא לפני סרטון, כדי שהמוזיקה והפסקול של הסרטון לא
-    // יתנגנו זה על גבי זה. Pause ולא Stop, כדי שהחזרה תמשיך
-    // מאותה נקודה ולא תתחיל את השיר מחדש
-    // ============================================================
+    // עוצר את מוזיקת הרקע בלי לאבד את מקום הניגון
     public void PauseMusic()
     {
         if (musicSource == null) return;
@@ -160,26 +146,24 @@ public class AudioManager : MonoBehaviour
         ApplyMute();
     }
 
-    // מחיל את מצב הסאונד על עוצמת המאזין הכללית, ולכן הוא
     // משתיק גם את המוזיקה וגם את האפקטים במכה אחת
     private void ApplyMute()
     {
         AudioListener.volume = DataPass.soundOn ? 1f : 0f;
     }
 
-    // גישה בטוחה מכל מקום, גם אם אין מנהל סאונד בסצנה
     public static void Correct()
     {
         if (Instance != null) Instance.PlayCorrect();
     }
 
-    // תשובה שגויה, מכל מקום בקוד
+    // תשובה שגויה
     public static void Wrong()
     {
         if (Instance != null) Instance.PlayWrong();
     }
 
-    // סיום שלב בהצלחה, מכל מקום בקוד
+    // סיום שלב בהצלחה
     public static void StageComplete()
     {
         if (Instance != null) Instance.PlayStageComplete();

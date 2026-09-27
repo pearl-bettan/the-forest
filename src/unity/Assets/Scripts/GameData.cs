@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// מחלקות הנתונים של המשחק, בנפרד מהמנהל עצמו.
-// אף אחת מהן אינה MonoBehaviour: הן המבנה של המשחק שמגיע מהשרת,
-// ו-DataPass היא הגשר שמעביר מידע בין הסצנות.
+// מחלקות הנתונים של המשחק, בנפרד מהמנהל עצמו
 
 [System.Serializable]
 public class AnswerData
@@ -29,11 +27,11 @@ public class StageData
     public List<AnswerData> answersList;
 
     [Header("Time")]
-    // כמה שניות יש לשאלה. 0 = ללא הגבלת זמן
+    // כמה שניות יש לשאלה
+    //  0 = ללא הגבלת זמן
     public int stageTime = 60;
 
-    // נענתה נכון ולכן היא כבר לא חוזרת למאגר.
-    // נשמר על השאלה עצמה כדי שההתקדמות תישרד גם מעבר לסצנת ההשהייה
+    // השאלה נענתה נכון ולכן היא כבר לא חוזרת למאגר
     [System.NonSerialized] public bool answeredCorrectly;
 }
 
@@ -43,7 +41,7 @@ public class GameData
     // שם המשחק. לא מוצג על המסך
     public string gameName;
 
-    // כמה פסילות יש לשחקן. תמיד 3 - נקבע ב-GameRules
+    // כמות החיים שיש לשחקן- 3
     public int startingLives;
 
     // כל השאלות במשחק
@@ -53,13 +51,12 @@ public class GameData
 // חוקי המשחק שנקבעו באפיון ואסור לשנות אותם מהמחולל
 public static class GameRules
 {
-    // מספר החיים קבוע על 3
     public const int Lives = 3;
 }
 
 public class DataPass
 {
-    // המשחק שהתקבל מהשרת, לפי הקוד שהשחקן הזין בסצנת הפתיחה.
+    // המשחק שהתקבל מהשרת, לפי הקוד שהשחקן הזין בסצנת הפתיחה
     public static GameData Game;
 
     // מסך סיום משחק: win / timeout / nolives
@@ -117,8 +114,7 @@ public class DataPass
         unlimitedTime = false;
     }
 
-    // מחזירה את זמן המשחק כמחרוזת דקות:שניות להצגה במסך הסיום.
-    // הריפוד בספרה אפס מונע תצוגה כמו 3:7 במקום 3:07
+    // מחזירה את זמן המשחק כשניות
     public static string TimeText()
     {
         int minutes = Mathf.FloorToInt(totalTime / 60);

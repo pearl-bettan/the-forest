@@ -52,50 +52,37 @@ public class DwarfScript : MonoBehaviour
     [SerializeField] bool sideSpriteLooksRight = true;
 
     [Header("Skipping")]
-    // ספרייט הדילוג. מופרד מספרייט ההליכה כי הוא גיליון אחר,
-    // ולא בהכרח מצויר לאותו כיוון
+    //ספרייט הדילוג הוא ספרייט אחר, לא מצוייר באותו כיוון
     [SerializeField] bool skipSpriteLooksRight = true;
 
-    // הדילוג תמיד נע מהתגית הימנית לשמאלית, ולכן הגמד צריך
-    // להסתכל שמאלה לכל אורכו. כיבוי מחזיר אותו לכיוון התנועה
+    // הדילוג תמיד נע מהתגית הימנית לשמאלית, ולכן הגמד צריך תמיד להסתכל שמאלה
     [SerializeField] bool skipAlwaysFacesLeft = true;
 
-    // עד כמה הגמד מתקרב לאבן הראשונה לפני שהוא מתחיל לדלג.
+    // עד כמה הגמד מתקרב לאבן הראשונה לפני שהוא מתחיל לדלג
     // עד הנקודה הזאת הוא הולך באנימציית ההליכה הרגילה
     [SerializeField] float skipStartDistance = 1.2f;
 
     // גובה הקפיצה בין אבן לאבן
     [SerializeField] float skipHeight = 1.1f;
 
-    // כמה להרים את הגמד מעל נקודת האבן.
-    // נקודות ה-Slots הן המקום שאליו האבנים עפות, והן יושבות
-    // באמצע הסלע. נקודת האחיזה של הגמד היא באמצע הגוף ולא ברגליים,
-    // ולכן בלי ההרמה הזאת הוא נראה שקוע בתוך הסלע
+    // כמה להרים את הגמד מעל נקודת האבן
+    // נקודת האחיזה של הגמד היא באמצע הגוף ולא ברגליים
     [SerializeField] float skipStoneOffsetY = 1.5f;
 
     // כמה זמן הגמד עומד על האבן האחרונה לפני שממשיכים
     [SerializeField] float skipEndPause = 0.6f;
 
-    // שם הפרמטר של אנימציית הדילוג ב-Animator
+    //  Animatorשם הפרמטר של אנימציית הדילוג ב
     [SerializeField] string skipBoolName = "IsSkipping";
 
-    // שם מצב הקפיצה ב-Animator. משמש כדי להתחיל את הקליפ
-    // מההתחלה בכל קפיצה, כך שהתנועה והציור לא מתפצלים
     [SerializeField] string jumpStateName = "Jump";
 
     [Header("Jump Clip Phases")]
-    // מבנה הקליפ Jump בשניות, כפי שהוא מצויר:
-    //   0     - 0.10    התכופפות והתנתקות מהאבן
-    //   0.10  - 1.10    באוויר
-    //   1.10  - 2.1333  נחיתה והתייצבות על האבן הבאה
-    // הקוד מזיז את הגמד לפי החלוקה הזאת, ולכן הרגליים עוזבות
-    // את האבן ונוחתות עליה בדיוק כשהציור עושה את זה
     [SerializeField] float clipTakeOffTime = 0.10f;
     [SerializeField] float clipAirTime = 1.00f;
     [SerializeField] float clipLandTime = 1.0333f;
 
-    // כמה זמן תימשך קפיצה שלמה במשחק. הקליפ נמתח או מתכווץ
-    // לזמן הזה, ושלושת השלבים נשארים ביחס המקורי ביניהם
+    // כמה זמן תימשך קפיצה שלמה במשחק
     [SerializeField] float jumpCycleTime = 0.7f;
 
     [Header("Free Walk")]
@@ -137,20 +124,17 @@ public class DwarfScript : MonoBehaviour
     // כמה זמן עבר מתחילת הקפיצה הנוכחית
     private float hopTimer;
 
-    // המזהה של מצב הקפיצה ב-Animator
+    // מצב הקפיצה ב Animator
     private int jumpStateHash;
 
-    // המקום שבו הגמד הונח בסצנה הוא נקודת הבית שלו, זו שאליה
-    // הוא חוזר אחרי כל פעולה
+    // המיקום של הגמד במסך המרכזי
     void Awake()
     {
         homePosition = transform.position;
         state = "wait";
     }
 
-    // מכבה את אנימציות ההליכה כדי שהגמד יתחיל בעמידה, ומתרגם
-    // את שם מצב ההרמה למזהה מספרי. Animator עובד עם מזהים, וגזירה
-    // חוזרת מהמחרוזת בכל פריים הייתה בזבוז
+    // מכבה את אנימציות ההליכה כדי שהגמד יתחיל במצב עמידה
     void Start()
     {
         StopWalkAnimation();
@@ -163,16 +147,7 @@ public class DwarfScript : MonoBehaviour
         return state == "wait";
     }
 
-    // ============================================================
-    // מכונת המצבים של הגמד, רצה בכל פריים.
-    //
-    // המצבים הם שלבים ברצף אחד: המתנה, הליכה אל האבן, הרמה,
-    // הליכה אל האגם, זריקה, חזרה הביתה, ולבסוף הדילוג על
-    // האבנים בסיום שאלה מוצלחת.
-    //
-    // כל מצב מסיים את עצמו בכך שהוא קובע את המצב הבא, ולכן
-    // אין כאן קורוטינות: הכול מתקדם לפי מרחק וזמן בפריים
-    // ============================================================
+    // כל המצבים של הגמד
     void Update()
     {
         // הולך לכיוון האבן שנבחרה
@@ -296,11 +271,10 @@ public class DwarfScript : MonoBehaviour
             }
         }
 
-        // הולך עד שפת האגם לפני שהוא מתחיל לדלג.
+        // הגמד הולך עד שפת האגם לפני שהוא מתחיל לדלג
         // כאן עדיין פועלת אנימציית ההליכה הרגילה
         else if (state == "skipWalk")
         {
-            // הגנה: אם המסלול אופס באמצע, לא נתקעים
             if (skipPath == null || skipPath.Count == 0)
             {
                 StopWalkAnimation();
@@ -342,7 +316,7 @@ public class DwarfScript : MonoBehaviour
         }
     }
 
-    // הפונקציה שה-GameManager מפעיל כשהשחקן לוחץ על אבן
+    // הפונקציה מופעלת כשהגמד לוחץ על אבן
     public void GoGetRock(RockScript rock, bool isCorrect, Vector2 target)
     {
         currentRock = rock;
@@ -399,10 +373,7 @@ public class DwarfScript : MonoBehaviour
 
         jumpStateHash = Animator.StringToHash(jumpStateName);
 
-        // **לא** נותנים ל-Animator להריץ את הקליפ בעצמו.
-        // speed = 0 מקפיא אותו, ואנחנו מזיזים אותו ידנית בכל פריים
-        // לפי התקדמות הקפיצה. ככה הציור והתנועה לא יכולים להיפרד,
-        // בלי תלות במהירויות של המצב או של המעברים
+        // הזזת האנימציה בצורה ידנית בכל פריים
         if (animator != null) animator.speed = 0;
 
         StartHop();
@@ -413,7 +384,6 @@ public class DwarfScript : MonoBehaviour
                   "  hopTime=" + HopTime() + "s  clip=" + ClipLength() + "s");
     }
 
-    // אורך הקליפ, לפי שלושת השלבים שהוגדרו
     private float ClipLength()
     {
         float total = clipTakeOffTime + clipAirTime + clipLandTime;
@@ -423,8 +393,7 @@ public class DwarfScript : MonoBehaviour
         return total;
     }
 
-    // כמה זמן לוקחת קפיצה אחת. הגנה מערך לא הגיוני באינספקטור,
-    // שהיה מקפיא את הגמד או מדלג על כל הקליפ
+    // כמה זמן לוקחת קפיצה אחת
     private float HopTime()
     {
         if (jumpCycleTime < 0.1f) return 0.7f;
@@ -439,8 +408,7 @@ public class DwarfScript : MonoBehaviour
         ShowJumpFrame(0);
     }
 
-    // מציב את הקליפ באחוז ההתקדמות של הקפיצה.
-    // 0 = תחילת ההתכופפות, 1 = סוף הנחיתה
+    // מציב את הקליפ באחוז ההתקדמות של הקפיצה
     private void ShowJumpFrame(float progress)
     {
         if (animator == null) return;
@@ -452,26 +420,13 @@ public class DwarfScript : MonoBehaviour
         animator.Play(jumpStateHash, 0, progress);
     }
 
-    // ============================================================
-    // כמה גובה הגמד תופס מעל נקודת האבן, בשיא הקפיצה.
-    //
-    // שלושה מרכיבים: ההרמה שמעמידה אותו על ראש הסלע, קשת
-    // הקפיצה, וגובה הגוף שלו עצמו.
-    //
-    // המצלמה משתמשת בזה כדי לדעת כמה גבוה היא חייבת לשבת
-    // בזמן הדילוג, כדי שהגמד לא ייחתך בקצה העליון של המסך
-    // ============================================================
+    // כמה גובה הגמד תופס מעל נקודת האבן, בשיא הקפיצה
     public float SkipClearance()
     {
-        // ברירת מחדל צנועה, אם אין ספרייט למדוד
         float head = 0.9f;
 
         if (spriteRenderer != null && spriteRenderer.sprite != null)
         {
-            // המרחק מנקודת העיגון של הגמד ועד קודקוד הספרייט.
-            // חישוב לפי גובה הספרייט המלא היה הערכת יתר: כשנקודת
-            // העיגון במרכז, רק חצי ממנו נמצא מעל, והמצלמה הייתה
-            // מתרוממת גבוה מדי
             float above = spriteRenderer.bounds.max.y - transform.position.y;
 
             if (above > 0) head = above;
@@ -480,23 +435,13 @@ public class DwarfScript : MonoBehaviour
         return skipStoneOffsetY + skipHeight + head;
     }
 
-    // המקום שעליו הגמד באמת עומד: נקודת האבן, מורמת כך
-    // שהרגליים ינחתו על ראש הסלע
+    // המקום שעליו הגמד באמת עומד: נקודת האבן
     private Vector2 StonePoint(Vector2 point)
     {
         return new Vector2(point.x, point.y + skipStoneOffsetY);
     }
 
-    // ============================================================
-    // מקדמת קפיצה אחת בדילוג על אבני האגם, בכל פריים.
-    //
-    // הקפיצה מחולקת לשלושה שלבים לפי אותם יחסי זמן שיש בקליפ
-    // האנימציה: התכופפות, תעופה בקשת, ונחיתה. כך התמונה והתנועה
-    // נשארות מסונכרנות גם כשמשנים את מהירות הקפיצה.
-    //
-    // התעופה מחושבת כ-Lerp אופקי ועוד סינוס אנכי, וזה מה שנותן
-    // את הקשת במקום קו ישר
-    // ============================================================
+    // מקדמת קפיצה אחת בדילוג על אבני האגם
     private void UpdateSkipping()
     {
         Vector2 target = StonePoint(skipPath[skipIndex]);
@@ -505,21 +450,20 @@ public class DwarfScript : MonoBehaviour
 
         float cycle = HopTime();
 
-        // הקליפ נגרר יד ביד עם הקפיצה - אותו אחוז התקדמות בשניהם
+        // הקליפ נגרר יחד עם הקפיצה
         ShowJumpFrame(hopTimer / cycle);
 
-        // השלבים בזמן המשחק, ביחס המקורי של הקליפ
         float scale = cycle / ClipLength();
         float takeOff = clipTakeOffTime * scale;
         float air = clipAirTime * scale;
 
-        // ---- שלב 1: מתכופף על האבן, עוד לא זז ----
+        //  שלב 1: מתכופף על האבן, עוד לא זז 
         if (hopTimer < takeOff)
         {
             transform.position = new Vector3(skipFrom.x, skipFrom.y, transform.position.z);
         }
 
-        // ---- שלב 2: באוויר, בקשת, עד האבן הבאה ----
+        //  שלב 2: באוויר, בקשת, עד האבן הבאה 
         else if (hopTimer < takeOff + air)
         {
             float t = (hopTimer - takeOff) / air;
@@ -530,7 +474,7 @@ public class DwarfScript : MonoBehaviour
             transform.position = new Vector3(flat.x, flat.y + hop, transform.position.z);
         }
 
-        // ---- שלב 3: נחת. עומד על האבן ומתייצב ----
+        //  שלב 3: נחת. עומד על האבן ומתייצב 
         else
         {
             transform.position = new Vector3(target.x, target.y, transform.position.z);
@@ -538,7 +482,7 @@ public class DwarfScript : MonoBehaviour
 
         LookWhileSkipping(target);
 
-        // הקפיצה הסתיימה - ממשיכים לאבן הבאה
+        // הקפיצה הסתיימה- ממשיכים לאבן הבאה
         if (hopTimer >= cycle)
         {
             transform.position = new Vector3(target.x, target.y, transform.position.z);
@@ -558,7 +502,7 @@ public class DwarfScript : MonoBehaviour
         }
     }
 
-    // מדליקה את מצב הקפיצה ב-Animator
+    // מדליקה את אנימציית הקפיצה
     private void StartSkipAnimation()
     {
         if (animator == null) return;
@@ -567,7 +511,7 @@ public class DwarfScript : MonoBehaviour
         animator.SetBool(skipBoolName, true);
     }
 
-    // מכבה את מצב הקפיצה ומחזירה את מהירות ה-Animator לרגילה
+    // מכבה את מצב הקפיצה והגמד חוזר למהירות הרגילה
     private void StopSkipAnimation()
     {
         if (animator == null) return;
@@ -580,7 +524,6 @@ public class DwarfScript : MonoBehaviour
         animator.SetBool(skipBoolName, false);
     }
 
-    // מודיע ל-GameManager שהתור נגמר
     private void ReportTurnFinished()
     {
         if (turnReported == true) return;
@@ -642,8 +585,7 @@ public class DwarfScript : MonoBehaviour
     // זריקת האבן
     private void ThrowTheRock()
     {
-        // בתשובה נכונה- האבן עפה ל-Slot באגם.
-        // בתשובה שגויה- האבן חוזרת למקום שלה
+        // בתשובה נכונה האבן עפה למיקום שלה על האגם ובתשובה שגויה- האבן חוזרת למקומה
         if (answerIsCorrect == false)
         {
             animator.SetTrigger("Sad");
@@ -663,7 +605,6 @@ public class DwarfScript : MonoBehaviour
         throwUpPoint = new Vector2(middleX, topY);
 
         // המצלמה עוקבת אחרי האבן רק כשהיא עפה לאגם בתשובה נכונה
-        // בתשובה שגויה האבן רק חוזרת למקומה
         if (gameCamera != null && answerIsCorrect == true)
         {
             gameCamera.Follow(currentRock.transform);
@@ -694,8 +635,7 @@ public class DwarfScript : MonoBehaviour
         StopSkipAnimation();
         StopWalkAnimation();
 
-        // אחרי הדילוג הגמד נשאר מסתכל שמאלה. בלי איפוס הוא היה
-        // חוזר לשאלה הבאה כשהספרייט הפוך
+        // אחרי הדילוג הגמד נשאר מסתכל שמאלה
         if (spriteRenderer != null) spriteRenderer.flipX = false;
 
         if (gameCamera != null) gameCamera.JumpHome();
@@ -709,7 +649,7 @@ public class DwarfScript : MonoBehaviour
 
         Vector2 direction = target - (Vector2)transform.position;
 
-        // בוחרים אנימציה לפי הכיוון הליכה
+        // בחירת אנימציה לפי הכיוון הליכה
         if (Mathf.Abs(direction.x) >= Mathf.Abs(direction.y))
         {
             SetWalkAnimation(true, false, false);
@@ -719,7 +659,7 @@ public class DwarfScript : MonoBehaviour
         {
             SetWalkAnimation(false, true, false);
 
-            // מבטלים ההיפוך שנשאר מההליכה לצדדים
+            // ביטול ההיפוך שנשאר מההליכה לצדדים
             spriteRenderer.flipX = false;
         }
         else
@@ -730,8 +670,7 @@ public class DwarfScript : MonoBehaviour
         }
     }
 
-    // מדליקה בדיוק אחד משלושת כיווני ההליכה ומכבה את השאר.
-    // מרוכז בשגרה אחת, כדי ששני כיוונים לא יידלקו יחד בטעות
+    // מדליקה בדיוק אחד משלושת כיווני ההליכה ומכבה את השאר
     private void SetWalkAnimation(bool side, bool forward, bool back)
     {
         if (animator == null) return;
@@ -747,14 +686,12 @@ public class DwarfScript : MonoBehaviour
         SetWalkAnimation(false, false, false);
     }
 
-    // כיוון הגמד בזמן הדילוג על אבני האגם.
-    // מופרד מ-LookAt כי גיליון הדילוג הוא ספרייט אחר מגיליון ההליכה,
-    // ולכן הוא עשוי להיות מצויר לכיוון ההפוך
+    // כיוון הגמד בזמן הדילוג על אבני האגם
     private void LookWhileSkipping(Vector2 target)
     {
         if (spriteRenderer == null) return;
 
-        // המסלול כולו נע ימינה-שמאלה, אז אין טעם להתהפך בין אבן לאבן
+        // המסלול כולו נע ימינה שמאלה, אז אין טעם להתהפך בין אבן לאבן
         if (skipAlwaysFacesLeft == true)
         {
             spriteRenderer.flipX = skipSpriteLooksRight;

@@ -1,9 +1,7 @@
 ﻿using UnityEngine;
 
-// כל התנהגות המצלמה במקום אחד:
-// 1. מעבר בין מסך אבני התשובה לתצוגת האגם, ומעקב אחרי האבן ואחרי הגמד
-// 2. התאמת גודל התצוגה לכל יחס מסך. הבמה עוצבה ל-1280x720
-// 3. החלפת רקע ברירת המחדל הכחול של יוניטי בצבע של המשחק
+// כל התנהגות המצלמה בתסריט
+// מעבר בין מסך אבני התשובה לתצוגת האגם, ומעקב אחרי האבן ואחרי הגמד
 [RequireComponent(typeof(Camera))]
 public class CameraScript : MonoBehaviour
 {
@@ -12,16 +10,7 @@ public class CameraScript : MonoBehaviour
     [SerializeField] Transform lakeViewPoint;
 
     [Header("Speed")]
-    // ============================================================
     // זמן ההחלקה: בערך כמה שניות לוקח למצלמה להגיע ליעד.
-    //
-    // התנועה מבוססת SmoothDamp ולא Lerp, וההבדל מהותי: SmoothDamp
-    // שומר מהירות בין פריימים ובין מצבים, ולכן כשהיעד מתחלף -
-    // אחרי הנחת אבן, למשל - המצלמה מסיטה את התנועה בהדרגה במקום
-    // לשנות כיוון בבת אחת.
-    //
-    // ערך גדול יותר = תנועה איטית ורכה יותר
-    // ============================================================
     [SerializeField] float smoothTime = 0.45f;
 
     // חסם מהירות, כדי שמרחק גדול לא ייראה כמו קפיצה
@@ -42,77 +31,38 @@ public class CameraScript : MonoBehaviour
     [SerializeField] int referenceWidth = 1280;
     [SerializeField] int referenceHeight = 720;
 
-    // ה-Orthographic Size שבו המשחק נראה נכון ביחס המסך המקורי
     [SerializeField] float referenceOrthographicSize = 5f;
 
     [Header("Screen Fit")]
-    // ============================================================
-    // גודל התצוגה המרבי, לפי תמונת הרקע של הסצנה.
-    //
-    // הערך הוא תקרה בכל מצב, ולא רק בהתרחקות: הוא הגודל הגדול
-    // ביותר שבו תמונת הרקע עדיין מכסה את כל המסך. מעבר לו נראים
-    // שוליים ריקים בצבע הרקע של המצלמה, וזה מקור השוליים הירוקים.
-    //
-    // הערך שונה מסצנה לסצנה כי האיורים בגדלים שונים, ולכן הוא
-    // נקבע בעורך על כל מצלמה בנפרד:
-    //
-    //     סצנת המשחק   6.6   איור 51x22, מכסה עד יחס 4:3
-    //     מסך הפתיחה   4.58  איור 19.4x9.2
-    //     מסך הסיום    4.95  שלושת מסכי הסיום, לפי הקטן שבהם
-    //     מסך ההשהיה   5.0   איור 18x10
-    //
-    // 0 מבטל את התקרה
-    // ============================================================
+    // גודל התצוגה המרבי, לפי תמונת הרקע של הסצנה
     [SerializeField] float maxOrthographicSize = 6.6f;
 
-    // ============================================================
-    // תקרה מוחלטת לגודל התצוגה.
-    //
-    // ההתרחקות של הדילוג מתווספת לגודל הבסיסי, ובמסך צר הצירוף
-    // של השתיים יכול לחרוג מהאיור גם כשכל אחת מהן לבדה בסדר.
-    // התקרה נמדדה מול תמונת הרקע ומול הנקודה הנמוכה ביותר
-    // שהמצלמה מגיעה אליה
-    // ============================================================
     [SerializeField] float hardMaxOrthographicSize = 7.3f;
 
     [Header("Background")]
     // מחליף את הרקע הכחול של יוניטי
     [SerializeField] bool overrideBackground = true;
 
-    // צבע הרקע שמאחורי המשחק, בגוון היער
+    // צבע הרקע שמאחורי המשחק
     [SerializeField] Color backgroundColor = new Color(0.129f, 0.243f, 0.145f, 1f);
 
     [Header("Limits")]
-    // המצלמה לא יוצאת מהמלבן שבין עמדת הבית לתצוגת האגם.
-    // בלי זה המעקב אחרי הגמד הקופץ מוציא אותה מחוץ לעולם המשחק
-    // ואז רואים את רקע היוניטי מאחור
+    // המצלמה לא יוצאת מהמלבן שבין עמדת הבית לתצוגת האגם
     [SerializeField] bool keepInsideLevel = true;
 
-    // כמה מותר לחרוג מעבר לשתי נקודות התצוגה
     [SerializeField] float boundsMargin = 0.5f;
 
-    // ============================================================
-    // התרחקות לזמן הדילוג.
-    //
-    // בזמן הדילוג המצלמה עוקבת אחרי הגמד רק אופקית, וכשהאבנים
-    // או תגית הסיום יושבות גבוה ראש הגמד יוצא מהמסך.
-    //
-    // הפתרון הוא להתרחק ולא להתרומם. הרמה מזיזה את המסגרת כלפי
-    // מעלה, וכל מה שהיה בתחתית - תגית ההתחלה, למשל - נחתך.
-    // התרחקות מגדילה את התמונה סימטרית סביב אותו מרכז, ולכן
-    // שום דבר שהיה גלוי אינו נעלם
-    // ============================================================
+    // התרחקות המצלמה לזמן הדילוג
     private float skipZoom;
 
     // גודל התצוגה הבסיסי, לפני ההתרחקות של הדילוג
     private float baseSize = -1f;
 
-    // המהירות הנוכחית של המצלמה. נשמרת בין המצבים, וזה מה
-    // שהופך את המעברים לרציפים במקום לקפיצות
+    // המהירות הנוכחית של המצלמה
     private Vector3 moveVelocity;
     private float sizeVelocity;
 
-    // המצב הנוכחי: idle / follow / move / wait
+    // המצב הנוכחי של הגמד: idle / follow / move / wait
     private string state = "idle";
     private Vector3 homePosition;
     private Vector3 movePoint;
@@ -127,18 +77,13 @@ public class CameraScript : MonoBehaviour
     // כמה זמן המצלמה נשארת על האגם
     private float stayTimeToUse;
 
-    // במעקב אחרי הגמד הקופץ עוקבים רק על ציר ה-X.
-    // הקפיצות למעלה לא אמורות להזיז את המצלמה
     private bool followXOnly;
 
     // רכיב המצלמה עצמו, להתאמת גודל התצוגה והרקע
     private Camera myCamera;
 
-    // היחס האחרון שחושב, כדי לא לחשב מחדש בכל פריים
     private float lastAspect = -1f;
-    // המיקום שבו המצלמה הונחה בסצנה הוא "הבית" שאליו היא תמיד
-    // חוזרת. נקבע פעם אחת ב-Awake, לפני ש-Start של סקריפטים
-    // אחרים מתחיל להזיז אותה
+    // המיקום שבו המצלמה הונחה בסצנה הוא ״הבית״ שאליו היא תמיד תחזור אליו
     void Awake()
     {
         homePosition = transform.position;
@@ -151,8 +96,6 @@ public class CameraScript : MonoBehaviour
         FitToScreen();
     }
 
-    // נקרא גם בהדלקה מחדש של האובייקט, ולא רק בטעינה. חוזר על
-    // התאמת הרקע והגודל, כי חזרה מהשהיה עלולה לאפס אותם
     void OnEnable()
     {
         if (myCamera == null) myCamera = GetComponent<Camera>();
@@ -161,21 +104,9 @@ public class CameraScript : MonoBehaviour
         FitToScreen();
     }
 
-    // ============================================================
-    // מכונת המצבים של המצלמה, רצה בכל פריים.
-    //
-    // ארבעה מצבים: idle - עומדת, move - נעה ליעד, follow - עוקבת
-    // אחרי אובייקט, wait - ממתינה במקום לפני חזרה הביתה.
-    //
-    // כאן גם נבדק בכל פריים אם יחס המסך השתנה. המשחק רץ בתוך
-    // iframe במחולל, שגודלו משתנה עם חלון הדפדפן, ולכן אי אפשר
-    // להסתפק בחישוב חד-פעמי בטעינה
-    // ============================================================
     void Update()
     {
-        // המסך שינה גודל - מתאימים את שדה הראייה מחדש.
-        // ההשוואה היא ליחס המסך ולא ליחס המצלמה, כי המסגור משנה
-        // את יחס המצלמה בעצמו והבדיקה הייתה מפסיקה להגיב
+        // המסך שינה גודל- מתאימים את שדה הראייה מחדש
         if (myCamera != null && Screen.height > 0)
         {
             float screenAspect = (float)Screen.width / Screen.height;
@@ -183,13 +114,8 @@ public class CameraScript : MonoBehaviour
             if (Mathf.Abs(screenAspect - lastAspect) > 0.0001f) FitToScreen();
         }
 
-        // ============================================================
-        // כל המצבים מחשבים יעד אחד, וכל התנועה מתבצעת במקום אחד.
-        //
-        // זה מה שמאפשר רציפות: המהירות נשמרת בין המצבים, ולכן
-        // מעבר ממעקב אחרי אבן אל תצוגת האגם, ומשם חזרה הביתה,
-        // הוא תנועה אחת מתמשכת ולא שלוש תנועות נפרדות
-        // ============================================================
+
+        //  המהירות נשמרת בין המצבים
         Vector3 wanted = transform.position;
         bool moving = false;
 
@@ -225,15 +151,12 @@ public class CameraScript : MonoBehaviour
                 transform.position, wanted, ref moveVelocity, smoothTime,
                 maxSpeed, Time.deltaTime);
 
-            // ההגעה ליעד נבדקת בלי הצמדה למקום המדויק. הצמדה
-            // הייתה עוצרת את המצלמה בבת אחת, וזו בדיוק הקפיצה
-            // שהתנועה החלקה אמורה למנוע
             if (state == "move" &&
                 Vector3.Distance(transform.position, movePoint) <= arriveDistance)
             {
                 if (waitWhenArrived == true)
                 {
-                    // הגענו לתצוגת האגם - עוצרים כדי שיראו את הסידור
+                    // הגענו לתצוגת האגם- עוצרים את המצלמה כדי שיראו את הסידור
                     waitWhenArrived = false;
                     waitTimer = stayTimeToUse;
                     state = "wait";
@@ -253,12 +176,7 @@ public class CameraScript : MonoBehaviour
         ApplyZoom();
     }
 
-    // ============================================================
-    // מחיל את גודל התצוגה: הגודל הבסיסי ועוד ההתרחקות של הדילוג.
-    //
-    // גם כאן ההחלקה חשובה: קפיצת גודל פתאומית נראית כמו תקלה,
-    // והתרחקות הדרגתית נקראת כמו מהלך מכוון
-    // ============================================================
+    // גודל התצוגה הוא הגודל הבסיסי של המצלמה בתוספת ההתרחקות של הדילוג
     private void ApplyZoom()
     {
         if (myCamera == null) return;
@@ -282,9 +200,7 @@ public class CameraScript : MonoBehaviour
             myCamera.orthographicSize, goal, ref sizeVelocity, zoomSmoothTime);
     }
 
-    // הגבלת המצלמה לתחומי השלב נעשית ב-LateUpdate ולא ב-Update,
-    // כדי שהיא תרוץ אחרי שכל התנועות של הפריים כבר בוצעו.
-    // אחרת המצלמה הייתה יכולה לחרוג לרגע אחד מהגבול
+    //הגבלת תחומי המצלמה, אחרת המצלמה הייתה יכולה לחרוג מהגבול
     void LateUpdate()
     {
         ClampInsideLevel();
@@ -299,7 +215,7 @@ public class CameraScript : MonoBehaviour
 
         myCamera.clearFlags = CameraClearFlags.SolidColor;
 
-        // אלפא מלא, אחרת נראה שחור או כחול מאחורי המשחק
+        // אחרת נראה שחור או כחול מאחורי המשחק
         Color solid = backgroundColor;
         solid.a = 1f;
 
@@ -315,10 +231,6 @@ public class CameraScript : MonoBehaviour
         if (referenceHeight <= 0 || referenceWidth <= 0) return;
 
         float referenceAspect = (float)referenceWidth / referenceHeight;
-
-        // יחס המסך עצמו, ולא myCamera.aspect: ברגע שמצמצמים את
-        // אזור הציור של המצלמה, aspect מחזיר את היחס של האזור
-        // המצומצם, והבדיקה הייתה מתייצבת על ערך שגוי
         float currentAspect = Screen.height > 0
             ? (float)Screen.width / Screen.height
             : myCamera.aspect;
@@ -327,45 +239,20 @@ public class CameraScript : MonoBehaviour
 
         lastAspect = currentAspect;
 
-        // ============================================================
-        // אזור הציור הוא תמיד המסך המלא.
-        //
-        // צמצום camera.rect הוא הדרך המקובלת למסגר, אבל ב-URP צינור
-        // הרינדור צובע את כל שטח היעד בצבע הרקע של המצלמה ורק אחר כך
-        // מצייר לתוך האזור המצומצם - ומשם הגיעו השוליים הירוקים.
-        // לכן ההתאמה נעשית כאן בגודל התצוגה בלבד
-        // ============================================================
+        // אזור המצלמה הראשי הוא תמיד המסך המלא
         myCamera.rect = new Rect(0f, 0f, 1f, 1f);
 
         if (currentAspect >= referenceAspect)
         {
-            // המסך רחב מהתכנון - הגובה נשאר, והרוחב העודף מראה
-            // עוד מהעולם בצדדים
             SetBaseSize(CapToBackground(referenceOrthographicSize));
             return;
         }
 
-        // ============================================================
-        // המסך צר מהתכנון - מתרחקים.
-        //
-        // הממשק יושב קרוב לשולי המסגרת המתוכננת: כפתור הקול בשמאל
-        // ושעון החול בימין נמצאים פחות מיחידה מהקצה. חיתוך הצדדים
-        // היה מוריד אותם מהמסך, ולכן ההתאמה היא תמיד להראות יותר
-        // ולעולם לא פחות
-        // ============================================================
         float wanted = referenceOrthographicSize * (referenceAspect / currentAspect);
 
         SetBaseSize(CapToBackground(wanted));
     }
 
-
-    // ============================================================
-    // מוריד גודל תצוגה אל מתחת לתקרה של תמונת הרקע.
-    //
-    // התקרה חלה גם כשהמסך רחב מהתכנון ולא רק בהתרחקות: במסכי
-    // התפריט האיור קטן מהמסגרת שאליה המשחק עוצב, ושם צריך דווקא
-    // להתקרב כדי שלא ייראו שוליים
-    // ============================================================
     private float CapToBackground(float size)
     {
         if (maxOrthographicSize <= 0f) return size;
@@ -373,13 +260,7 @@ public class CameraScript : MonoBehaviour
         return size < maxOrthographicSize ? size : maxOrthographicSize;
     }
 
-    // ============================================================
-    // קובע את גודל התצוגה הבסיסי.
-    //
-    // כשאין התרחקות פעילה הגודל מוחל מיד, כדי ששינוי גודל חלון
-    // לא ייראה כמו זום איטי. כשיש התרחקות, ApplyZoom הוא שידאג
-    // להחליק את המעבר
-    // ============================================================
+    // קובע את גודל התצוגה, הזום לא ייראה איטי כשיש התרחקות של המצלמה, הז רק יחליק את מעבר המצלמה המצלמה בויזואל
     private void SetBaseSize(float size)
     {
         baseSize = size;
@@ -392,7 +273,7 @@ public class CameraScript : MonoBehaviour
             sizeVelocity = 0f;
         }
     }
-    // מחזיר את המצלמה אל תוך המלבן שבין עמדת הבית לתצוגת האגם
+    // מחזיר את המצלמה אל תוך המלבן שבין עמוד הבית לתצוגת האגם
     private void ClampInsideLevel()
     {
         if (keepInsideLevel == false) return;
@@ -427,7 +308,7 @@ public class CameraScript : MonoBehaviour
 
 
     // מעקב אופקי בלבד. משמש בדילוג של הגמד על האבנים,
-    // כדי שהקפיצות למעלה לא יטלטלו את המצלמה
+    // כדי שהקפיצות למעלה לא יזיזו את המצלמה בצורה חזקה מדי שלא נעימה לעין
     public void FollowSideways(Transform newTarget)
     {
         skipZoom = 0f;
@@ -437,17 +318,7 @@ public class CameraScript : MonoBehaviour
         state = "follow";
     }
 
-    // ============================================================
-    // מעקב אופקי, עם הבטחה שנקודה מסוימת תישאר בתוך המסך.
-    //
-    // topWorldY היא הנקודה הגבוהה ביותר שחייבת להיראות - למשל
-    // ראש הגמד בשיא הקפיצה מעל האבן הגבוהה ביותר במסלול.
-    // מכאן נגזר הגובה המינימלי של המצלמה: חצי גובה התצוגה הוא
-    // orthographicSize, ולכן המצלמה חייבת לשבת לפחות ב-
-    // topWorldY + שוליים - orthographicSize.
-    //
-    // ההרמה מתבצעת מיד ולא בהדרגה, כי הדילוג מתחיל באותו רגע
-    // ============================================================
+    // הנקודה הגבוהה ביותר מסומנת כך שלא תהיה תזוזת מצלמה מעליה
     public void FollowSidewaysShowing(Transform newTarget, float topWorldY,
                                       float margin, float maxZoomOut)
     {
@@ -463,14 +334,6 @@ public class CameraScript : MonoBehaviour
             return;
         }
 
-        // ============================================================
-        // חצי הגובה הדרוש כדי שהנקודה הגבוהה תיכנס למסך, מהמרכז
-        // הנוכחי של המצלמה ומעלה. ההפרש מהגודל הבסיסי הוא
-        // ההתרחקות הנחוצה.
-        //
-        // החסם קיים כדי שנקודה חריגה אחת לא תרחיק את המצלמה עד
-        // שהכול נראה קטן ומנותק
-        // ============================================================
         float needed = topWorldY + margin - transform.position.y;
 
         float extra = needed - baseSize;
@@ -481,7 +344,7 @@ public class CameraScript : MonoBehaviour
         skipZoom = extra;
     }
 
-    // מחזיר את גודל התצוגה לרגיל. נקרא בסיום הדילוג
+    // מחזיר את גודל התצוגה לגודל הרגיל. נקרא בסיום הדילוג
     public void ClearSkipZoom()
     {
         skipZoom = 0f;
@@ -493,10 +356,7 @@ public class CameraScript : MonoBehaviour
     {
         ShowLakeThenReturn(stayAtLakeTime);
     }
-    // גרסה שמקבלת זמן שהייה מפורש, לשימוש כשהשהייה צריכה
-    // להתאים לאורך אנימציה מסוימת.
-    // אם נקודת התצוגה לא חוברה באינספקטור, המצלמה נשארת במקומה
-    // וממתינה - עדיף מאשר לקפוץ לנקודה שגויה
+    // יש זמן שהייה מפורש שמתאים לאורך אנימציות
     public void ShowLakeThenReturn(float stayTime)
     {
         target = null;
@@ -515,7 +375,7 @@ public class CameraScript : MonoBehaviour
         MoveTo(LakePoint(), true);
     }
 
-    //תזוזת מצלמה עם לחיצה על החיצים
+    //תזוזת מצלמה עם לחיצה על אייקוני החיצים
     // החץ השמאלי- תזוזה לאגם
     public void LookAtLake()
     {
@@ -534,7 +394,7 @@ public class CameraScript : MonoBehaviour
         GoHome();
     }
 
-    // נשארים על תצוגת האגם בלי לחזור אוטומטית.
+    // נשארים על תצוגת האגם בלי לחזור אוטומטית
     // משמש כשהגמד מדלג על האבנים בסיום שאלה מוצלחת
     public void WatchLake()
     {
@@ -549,21 +409,18 @@ public class CameraScript : MonoBehaviour
         state = "move";
     }
 
-    // חזרה חלקה לנקודת הבית
+    // חזרה חלקה לאיזור המצלמה הקבוע 
     public void GoHome()
     {
         MoveTo(homePosition, false);
     }
 
-    // קפיצה מיידית הביתה בלי אנימציה, ואיפוס כל מצב המעקב.
-    // משמש במעבר בין שלבים, ששם תנועה חלקה הייתה נראית כמו
-    // תקלה במקום כמו מעבר
+    //מעבר חלק של המצלמה לאיזור המרכזי
     public void JumpHome()
     {
         skipZoom = 0f;
 
-        // קפיצה מיידית חייבת לאפס גם את המהירות, אחרת המצלמה
-        // ממשיכה לנוע מהמקום החדש לפי המהירות שנצברה
+        // קפיצה מיידית חייבת לאפס גם את המהירות, אחרת המצלמה ממשיכה לזוז מהמקום החדש לפי המהירות הקודמת
         moveVelocity = Vector3.zero;
         sizeVelocity = 0f;
 
@@ -584,8 +441,6 @@ public class CameraScript : MonoBehaviour
             lakeViewPoint.position.x, lakeViewPoint.position.y, transform.position.z);
     }
 
-    // מעביר את המצלמה למצב תנועה אל נקודה. waitThere קובע אם
-    // להמתין שם ואז לחזור הביתה, או להישאר
     private void MoveTo(Vector3 point, bool waitThere)
     {
         skipZoom = 0f;
