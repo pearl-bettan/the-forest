@@ -359,7 +359,7 @@ namespace AuthTemplate.Server.Controllers
                 //השאלות מוחזרות לפי הסדר שקבע העורך
                 // המיון המשני לפי Id מבטיח סדר יציב גם במשחקים ישנים
                 // שבהם קיימות שתי שאלות עם אותו StageOrder
-                string questionsQuery = "SELECT Id, GameId, Topic, LeftTag, RightTag, StageOrder AS QuestionOrder " +
+                string questionsQuery = "SELECT Id, GameId, LeftTag, RightTag, StageOrder AS QuestionOrder " +
                                         "FROM Stages WHERE GameId = @GameId ORDER BY StageOrder, Id";
 
                 var records = await _db.GetRecordsAsync<QuestionToEdit>(questionsQuery, new { GameId = gameId });
@@ -448,16 +448,14 @@ namespace AuthTemplate.Server.Controllers
                 object param = new
                 {
                     GameId = question.GameId,
-                    //העמודה אינה מקבלת null, ולכן שדה ריק נשמר כמחרוזת ריקה
-                    Topic = question.Topic ?? "",
                     LeftTag = string.IsNullOrWhiteSpace(question.LeftTag) ? "אחרון" : question.LeftTag,
                     RightTag = string.IsNullOrWhiteSpace(question.RightTag) ? "ראשון" : question.RightTag,
                     StageTime = game.TimePerQuestion,
                     StageOrder = questionOrder
                 };
 
-                string insertQuery = "INSERT INTO Stages (GameId, Topic, LeftTag, RightTag, StageTime, StageOrder) " +
-                                     "VALUES (@GameId, @Topic, @LeftTag, @RightTag, @StageTime, @StageOrder)";
+                string insertQuery = "INSERT INTO Stages (GameId, LeftTag, RightTag, StageTime, StageOrder) " +
+                                     "VALUES (@GameId, @LeftTag, @RightTag, @StageTime, @StageOrder)";
 
                 int questionId = await _db.InsertReturnIdAsync(insertQuery, param);
 
@@ -517,12 +515,11 @@ namespace AuthTemplate.Server.Controllers
                 object param = new
                 {
                     ID = question.ID,
-                    Topic = question.Topic ?? "",
                     LeftTag = string.IsNullOrWhiteSpace(question.LeftTag) ? "אחרון" : question.LeftTag,
                     RightTag = string.IsNullOrWhiteSpace(question.RightTag) ? "ראשון" : question.RightTag
                 };
 
-                string updateQuery = "UPDATE Stages SET Topic = @Topic, LeftTag = @LeftTag, " +
+                string updateQuery = "UPDATE Stages SET LeftTag = @LeftTag, " +
                                      "RightTag = @RightTag WHERE Id = @ID";
 
                 await _db.SaveDataAsync(updateQuery, param);

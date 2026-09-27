@@ -19,9 +19,6 @@ public class AnswerData
 public class StageData
 {
     [Header("Texts")]
-    // נושא השאלה
-    public string topic;
-
     // התגית שמופיעה משמאל לאגם (הסוף)
     public string leftTag;
 

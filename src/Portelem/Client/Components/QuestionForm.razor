@@ -53,7 +53,7 @@
                     }
                     else
                     {
-                        <span class="item-text">@answer.Content</span>
+                        <span class="item-text @TextSize(answer.Content)">@answer.Content</span>
                     }
 
                     @* אייקון המחיקה מופיע רק במעבר עכבר *@
@@ -177,7 +177,11 @@
                 }
                 else if (itemType == "text")
                 {
+                    @* dir="auto" קובע את כיוון השורה לפי התו החזק הראשון שבה
+                       ולא לפי כיוון העמוד, בדיוק כמו בתצוגה על הסלע. בלי זה
+                       "12 gram dog" נראה בזמן ההקלדה כ-"gram dog 12" *@
                     <textarea class="rock-input @(itemBlink ? "limit-blink" : "")"
+                              dir="auto"
                               maxlength="@ItemMax" placeholder="הקלדת טקסט"
                               @bind="itemText" @bind:event="oninput"
                               @onkeydown="OnItemKeyDown"></textarea>
@@ -266,7 +270,9 @@
             </p>
 
             <div class="big-tag">
+                @* הכיוון לפי התו החזק הראשון, כמו בתצוגה על התגית *@
                 <input class="tag-input @(tagBlink ? "limit-blink" : "")" maxlength="@TagMax"
+                       dir="auto"
                        value="@tagText"
                        @oninput="(e) => tagText = e.Value.ToString()"
                        @onkeydown="OnTagKeyDown" />
@@ -971,5 +977,28 @@
         }
 
         return tag;
+    }
+
+
+    // ============================================================
+    // מחזירה את מחלקת הגודל של הטקסט שעל הסלע.
+    // כל התווים חייבים להיראות, ולכן ככל שהטקסט ארוך יותר הגופן
+    // קטן יותר במקום שהטקסט ייחתך בשלוש נקודות
+    // ============================================================
+    string TextSize(string text)
+    {
+        int length = (text == null) ? 0 : text.Length;
+
+        if (length <= 12)
+        {
+            return "";
+        }
+
+        if (length <= 20)
+        {
+            return "text-mid";
+        }
+
+        return "text-long";
     }
 }

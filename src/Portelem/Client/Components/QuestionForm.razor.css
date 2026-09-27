@@ -125,23 +125,30 @@
 }
 
 /* ============================================================
-   הטקסט על הסלע מוגבל לשטח השטוח שלו.
-   רוחב הכרטיס גדול מהאזור שאפשר לכתוב עליו, ובלי ההגבלה הזאת
-   טקסט ארוך נמרח אל מעבר לשולי הסלע. במצב תצוגה זה לא קרה רק
-   מפני שהגופן שם קטן יותר
+   הטקסט על הסלע מוגבל לרוחב השטח השטוח שלו: רוחב הכרטיס גדול
+   מהאזור שאפשר לכתוב עליו, ובלי ההגבלה הזאת טקסט ארוך נמרח אל
+   מעבר לשולי הסלע.
+
+   הטקסט אינו נחתך לעולם - חייבים לראות את כל התווים שהוזנו.
+   לכן במקום חיתוך בשלוש נקודות הגופן קטן לפי אורך הטקסט, וכך
+   גם 30 התווים המותרים נכנסים בשלמותם אל תוך הסלע
    ============================================================ */
 .rock-media .item-text {
     max-width: 78%;
-    max-height: 100%;
-    overflow: hidden;
-
-    /* עד שלוש שורות, ומה שמעבר נחתך בשלוש נקודות */
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
-
     font-size: 15px;
     line-height: 17px;
+}
+
+/* 13 עד 20 תווים */
+.rock-media .item-text.text-mid {
+    font-size: 14px;
+    line-height: 16px;
+}
+
+/* 21 תווים ומעלה, עד המקסימום שהמחולל מתיר */
+.rock-media .item-text.text-long {
+    font-size: 13px;
+    line-height: 15px;
 }
 
 /* ערך קיצון שטרם הוזן */
@@ -569,6 +576,22 @@
         line-height: 18px;
     }
 
+    /* סולם ההקטנה יורד יחד עם הכרטיס */
+    .rock-media .item-text {
+        font-size: 14px;
+        line-height: 16px;
+    }
+
+    .rock-media .item-text.text-mid {
+        font-size: 13px;
+        line-height: 15px;
+    }
+
+    .rock-media .item-text.text-long {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
     .item-img {
         max-width: 78px;
         max-height: 62px;
@@ -589,6 +612,21 @@
     .item-text {
         font-size: 13px;
         line-height: 16px;
+    }
+
+    .rock-media .item-text {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
+    .rock-media .item-text.text-mid {
+        font-size: 11px;
+        line-height: 13px;
+    }
+
+    .rock-media .item-text.text-long {
+        font-size: 10px;
+        line-height: 12px;
     }
 
     .item-img {

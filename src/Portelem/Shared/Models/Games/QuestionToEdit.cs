@@ -17,10 +17,6 @@ namespace AuthTemplate.Shared.Models.Games
         // המשחק שאליו שייכת השאלה
         public int GameId { get; set; }
 
-        // נוסח השאלה, כפי שהשחקן יראה אותו מעל הרצף
-        [StringLength(50, ErrorMessage = "עד 50 תווים")]
-        public string Topic { get; set; } = "";
-
         // ערך הקיצון בצד ימין של הרצף
         [Required(ErrorMessage = "חובה להזין ערך קיצון")]
         [StringLength(10, ErrorMessage = "עד 10 תווים")]

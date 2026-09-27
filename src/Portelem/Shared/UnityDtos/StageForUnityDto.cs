@@ -10,9 +10,6 @@ namespace ForestGame.Shared.UnityDtos
     // ============================================================
     public class StageForUnityDto
     {
-        // נושא השלב
-        public string Topic { get; set; }
-
         // תגיות סדר לתשובות
         public string LeftTag { get; set; }
         public string RightTag { get; set; }

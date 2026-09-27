@@ -78,14 +78,28 @@
     unicode-bidi: plaintext;
 }
 
-/* הטקסט מוגבל לשטח השטוח של הסלע, כמו במצב עריכה */
+/* ============================================================
+   הטקסט מוגבל לרוחב השטח השטוח של הסלע, אבל אינו נחתך לעולם:
+   חייבים לראות את כל התווים שהוזנו. לכן במקום חיתוך בשלוש
+   נקודות הגופן קטן לפי אורך הטקסט, וכך גם 30 התווים המותרים
+   נכנסים בשלמותם אל תוך הסלע
+   ============================================================ */
 .rock-media .item-text {
     max-width: 78%;
-    max-height: 100%;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    font-size: 13px;
+    line-height: 15px;
+}
+
+/* 13 עד 20 תווים */
+.rock-media .item-text.text-mid {
+    font-size: 12px;
+    line-height: 14px;
+}
+
+/* 21 תווים ומעלה, עד המקסימום שהמחולל מתיר */
+.rock-media .item-text.text-long {
+    font-size: 11px;
+    line-height: 13px;
 }
 
 .item-img {
@@ -133,6 +147,22 @@
         line-height: 14px;
     }
 
+    /* סולם ההקטנה יורד יחד עם הכרטיס */
+    .rock-media .item-text {
+        font-size: 12px;
+        line-height: 14px;
+    }
+
+    .rock-media .item-text.text-mid {
+        font-size: 11px;
+        line-height: 13px;
+    }
+
+    .rock-media .item-text.text-long {
+        font-size: 10px;
+        line-height: 12px;
+    }
+
     .item-img {
         max-width: 58px;
         max-height: 46px;
@@ -153,5 +183,20 @@
     .item-text {
         font-size: 11px;
         line-height: 13px;
+    }
+
+    .rock-media .item-text {
+        font-size: 11px;
+        line-height: 13px;
+    }
+
+    .rock-media .item-text.text-mid {
+        font-size: 10px;
+        line-height: 12px;
+    }
+
+    .rock-media .item-text.text-long {
+        font-size: 9px;
+        line-height: 11px;
     }
 }

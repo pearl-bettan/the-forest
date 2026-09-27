@@ -43,7 +43,9 @@
 
                 <div class="settings-info">
                     <div class="settings-line">
-                        <span class="card-item">שם המשחק: @game.GameName</span>
+                        @* bdi מבודד את שם המשחק, כדי ששם באנגלית או שם
+                           שמתחיל במספר לא יתהפך בתוך המשפט העברי *@
+                        <span class="card-item">שם המשחק: <bdi>@game.GameName</bdi></span>
                     </div>
 
                     <div class="settings-line">
@@ -292,6 +294,7 @@
 
                 <input class="game-name-input @(nameBlink ? "limit-blink" : "")"
                        maxlength="@NameMax"
+                       dir="@InputDir(gameForm.GameName)"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
                        @oninput="(e) => gameForm.GameName = e.Value.ToString()"
@@ -677,7 +680,6 @@
     {
         editedQuestion = new QuestionToEdit();
         editedQuestion.GameId = GameId;
-        editedQuestion.Topic = "";
         editedQuestion.RightTag = DefaultRightTag;
         editedQuestion.LeftTag = DefaultLeftTag;
         editedQuestion.Answers = new List<AnswerToEdit>();
@@ -693,7 +695,6 @@
         editedQuestion = new QuestionToEdit();
         editedQuestion.ID = question.ID;
         editedQuestion.GameId = question.GameId;
-        editedQuestion.Topic = question.Topic;
         editedQuestion.RightTag = question.RightTag;
         editedQuestion.LeftTag = question.LeftTag;
         editedQuestion.QuestionOrder = question.QuestionOrder;
@@ -1044,4 +1045,20 @@
         }
     }
 
+
+    // ============================================================
+    // כיוון תיבת הקלדה. כל עוד התיבה ריקה הכיוון עברי, כדי
+    // שהטקסט המציין מקום והסמן יישבו בימין. משהוזן תוכן הכיוון
+    // נקבע לפי התו החזק הראשון, בדיוק כמו בתצוגה, ולכן
+    // "12 gram dog" נקרא נכון גם בזמן ההקלדה
+    // ============================================================
+    string InputDir(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return "rtl";
+        }
+
+        return "auto";
+    }
 }

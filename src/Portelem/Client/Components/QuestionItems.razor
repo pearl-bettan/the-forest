@@ -27,7 +27,7 @@
                 }
                 else
                 {
-                    <span class="item-text">@answer.Content</span>
+                    <span class="item-text @TextSize(answer.Content)">@answer.Content</span>
                 }
             </div>
 
@@ -64,5 +64,27 @@
         }
 
         return tag;
+    }
+
+    // ============================================================
+    // מחזירה את מחלקת הגודל של הטקסט שעל הסלע.
+    // כל התווים חייבים להיראות, ולכן ככל שהטקסט ארוך יותר הגופן
+    // קטן יותר במקום שהטקסט ייחתך בשלוש נקודות
+    // ============================================================
+    string TextSize(string text)
+    {
+        int length = (text == null) ? 0 : text.Length;
+
+        if (length <= 12)
+        {
+            return "";
+        }
+
+        if (length <= 20)
+        {
+            return "text-mid";
+        }
+
+        return "text-long";
     }
 }

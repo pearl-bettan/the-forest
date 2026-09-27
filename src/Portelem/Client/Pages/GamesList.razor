@@ -42,6 +42,7 @@
 
                 <div class="search-wrap">
                     <input class="search-input"
+                           dir="@InputDir(searchText)"
                            placeholder="חיפוש לפי שם משחק או קוד"
                            disabled="@(hasGames == false)"
                            value="@searchText"
@@ -161,7 +162,9 @@
                 @foreach (GameToTable game in visible)
                 {
                     <div class="game-row">
-                        <span class="col-name">@game.GameName</span>
+                        @* bdi מבודד את השם, כדי ששם באנגלית או שם שמתחיל
+                           במספר יוצג בסדר הנכון בתוך העמודה העברית *@
+                        <span class="col-name"><bdi>@game.GameName</bdi></span>
                         <span class="col-code"><span class="cell-label">קוד: </span>@game.GameCode</span>
                         <span class="col-count"><span class="cell-label">מס' שאלות: </span>@game.QuestionsCount</span>
 
@@ -254,6 +257,7 @@
 
                 <input class="game-name-input @(nameBlink ? "limit-blink" : "")"
                        maxlength="@NameMax"
+                       dir="@InputDir(gameForm.GameName)"
                        placeholder="הקלד את שם המשחק"
                        value="@gameForm.GameName"
                        @oninput="(e) => gameForm.GameName = e.Value.ToString()"
@@ -778,5 +782,21 @@
                 msg = "אירעה תקלה, נסו שוב";
                 break;
         }
+    }
+
+    // ============================================================
+    // כיוון תיבת הקלדה. כל עוד התיבה ריקה הכיוון עברי, כדי
+    // שהטקסט המציין מקום והסמן יישבו בימין. משהוזן תוכן הכיוון
+    // נקבע לפי התו החזק הראשון, בדיוק כמו בתצוגה, ולכן
+    // "12 gram dog" נקרא נכון גם בזמן ההקלדה
+    // ============================================================
+    string InputDir(string text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return "rtl";
+        }
+
+        return "auto";
     }
 }

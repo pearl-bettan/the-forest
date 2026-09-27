@@ -88,7 +88,7 @@ namespace AuthTemplate.Server.Controllers
             }
 
             //שליפת השלבים של המשחק
-            string stagesQuery = @"SELECT Id, Topic, LeftTag, RightTag, StageTime FROM Stages WHERE GameId = @GameId ORDER BY StageOrder";
+            string stagesQuery = @"SELECT Id, LeftTag, RightTag, StageTime FROM Stages WHERE GameId = @GameId ORDER BY StageOrder";
             var stageRows = await _db.GetRecordsAsync<StageRow>(stagesQuery, new { GameId = game.Id });
 
             // בדיקה שקיים תוכן במשחק
@@ -107,7 +107,6 @@ namespace AuthTemplate.Server.Controllers
             foreach (StageRow stageRow in stageRows)
             {
                 StageForUnityDto stageDto = new StageForUnityDto();
-                stageDto.Topic = stageRow.Topic;
                 stageDto.LeftTag = stageRow.LeftTag;
                 stageDto.RightTag = stageRow.RightTag;
                 stageDto.StageTime = stageRow.StageTime;
@@ -150,7 +149,6 @@ namespace AuthTemplate.Server.Controllers
         private class StageRow
         {
             public int Id { get; set; }
-            public string Topic { get; set; }
             public string LeftTag { get; set; }
             public string RightTag { get; set; }
             public int StageTime { get; set; }

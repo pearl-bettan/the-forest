@@ -19,7 +19,6 @@ public class ServerGame
 [System.Serializable]
 public class ServerStage
 {
-    public string topic;
     public string leftTag;
     public string rightTag;
     public int stageTime;
@@ -294,9 +293,11 @@ public class ServerManager : MonoBehaviour
         // מספר החיים קבוע על 3 לפי האפיון, ולא נלקח מהמחולל
         unityGame.startingLives = GameRules.Lives;
 
-        foreach (ServerStage serverStage in serverGame.stages)
+        // המספור לצורך האזהרות ב-Console: שלב פסול מדולג, וצריך
+        // לדעת איזה שלב במשחק היה
+        for (int i = 0; i < serverGame.stages.Count; i++)
         {
-            StageData unityStage = await ParseStage(serverStage);
+            StageData unityStage = await ParseStage(serverGame.stages[i], i + 1);
 
             if (unityStage != null)
             {
@@ -325,19 +326,19 @@ public class ServerManager : MonoBehaviour
     // אסינכרונית כי הפריטים עשויים להיות תמונות, וכל תמונה
     // דורשת הורדה נפרדת מהשרת
     // ============================================================
-    async Task<StageData> ParseStage(ServerStage serverStage)
+    async Task<StageData> ParseStage(ServerStage serverStage, int stageNumber)
     {
         //מקרה של שלב בלי תשובות
         if (serverStage.answers == null)
         {
-            Debug.LogWarning("Stage '" + serverStage.topic + "' has no answers. Skipped");
+            Debug.LogWarning("Stage " + stageNumber + " has no answers. Skipped");
             return null;
         }
 
         //מקרה שבו יש פחות מהמינימום תשובות
         if (serverStage.answers.Count < MinAnswers)
         {
-            Debug.LogWarning("Stage '" + serverStage.topic + "' has only " +
+            Debug.LogWarning("Stage " + stageNumber + " has only " +
                              serverStage.answers.Count + " answers, minimum is " +
                              MinAnswers + ". Skipped");
             return null;
@@ -346,14 +347,13 @@ public class ServerManager : MonoBehaviour
         //מקרה שבו יש יותר תשובות ממספר האבנים בסצנה
         if (serverStage.answers.Count > MaxAnswers)
         {
-            Debug.LogWarning("Stage '" + serverStage.topic + "' has " +
+            Debug.LogWarning("Stage " + stageNumber + " has " +
                              serverStage.answers.Count + " answers but there are only " +
                              MaxAnswers + " rocks in the scene. Skipped");
             return null;
         }
 
         StageData unityStage = new StageData();
-        unityStage.topic = serverStage.topic;
         unityStage.leftTag = serverStage.leftTag;
         unityStage.rightTag = serverStage.rightTag;
 

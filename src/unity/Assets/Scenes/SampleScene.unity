@@ -1219,13 +1219,9 @@ MonoBehaviour:
   grassArea: {fileID: 594721564}
   leftTagPoint: {fileID: 830469413}
   spreadSlotsEvenly: 1
-  topicText: {fileID: 0}
   leftTagText: {fileID: 1117579519}
   rightTagText: {fileID: 1886959928}
   messageText: {fileID: 0}
-  messagePanel: {fileID: 0}
-  redFlash: {fileID: 0}
-  redFlashTime: 0.4
   hearts:
   - {fileID: 1920273700}
   - {fileID: 461661794}
@@ -1235,7 +1231,6 @@ MonoBehaviour:
   wrongSound: {fileID: 8300000, guid: aa479776ca42149c7b44d761f0b4ec69, type: 3}
   stageCompleteSound: {fileID: 8300000, guid: 13f03f49991ea433592c9b8e71d1909d, type: 3}
   fixHebrewOrder: 1
-  topicMaxChars: 11
   rockMaxChars: 12
   tagLineLength: 7
   canAnswer: 0
