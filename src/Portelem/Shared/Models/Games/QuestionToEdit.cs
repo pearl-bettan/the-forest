@@ -3,26 +3,21 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AuthTemplate.Shared.Models.Games
 {
-    // ============================================================
-    // שאלה אחת במשחק, על כל הפריטים שלה.
-    //
-    // במשחק סדר "שאלה" היא רצף אחד שהשחקן צריך לסדר בין שתי
-    // תגיות קיצון. נע בשני הכיוונים בין עמוד העריכה לשרת
-    // ============================================================
+    // שאלה לעריכה.
+   
     public class QuestionToEdit
     {
-        // 0 לשאלה חדשה שעדיין לא נשמרה
         public int ID { get; set; }
 
         // המשחק שאליו שייכת השאלה
         public int GameId { get; set; }
 
-        // ערך הקיצון בצד ימין של הרצף
+        // ערך הקיצון בצד ימין
         [Required(ErrorMessage = "חובה להזין ערך קיצון")]
         [StringLength(10, ErrorMessage = "עד 10 תווים")]
         public string RightTag { get; set; }
 
-        // ערך הקיצון בצד שמאל של הרצף
+        // ערך הקיצון בצד שמאל
         [Required(ErrorMessage = "חובה להזין ערך קיצון")]
         [StringLength(10, ErrorMessage = "עד 10 תווים")]
         public string LeftTag { get; set; }
