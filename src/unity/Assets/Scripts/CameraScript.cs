@@ -365,6 +365,22 @@ public class CameraScript : MonoBehaviour
     {
         SetBaseSize(referenceOrthographicSize);
 
+        // ============================================================
+        // הפרש זניח ביחס אינו מצדיק מסגור.
+        //
+        // העמוד כבר מעמיד את הקנבס ביחס 16:9, ומה שנשאר הוא שבריר
+        // אחוז מעיגול של פיקסלים. צמצום אזור הציור בשביל שבריר כזה
+        // מכניס את הרינדור למסלול שבו הוא צובע את השטח שמחוץ לאזור
+        // בצבע הרקע של המצלמה - וזה בדיוק מקור השוליים הירוקים
+        // ============================================================
+        float ratio = currentAspect / referenceAspect;
+
+        if (ratio > 0.99f && ratio < 1.01f)
+        {
+            myCamera.rect = new Rect(0f, 0f, 1f, 1f);
+            return;
+        }
+
         if (currentAspect > referenceAspect)
         {
             float width = referenceAspect / currentAspect;

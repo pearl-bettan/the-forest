@@ -71,8 +71,43 @@ public class VideoSceneScript : MonoBehaviour
     // ============================================================
     [SerializeField] bool retryWithoutSound = true;
 
-    // כמה שניות מחכים לפריים הראשון לפני שמסיקים שהניגון נחסם
+    // ============================================================
+    // התחלה בלי קול מלכתחילה, בלי לנסות קודם עם קול.
+    //
+    // סרטון מושתק מותר בניגון אוטומטי בכל דפדפן ובכל מכשיר, ולכן
+    // זו הדרך היחידה שמבטיחה התחלה מיידית תמיד. המחיר הוא פסקול
+    // שקט בסרטון עצמו.
+    //
+    // נועד לסרטון שרץ רחוק מהנגיעה האחרונה של השחקן - למשל סרטון
+    // הניצחון, שמגיע אחרי אנימציית הסיום ולא מיד אחרי לחיצה
+    // ============================================================
+    [SerializeField] bool alwaysWithoutSound = false;
+
+    // כמה שניות מחכים לתחילת הניגון לפני שמסיקים שהוא נחסם
     [SerializeField] float autoplayGrace = 1.5f;
+
+    [Header("פסקול נפרד")]
+    // ============================================================
+    // הפסקול מנוגן בנפרד מהסרטון, דרך מערכת הקול של יוניטי.
+    //
+    // למה: דפדפני נייד חוסמים ניגון אוטומטי של סרטון שיש בו קול,
+    // וסרטון מושתק מותר תמיד. לעומת זאת מערכת הקול של יוניטי כבר
+    // פתוחה מרגע הנגיעה הראשונה של השחקן - מוזיקת הרקע של המשחק
+    // נשמעת בנייד לכל אורכו - ולכן קול שעובר דרכה אינו נחסם.
+    //
+    // התוצאה: הסרטון מתחיל לבד, ועם קול, בלי שום לחיצה.
+    //
+    // הקובץ נטען מ-Assets/Resources לפי שם קובץ הסרטון:
+    // Win.mp4 -> Audio/Win. אין מה לחבר בעורך.
+    // אם לא נמצא פסקול, הקול מנוגן מתוך הסרטון כמו קודם
+    // ============================================================
+    [SerializeField] bool separateSoundtrack = true;
+
+    // התיקייה בתוך Resources שבה יושבים הפסקולים
+    [SerializeField] string soundtrackFolder = "Audio";
+
+    // סטייה בשניות שמעליה מיישרים את הקול בחזרה אל התמונה
+    [SerializeField] float syncTolerance = 0.25f;
 
     [Header("הגנות")]
     // כמה שניות ממתינים להכנת הסרטון לפני שממשיכים בלעדיו.
@@ -90,6 +125,12 @@ public class VideoSceneScript : MonoBehaviour
 
     // הטקסטורה שאליה הסרטון מצויר
     private RenderTexture screen;
+
+    // הנגן של הפסקול הנפרד, כשהוא בשימוש
+    private AudioSource soundtrackSpeaker;
+
+    // האם הקול מגיע מקובץ נפרד ולא מתוך הסרטון
+    private bool usingSeparateSoundtrack;
 
     // נעילה: המעבר לסצנה הבאה קורה פעם אחת בלבד, גם אם הסרטון
     // נגמר ובאותו רגע גם נלחץ דילוג
@@ -152,13 +193,47 @@ public class VideoSceneScript : MonoBehaviour
 
         if (videoSurface != null) videoSurface.texture = screen;
 
-        // הקול עובר דרך AudioSource ולא ישירות לחומרה, כדי שכפתור
-        // ההשתקה של המשחק ישפיע גם על הסרטון
-        AudioSource speaker = GetComponent<AudioSource>();
-        if (speaker == null) speaker = gameObject.AddComponent<AudioSource>();
+        AudioClip soundtrack = null;
 
-        video.audioOutputMode = VideoAudioOutputMode.AudioSource;
-        video.SetTargetAudioSource(0, speaker);
+        if (separateSoundtrack == true && alwaysWithoutSound == false)
+        {
+            soundtrack = LoadSoundtrack();
+        }
+
+        if (soundtrack != null)
+        {
+            // הסרטון עצמו מושתק, וסרטון מושתק מותר בניגון אוטומטי
+            // בכל דפדפן ובכל מכשיר. הקול מגיע מהקובץ הנפרד
+            video.audioOutputMode = VideoAudioOutputMode.None;
+            usingSeparateSoundtrack = true;
+
+            soundtrackSpeaker = GetComponent<AudioSource>();
+
+            if (soundtrackSpeaker == null)
+            {
+                soundtrackSpeaker = gameObject.AddComponent<AudioSource>();
+            }
+
+            // כפתור ההשתקה של המשחק עובד דרך AudioListener.volume,
+            // ולכן הוא משתיק גם את הפסקול הזה בלי טיפול מיוחד
+            soundtrackSpeaker.clip = soundtrack;
+            soundtrackSpeaker.playOnAwake = false;
+            soundtrackSpeaker.loop = false;
+        }
+        else if (alwaysWithoutSound == true)
+        {
+            video.audioOutputMode = VideoAudioOutputMode.None;
+        }
+        else
+        {
+            // הקול עובר דרך AudioSource ולא ישירות לחומרה, כדי שכפתור
+            // ההשתקה של המשחק ישפיע גם על הסרטון
+            AudioSource speaker = GetComponent<AudioSource>();
+            if (speaker == null) speaker = gameObject.AddComponent<AudioSource>();
+
+            video.audioOutputMode = VideoAudioOutputMode.AudioSource;
+            video.SetTargetAudioSource(0, speaker);
+        }
 
         video.errorReceived += OnError;
         video.loopPointReached += OnEnded;
@@ -184,13 +259,137 @@ public class VideoSceneScript : MonoBehaviour
 
         video.Play();
 
+        // ============================================================
+        // זיהוי חסימה של ניגון אוטומטי.
+        //
+        // קודם לכן חיכינו כאן זמן קבוע ורק אחריו בדקנו אם צויר
+        // פריים. שתי בעיות היו בזה: ההמתנה רצה עד סופה גם כשהכול
+        // תקין, והמדד עצמו - מספר הפריים - אינו סימן אמין לכך
+        // שהניגון באמת רץ.
+        //
+        // עכשיו יוצאים מהלולאה ברגע שהניגון התחיל, ולכן במחשב
+        // המחיר הוא שני פריימים. אם הדפדפן סירב, הניסיון בלי קול
+        // מתחיל תוך פחות משנייה במקום אחרי שתיים, וזה ההבדל בין
+        // סרטון שנראה כאילו הוא מחכה ללחיצה לבין סרטון שמתחיל לבד
+        // ============================================================
+        // עם פסקול נפרד הסרטון כבר מושתק, ולכן אין מה להיחסם
+        if (usingSeparateSoundtrack == false &&
+            retryWithoutSound == true && alwaysWithoutSound == false)
+        {
+            float waitedForStart = 0f;
+
+            while (finished == false && HasStarted() == false &&
+                   waitedForStart < autoplayGrace)
+            {
+                waitedForStart = waitedForStart + Time.unscaledDeltaTime;
+                yield return null;
+            }
+
+            if (finished == false && HasStarted() == false)
+            {
+                yield return StartCoroutine(RetryMuted());
+                yield break;
+            }
+        }
+
         yield return StartCoroutine(ShowWhenFirstFrameReady());
 
-        // אם עד כאן לא צויר אף פריים, הדפדפן חסם את הניגון
-        if (finished == false && video.frame < 1 && retryWithoutSound == true)
+        // הקול יוצא לדרך באותו רגע שבו התמונה עולה למסך, ולא רגע
+        // אחרי ההפעלה, כדי ששניהם יתחילו יחד
+        if (usingSeparateSoundtrack == true && finished == false &&
+            soundtrackSpeaker != null)
         {
-            yield return StartCoroutine(RetryMuted());
+            SeekSoundtrackTo((float)video.time);
+            soundtrackSpeaker.Play();
+
+            StartCoroutine(KeepSoundInSync());
         }
+    }
+
+
+    // ============================================================
+    // טוען את הפסקול של הסרטון מתוך Resources.
+    //
+    // Resources.Load נבחר ולא שדה בעורך ולא הורדה מ-StreamingAssets:
+    // הוא נתמך במלואו ב-WebGL, הקובץ עובר את צינור הייבוא של יוניטי
+    // ולכן הוא נארז בפורמט שהדפדפן יודע לנגן, ואין מה לחבר ידנית
+    // ============================================================
+    private AudioClip LoadSoundtrack()
+    {
+        string baseName = Path.GetFileNameWithoutExtension(videoFileName);
+
+        if (string.IsNullOrEmpty(baseName) == true) return null;
+
+        string path = baseName;
+
+        if (string.IsNullOrEmpty(soundtrackFolder) == false)
+        {
+            path = soundtrackFolder + "/" + baseName;
+        }
+
+        AudioClip clip = Resources.Load<AudioClip>(path);
+
+        if (clip == null)
+        {
+            Debug.LogWarning("[VideoScene] לא נמצא פסקול ב-Resources/" + path +
+                             ". הקול ינוגן מתוך הסרטון עצמו, ובנייד הוא עלול להיחסם");
+        }
+
+        return clip;
+    }
+
+
+    // ============================================================
+    // מיישר את הקול אל התמונה.
+    //
+    // שני הנגנים עצמאיים זה מזה, ולאורך הסרטון הם עלולים להיפרד
+    // בשבריר שנייה - במיוחד במכשיר שמאט את פענוח הווידאו. בדיקה
+    // כל חצי שנייה מספיקה: תיקון תכוף יותר נשמע כקפיצה
+    // ============================================================
+    private IEnumerator KeepSoundInSync()
+    {
+        while (finished == false && soundtrackSpeaker != null &&
+               soundtrackSpeaker.isPlaying == true)
+        {
+            float picture = (float)video.time;
+            float gap = picture - soundtrackSpeaker.time;
+
+            if (gap < 0f) gap = -gap;
+
+            if (gap > syncTolerance) SeekSoundtrackTo(picture);
+
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
+    }
+
+
+    // קפיצה לנקודת זמן בפסקול. חריגה מאורך הקובץ זורקת שגיאה,
+    // ולכן היא נחסמת כאן ולא בכל מקום שקורא לשגרה
+    private void SeekSoundtrackTo(float seconds)
+    {
+        if (soundtrackSpeaker == null) return;
+        if (soundtrackSpeaker.clip == null) return;
+
+        if (seconds < 0f) seconds = 0f;
+
+        if (seconds >= soundtrackSpeaker.clip.length - 0.05f) return;
+
+        soundtrackSpeaker.time = seconds;
+    }
+
+
+    // ============================================================
+    // האם הניגון באמת התחיל.
+    //
+    // שני סימנים יחד: הנגן מדווח שהוא מנגן, וגם התקדם מעבר לפריים
+    // הראשון. חסימת ניגון אוטומטי מפילה לפחות אחד מהם - הדפדפן
+    // מרשה לפעמים לפענח את הפריים הפותח אך לא להמשיך ממנו
+    // ============================================================
+    private bool HasStarted()
+    {
+        if (video == null) return false;
+
+        return video.isPlaying == true && video.frame >= 1;
     }
 
     // ============================================================
@@ -249,9 +448,7 @@ public class VideoSceneScript : MonoBehaviour
     {
         float waited = 0f;
 
-        float limit = autoplayGrace > firstFrameTimeout ? autoplayGrace : firstFrameTimeout;
-
-        while (finished == false && video.frame < 1 && waited < limit)
+        while (finished == false && video.frame < 1 && waited < firstFrameTimeout)
         {
             waited = waited + Time.unscaledDeltaTime;
             yield return null;
@@ -323,6 +520,10 @@ public class VideoSceneScript : MonoBehaviour
             video.loopPointReached -= OnEnded;
             video.Pause();
         }
+
+        // הפסקול נעצר יחד עם התמונה, אחרת הוא היה ממשיך להישמע
+        // אל תוך הסצנה הבאה אחרי דילוג
+        if (soundtrackSpeaker != null) soundtrackSpeaker.Stop();
 
         if (string.IsNullOrEmpty(nextScene) == true)
         {
