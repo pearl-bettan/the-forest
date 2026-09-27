@@ -197,17 +197,23 @@ public class WebGLExport : EditorWindow
 
             css += "\n\n" + ResponsiveMarker + "\n" +
                 "html, body { width: 100%; height: 100%; overflow: hidden; }\n" +
+                // המסגרת במחולל היא כבר 16:9 בדיוק, ולכן הקנבס
+                // פשוט ממלא אותה. אין צורך לכפות עליו יחס בעצמו
                 "#unity-container.unity-desktop {\n" +
-                "  position: static; transform: none; left: auto; top: auto;\n" +
+                "  position: relative; transform: none; left: auto; top: auto;\n" +
                 "  width: 100%; height: 100%;\n" +
-                "  display: flex; flex-direction: column; align-items: center;\n" +
                 "}\n" +
                 "#unity-canvas {\n" +
-                "  width: 100%; height: auto; aspect-ratio: 16 / 9;\n" +
-                "  max-width: 100%; max-height: 100%;\n" +
-                "  min-height: 0; margin: auto 0;\n" +
+                "  width: 100%; height: 100%; display: block;\n" +
                 "}\n" +
-                "#unity-footer { width: 100%; flex: 0 0 38px; }\n";
+                // הסרגל שוכב מעל תחתית הקנבס ולא מתחתיו. כשהוא
+                // תפס גובה משלו הקנבס נשאר נמוך מ-16:9, וזה מה
+                // שגרם למצלמה להוסיף פסים שחורים
+                "#unity-footer {\n" +
+                "  position: absolute; left: 0; right: 0; bottom: 0;\n" +
+                "  height: 38px; pointer-events: none;\n" +
+                "}\n" +
+                "#unity-footer * { pointer-events: auto; }\n";
 
             File.WriteAllText(cssPath, css);
 

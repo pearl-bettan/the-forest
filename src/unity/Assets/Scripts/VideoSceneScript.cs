@@ -56,6 +56,24 @@ public class VideoSceneScript : MonoBehaviour
     // הסצנה שנטענת בסוף הסרטון, בדילוג או בתקלה
     [SerializeField] string nextScene = "SampleScene";
 
+    [Header("ניגון אוטומטי")]
+    // ============================================================
+    // דפדפנים חוסמים ניגון אוטומטי של סרטון עם קול, עד שהמשתמש
+    // ביצע פעולה. במחשב זה כמעט תמיד עובר, כי כבר לחצו בעמוד.
+    // בנייד - ובעיקר ב-iOS - החסימה מחמירה יותר, והסרטון פשוט
+    // עומד ומחכה ללחיצה.
+    //
+    // סרטון מושתק מותר בניגון אוטומטי בכל הדפדפנים. לכן אם
+    // הניגון לא התחיל תוך זמן קצר, מנסים שוב בלי קול.
+    //
+    // כיבוי כאן יחזיר את ההתנהגות הקודמת: או שיש קול, או
+    // שהשחקן צריך ללחוץ
+    // ============================================================
+    [SerializeField] bool retryWithoutSound = true;
+
+    // כמה שניות מחכים לפריים הראשון לפני שמסיקים שהניגון נחסם
+    [SerializeField] float autoplayGrace = 1.5f;
+
     [Header("הגנות")]
     // כמה שניות ממתינים להכנת הסרטון לפני שממשיכים בלעדיו.
     // בלי התקרה הזאת קובץ חסר או פורמט שהדפדפן דחה היו משאירים
@@ -167,6 +185,57 @@ public class VideoSceneScript : MonoBehaviour
         video.Play();
 
         yield return StartCoroutine(ShowWhenFirstFrameReady());
+
+        // אם עד כאן לא צויר אף פריים, הדפדפן חסם את הניגון
+        if (finished == false && video.frame < 1 && retryWithoutSound == true)
+        {
+            yield return StartCoroutine(RetryMuted());
+        }
+    }
+
+    // ============================================================
+    // ניסיון שני, בלי קול.
+    //
+    // audioOutputMode = None הופך את הסרטון למושתק מבחינת
+    // הדפדפן, וניגון אוטומטי של סרטון מושתק מותר גם בנייד.
+    // המחיר הוא פסקול שקט בסרטון עצמו - מוזיקת הרקע של המשחק
+    // חוזרת כרגיל בסיומו
+    // ============================================================
+    private IEnumerator RetryMuted()
+    {
+        Debug.Log("[VideoScene] הניגון נחסם. מנסים שוב בלי קול");
+
+        video.Stop();
+        video.audioOutputMode = VideoAudioOutputMode.None;
+        video.Prepare();
+
+        float waited = 0f;
+
+        while (video.isPrepared == false && finished == false && waited < prepareTimeout)
+        {
+            waited = waited + Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (finished == true) yield break;
+
+        if (video.isPrepared == false)
+        {
+            Debug.LogWarning("[VideoScene] גם הניסיון בלי קול נכשל");
+            Finish();
+            yield break;
+        }
+
+        video.Play();
+
+        yield return StartCoroutine(ShowWhenFirstFrameReady());
+
+        // גם זה לא עזר: ממשיכים הלאה במקום להשאיר מסך תקוע
+        if (finished == false && video.frame < 1)
+        {
+            Debug.LogWarning("[VideoScene] הסרטון לא התחיל, ממשיכים הלאה");
+            Finish();
+        }
     }
 
     // ============================================================
@@ -180,7 +249,9 @@ public class VideoSceneScript : MonoBehaviour
     {
         float waited = 0f;
 
-        while (finished == false && video.frame < 1 && waited < firstFrameTimeout)
+        float limit = autoplayGrace > firstFrameTimeout ? autoplayGrace : firstFrameTimeout;
+
+        while (finished == false && video.frame < 1 && waited < limit)
         {
             waited = waited + Time.unscaledDeltaTime;
             yield return null;
