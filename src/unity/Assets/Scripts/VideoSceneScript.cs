@@ -204,7 +204,7 @@ public class VideoSceneScript : MonoBehaviour
         {
             // הסרטון עצמו מושתק, וסרטון מושתק מותר בניגון אוטומטי
             // בכל דפדפן ובכל מכשיר. הקול מגיע מהקובץ הנפרד
-            video.audioOutputMode = VideoAudioOutputMode.None;
+            MuteVideoAudio();
             usingSeparateSoundtrack = true;
 
             soundtrackSpeaker = GetComponent<AudioSource>();
@@ -222,7 +222,7 @@ public class VideoSceneScript : MonoBehaviour
         }
         else if (alwaysWithoutSound == true)
         {
-            video.audioOutputMode = VideoAudioOutputMode.None;
+            MuteVideoAudio();
         }
         else
         {
@@ -294,15 +294,70 @@ public class VideoSceneScript : MonoBehaviour
 
         yield return StartCoroutine(ShowWhenFirstFrameReady());
 
+        if (finished == true) yield break;
+
+        // ============================================================
+        // חלון נוסף לפני שמוותרים.
+        //
+        // ההכנה כבר הסתיימה בשלב הזה, ולכן הפריים הראשון אמור
+        // להגיע מיד. במכשיר איטי הוא עלול להתעכב עוד קצת, ולא
+        // כדאי להכריז על כישלון בגללו
+        // ============================================================
+        float extraWait = 0f;
+
+        while (finished == false && video.frame < 1 && extraWait < autoplayGrace)
+        {
+            extraWait = extraWait + Time.unscaledDeltaTime;
+            yield return null;
+        }
+
+        if (finished == true) yield break;
+
+        // ============================================================
+        // הסרטון לא התחיל בכלל.
+        //
+        // בלי הבדיקה הזאת הסצנה נשארת על מסך שחור עד שהשחקן ימצא
+        // את כפתור הדילוג. עדיף להמשיך אל הסצנה הבאה מאשר להיתקע
+        // ============================================================
+        if (video.frame < 1)
+        {
+            Debug.LogWarning("[VideoScene] הסרטון לא התחיל, ממשיכים הלאה");
+            Finish();
+            yield break;
+        }
+
         // הקול יוצא לדרך באותו רגע שבו התמונה עולה למסך, ולא רגע
         // אחרי ההפעלה, כדי ששניהם יתחילו יחד
-        if (usingSeparateSoundtrack == true && finished == false &&
-            soundtrackSpeaker != null)
+        if (usingSeparateSoundtrack == true && soundtrackSpeaker != null)
         {
             SeekSoundtrackTo((float)video.time);
             soundtrackSpeaker.Play();
 
             StartCoroutine(KeepSoundInSync());
+        }
+    }
+
+
+    // ============================================================
+    // השתקה אמיתית של פס הקול שבתוך הסרטון.
+    //
+    // audioOutputMode = None לבדו אינו מספיק ב-WebGL: הקול המשיך
+    // לצאת מאלמנט הווידאו של הדפדפן. משם הגיעו שני התסמינים
+    // שנראו יחד - הד בסרטון הפתיחה, כי פס הקול של הסרטון ופס
+    // הקול הנפרד התנגנו זה על גבי זה, וסרטון ניצחון שלא התחיל
+    // לבד, כי מבחינת הדפדפן הוא עדיין היה סרטון עם קול.
+    //
+    // כיבוי הרצועה עצמה, לפני ההכנה, הוא מה שגורם לדפדפן לראות
+    // סרטון מושתק. הרצועה מוסרת גם מקובצי הווידאו עצמם, וזו
+    // ההגנה השנייה למקרה שיוחלף קובץ
+    // ============================================================
+    private void MuteVideoAudio()
+    {
+        video.audioOutputMode = VideoAudioOutputMode.None;
+
+        if (video.controlledAudioTrackCount > 0)
+        {
+            video.EnableAudioTrack(0, false);
         }
     }
 
