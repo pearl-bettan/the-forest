@@ -158,6 +158,7 @@
                         </div>
 
                         <QuestionForm Question="editedQuestion"
+                                      QuestionNumber="@(i + 1)"
                                       OnSave="SaveQuestion"
                                       OnCancel="CancelQuestion"
                                       OnItemsChanged="StateHasChanged" />
@@ -260,6 +261,7 @@
                     </div>
 
                     <QuestionForm Question="editedQuestion"
+                                  QuestionNumber="@EditedQuestionNumber()"
                                   OnSave="SaveQuestion"
                                   OnCancel="CancelQuestion"
                                   OnItemsChanged="StateHasChanged" />

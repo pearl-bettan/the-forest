@@ -138,7 +138,7 @@
         </span>
 
         <span class="tip tip-wide" data-tip="בלחיצה על “ביטול”, שינויים שלא נשמרו - יימחקו">
-            <button type="button" class="btn-green" @onclick="OnCancel">ביטול</button>
+            <button type="button" class="btn-green" @onclick="AskCancel">ביטול</button>
         </span>
     </div>
 
@@ -318,6 +318,38 @@
 }
 
 
+@* ============================================================
+   אישור ביטול עריכת השאלה.
+
+   לפי הפיגמה: כותרת, שורת הזיהוי של השאלה, הסבר מה הביטול עושה,
+   ושני כפתורים - "מחק" שמבטל בפועל ו"חזור" שמחזיר לעריכה.
+
+   בעברית הכפתור הראשון בקוד הוא הימני שבמסך, ולכן "מחק" נכתב
+   לפני "חזור" - בדיוק כמו בעיצוב
+   ============================================================ *@
+@if (isCancelPopupOpen == true)
+{
+    <div class="popup-background">
+        <div class="popup-inner cancel-popup" tabindex="-1">
+
+            <h2 class="popup-title">שינויים ימחקו</h2>
+
+            <p class="cancel-question">שאלה @QuestionNumber - @Question.Answers.Count פריטים</p>
+
+            <p class="cancel-note">
+                לחיצה על ביטול השאלה תמחק את כל הפריטים בה ולא יהיה ניתן לשחזרם
+            </p>
+
+            <div class="popup-actions">
+                <button type="button" class="btn-main" @onclick="ConfirmCancel">מחק</button>
+                <button type="button" class="btn-main" @onclick="CloseCancelPopup">חזור</button>
+            </div>
+
+        </div>
+    </div>
+}
+
+
 @* אישור מחיקת פריט *@
 @if (removeIndex >= 0)
 {
@@ -343,6 +375,11 @@
     public EventCallback OnSave { get; set; }
     [Parameter]
     public EventCallback OnCancel { get; set; }
+
+    // מספר השאלה כפי שהוא מוצג ברצועה שמעל הטופס. הפופאפ מציג
+    // אותו כדי שהעורכת תדע על איזו שאלה היא מאשרת ביטול
+    [Parameter]
+    public int QuestionNumber { get; set; }
     [Parameter]
     public EventCallback OnItemsChanged { get; set; }
 
@@ -787,6 +824,114 @@
         }
 
         return "מחיקת הפריט";
+    }
+
+
+    // ==========================================================
+    // ביטול עריכת השאלה
+    // ==========================================================
+
+    // האם פופאפ אישור הביטול פתוח
+    bool isCancelPopupOpen = false;
+
+
+    // ============================================================
+    // צילום מצב של השאלה כפי שהיא נפתחה לעריכה.
+    //
+    // הטופס עובד ישירות על האובייקט שהעמוד מסר לו, ולכן אין ממי
+    // לשאול "מה היה כאן קודם". המחרוזת שנשמרת כאן היא התשובה,
+    // והיא מה שמאפשר לדעת בלחיצה על ביטול אם בכלל יש מה לאבד
+    // ============================================================
+    string openedAs = "";
+
+    // האובייקט שממנו נלקח הצילום
+    QuestionToEdit snapshotOf;
+
+
+    // ============================================================
+    // מצלמים מחדש רק כששאלה אחרת נפתחה לעריכה.
+    //
+    // ההשוואה היא על זהות האובייקט ולא על תוכנו: פתיחת שאלה
+    // יוצרת בעמוד עותק חדש, ואילו הקלדה בתוך השאלה הפתוחה
+    // משנה את אותו אובייקט עצמו. בלי ההבחנה הזאת הצילום היה
+    // מתעדכן בכל רינדור, וכל שינוי היה נעלם ברגע שנעשה
+    // ============================================================
+    protected override void OnParametersSet()
+    {
+        if (Question == null) return;
+
+        if (ReferenceEquals(snapshotOf, Question) == true) return;
+
+        snapshotOf = Question;
+        openedAs = Fingerprint();
+    }
+
+
+    // ============================================================
+    // חתימת התוכן של השאלה: ערכי הקיצון והפריטים לפי סדרם.
+    //
+    // הסדר הוא חלק מהתוכן - גרירת פריט למקום אחר היא שינוי לכל
+    // דבר - ולכן החתימה נבנית כמחרוזת מסודרת. התו המפריד אינו
+    // ניתן להקלדה, כדי ששני תכנים שונים לא יניבו אותה חתימה
+    // ============================================================
+    string Fingerprint()
+    {
+        List<string> parts = new List<string>();
+
+        parts.Add(Question.RightTag);
+        parts.Add(Question.LeftTag);
+
+        foreach (AnswerToEdit answer in Question.Answers)
+        {
+            parts.Add((answer.IsImage == true ? "1" : "0") + answer.Content);
+        }
+
+        return string.Join("\u0001", parts);
+    }
+
+
+    // האם משהו השתנה מאז שהשאלה נפתחה לעריכה
+    bool HasChanges()
+    {
+        return Fingerprint() != openedAs;
+    }
+
+
+    // ============================================================
+    // לחיצה על "ביטול" אינה מבטלת מיד אלא שואלת קודם.
+    //
+    // הביטול מוחק את כל מה שלא נשמר, ובשאלה חדשה זה כל הפריטים
+    // שהוזנו בה. השאלה לפני הפעולה היא ההגנה היחידה, כי אחרי
+    // הביטול אין מה לשחזר.
+    //
+    // כשלא השתנה דבר אין מה לאבד, והאזהרה רק מעכבת את העורכת -
+    // ולכן הביטול קורה מיד
+    // ============================================================
+    async Task AskCancel()
+    {
+        if (HasChanges() == false)
+        {
+            await OnCancel.InvokeAsync();
+            return;
+        }
+
+        isCancelPopupOpen = true;
+    }
+
+
+    // "חזור" - סוגר את הפופאפ ומשאיר את העריכה כמו שהייתה
+    void CloseCancelPopup()
+    {
+        isCancelPopupOpen = false;
+    }
+
+
+    // "מחק" - מאשר את הביטול ומעביר את הטיפול לעמוד העורך
+    async Task ConfirmCancel()
+    {
+        isCancelPopupOpen = false;
+
+        await OnCancel.InvokeAsync();
     }
 
 
