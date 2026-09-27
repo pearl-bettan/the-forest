@@ -11,6 +11,17 @@ public class RockScript : MonoBehaviour
     //  תמונת תשובה
     [SerializeField] SpriteRenderer answerImage;
 
+    // ============================================================
+    // כמה מהסלע התמונה ממלאת.
+    //
+    // הסלע מעוגל ומצטמצם כלפי מעלה, ולכן תמונה אינה יכולה למלא
+    // אותו עד הקצה. היחסים האלה הם השטח שאפשר להניח עליו תמונה,
+    // והם מכוונים למה שמוצג במחולל כדי שהעורכת תראה בערך את מה
+    // שהשחקן יראה
+    // ============================================================
+    [SerializeField] float imageWidthOnRock = 0.68f;
+    [SerializeField] float imageHeightOnRock = 0.62f;
+
     private Vector3 answerImageOriginalScale = Vector3.one;
 
     // הפקטור ההגדלה
@@ -360,14 +371,38 @@ public class RockScript : MonoBehaviour
         }
     }
 
-    // התאמת גודל התמונה
+    // ============================================================
+    // התאמת גודל התמונה אל הסלע.
+    //
+    // קודם לכן חושב כאן היחס מול answerImageOriginalScale, שהוא
+    // הסקייל של אובייקט התמונה ולא מידה כלשהי. האובייקט נוצר
+    // בזמן ריצה עם סקייל 1, ולכן כל תמונה נדחסה לריבוע של יחידה
+    // אחת - בעוד שרוחב הסלע הוא ארבע יחידות. משם הגיעו התמונות
+    // הזעירות: רבע מרוחב הסלע, בלי קשר לגודל התמונה שהועלתה.
+    //
+    // עכשיו המכל נמדד מהסלע עצמו, ולכן הוא נכון גם אם יוחלף
+    // ספרייט הסלע או ישתנה קנה המידה שלו
+    // ============================================================
     private void FitAnswerImage(Sprite image)
     {
         if (answerImage == null) return;
+        if (image == null) return;
+
         answerImage.transform.localScale = answerImageOriginalScale;
 
+        // ברירת מחדל שמורה למקרה שספרייט הסלע חסר
         float containerWidth = answerImageOriginalScale.x;
         float containerHeight = answerImageOriginalScale.y;
+
+        if (rockImage != null && rockImage.sprite != null)
+        {
+            // התמונה והסלע יושבים על אותו אובייקט ולכן באותו מרחב
+            // מידות, ואפשר להשוות ביניהם ישירות
+            Vector3 rockSize = rockImage.sprite.bounds.size;
+
+            containerWidth = rockSize.x * imageWidthOnRock;
+            containerHeight = rockSize.y * imageHeightOnRock;
+        }
 
         float imageWidth = image.bounds.size.x;
         float imageHeight = image.bounds.size.y;
