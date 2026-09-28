@@ -57,51 +57,38 @@ builder.Services.AddHostedService<TokenCleanupBackgroundService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.UseWebAssemblyDebugging();
-}
-else
-{
-    app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
-}
+app.UseStaticFiles();
 
-app.UseHttpsRedirection();
-
-app.UseBlazorFrameworkFiles();
-
-Action<StaticFileResponseContext> gameFiles = ctx =>
-{
-    if (ctx.Context.Request.Path.StartsWithSegments("/Game"))
-    {
-        ctx.Context.Response.Headers["Cache-Control"] = "no-cache";
-    }
-};
-
-app.UseStaticFiles(new StaticFileOptions
-{
-    OnPrepareResponse = gameFiles
-});
-
-//Special Files
 var provider = new FileExtensionContentTypeProvider();
 provider.Mappings[".data"] = "application/json";
-provider.Mappings[".svg"] = "image/svg";
 app.UseStaticFiles(new StaticFileOptions
 {
-    ContentTypeProvider = provider,
-    OnPrepareResponse = gameFiles
+    ContentTypeProvider = provider
 });
-
 
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true,
-    DefaultContentType = "application/octet-stream",
-    OnPrepareResponse = gameFiles
+    OnPrepareResponse = ctx =>
+    {
+        var path = ctx.File.Name;
+        if (path.EndsWith(".br", StringComparison.OrdinalIgnoreCase))
+        {
+            if (path.EndsWith(".js.br"))
+            {
+                ctx.Context.Response.ContentType = "application/javascript";
+            }
+            else if (path.EndsWith(".wasm.br"))
+            {
+                ctx.Context.Response.ContentType = "application/wasm";
+            }
+            else if (path.EndsWith(".data.br"))
+            {
+                ctx.Context.Response.ContentType = "application/octet-stream";
+            }
+            ctx.Context.Response.Headers.Append("Content-Encoding", "br");
+        }
+    }
 });
 
 app.UseRouting();
