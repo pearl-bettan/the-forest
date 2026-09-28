@@ -88,7 +88,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] int rockMaxChars = 12;
 
     // כמה תווים נכנסים בשורה אחת לתגיות שמשמאל ומימין לאגם
-    [SerializeField] int tagLineLength = 7;
+    [SerializeField] int tagLineLength = 0;
 
     // האם מותר ללחוץ על אבן כרגע
     public bool canAnswer;

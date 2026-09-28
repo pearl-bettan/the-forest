@@ -1,50 +1,59 @@
 using System.Text;
 
-// כלי עזר אחד לכל הפרויקט לסידור טקסט בעברית
+
+//  סידור טקסט בשילוב של עברית ואנגלית
 public static class HebrewText
 {
-    // הופך את סדר האותיות בעברית ומשאיר אנגלית ומספרים כמו שהם
+    // סוג התו לצורך החישוב
+    private const int Neutral = 0;
+    private const int Rtl = 1;
+    private const int Latin = 2;
+    private const int Number = 3;
+
+
     public static string Fix(string text)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        if (string.IsNullOrEmpty(text) == true) return text;
 
-        StringBuilder result = new StringBuilder();
-        StringBuilder group = new StringBuilder();
-        bool groupIsEnglish = false;
+        int length = text.Length;
 
-        for (int i = 0; i < text.Length; i++)
+        int[] kinds = new int[length];
+
+        for (int i = 0; i < length; i++)
         {
-            char c = text[i];
-
-            bool isHebrew = IsHebrew(c);
-            bool isEnglish = IsEnglishOrNumber(c);
-
-            // תווים ניטרליים (רווח, פיסוק) 
-            if (isHebrew == false && isEnglish == false)
-            {
-                group.Append(c);
-                continue;
-            }
-
-            // התחלפה השפה- סוגרים את הקבוצה הקודמת
-            if (group.Length > 0 && isEnglish != groupIsEnglish)
-            {
-                CloseGroup(result, group, groupIsEnglish);
-                group.Clear();
-            }
-
-            groupIsEnglish = isEnglish;
-            group.Append(c);
+            kinds[i] = KindOf(text[i]);
         }
 
-        CloseGroup(result, group, groupIsEnglish);
-        return result.ToString();
+        // מפריד את התו כספרה, כדי שלא ייפרק את רצף הספרות
+        for (int i = 1; i < length - 1; i++)
+        {
+            if (IsNumberSeparator(text[i]) == false) continue;
+
+            if (kinds[i - 1] == Number && kinds[i + 1] == Number) kinds[i] = Number;
+        }
+
+        bool baseIsRtl = BaseIsRtl(text);
+
+        int[] levels = BuildLevels(kinds, baseIsRtl);
+
+        char[] letters = text.ToCharArray();
+
+        // סוגר בעברית מוצג הפוך
+        for (int i = 0; i < length; i++)
+        {
+            if (levels[i] % 2 == 1) letters[i] = Mirror(letters[i]);
+        }
+
+        Reorder(letters, levels);
+
+        return new string(letters);
     }
 
-    // מפצל טקסט ארוך לשורות
+
+    // מפצלת טקסט ארוך לשורות ומסדרת כל שורה בנפרד
     public static string FixLines(string text, int maxLength)
     {
-        if (string.IsNullOrEmpty(text)) return text;
+        if (string.IsNullOrEmpty(text) == true) return text;
         if (maxLength <= 0) return Fix(text);
         if (text.Length <= maxLength) return Fix(text);
 
@@ -57,7 +66,7 @@ public static class HebrewText
         {
             string word = words[i];
 
-            // המילה לא נכנסת בשורה הנוכחית- יורד שורה חדשה
+            // במצב שבו המילה אינה נכנסת בשורה הנוכחית- פותחים שורה חדשה
             if (line != "" && line.Length + 1 + word.Length > maxLength)
             {
                 AddLine(result, line);
@@ -69,50 +78,169 @@ public static class HebrewText
         }
 
         AddLine(result, line);
+
         return result.ToString();
     }
 
-    // מוסיפה את השורה , אחרי הפיכת האותיות לסדר הנכון
+
     private static void AddLine(StringBuilder result, string line)
     {
         if (line == "") return;
 
         if (result.Length > 0) result.Append('\n');
+
         result.Append(Fix(line));
     }
 
-    // כל קבוצה חדשה נכנסת משמאל לקודמות, ככה מתקבל סדר מימין לשמאל
-    private static void CloseGroup(StringBuilder result, StringBuilder group, bool isEnglish)
+
+    private static bool BaseIsRtl(string text)
     {
-        if (group.Length == 0) return;
-
-        string text = group.ToString();
-
-        // אנגלית ומספרים נשארים בסדר שלהם
-        if (isEnglish == false)
+        for (int i = 0; i < text.Length; i++)
         {
-            char[] letters = text.ToCharArray();
-            System.Array.Reverse(letters);
-            text = new string(letters);
+            int kind = KindOf(text[i]);
+
+            if (kind == Rtl) return true;
+            if (kind == Latin) return false;
         }
 
-        result.Insert(0, text);
+        return true;
     }
 
-    // טווח האותיות העבריות בטבלת התווים
-    private static bool IsHebrew(char c)
+
+    // כיוון הבסיס. אם אין תו משני הצדדים, כיוון הבסיס הוא מה שקובע
+    private static int[] BuildLevels(int[] kinds, bool baseIsRtl)
     {
-        return c >= 0x0590 && c <= 0x05FF;
+        int length = kinds.Length;
+        int evenLevel = baseIsRtl ? 2 : 0;
+
+        int[] levels = new int[length];
+
+        int i = 0;
+
+        while (i < length)
+        {
+            if (kinds[i] != Neutral)
+            {
+                if (kinds[i] == Rtl) levels[i] = 1;
+                else levels[i] = evenLevel;
+
+                i = i + 1;
+                continue;
+            }
+
+            int end = i;
+
+            while (end < length && kinds[end] == Neutral) end = end + 1;
+
+            bool beforeIsRtl = i > 0 ? StrongIsRtl(kinds[i - 1], baseIsRtl) : baseIsRtl;
+            bool afterIsRtl = end < length ? StrongIsRtl(kinds[end], baseIsRtl) : baseIsRtl;
+
+            bool takeRtl = beforeIsRtl == afterIsRtl ? beforeIsRtl : baseIsRtl;
+
+            for (int k = i; k < end; k++)
+            {
+                levels[k] = takeRtl ? 1 : evenLevel;
+            }
+
+            i = end;
+        }
+
+        return levels;
     }
 
-    // אנגלית וספרות נשארות בסדר המקורי שלהן גם בתוך טקסט עברי,
-    // ולכן צריך לזהות אותן בנפרד ולא להפוך אותן
-    private static bool IsEnglishOrNumber(char c)
+
+    // ספרות נחשבות לספרות בעברית לצורך החלטת הכיוון
+    
+    private static bool StrongIsRtl(int kind, bool baseIsRtl)
     {
-        if (c >= 'a' && c <= 'z') return true;
-        if (c >= 'A' && c <= 'Z') return true;
-        if (c >= '0' && c <= '9') return true;
+        if (kind == Rtl) return true;
+        if (kind == Number) return baseIsRtl;
 
         return false;
+    }
+
+
+
+    // הופכת את הסדר, מהרמה הגבוהה ביותר ומטה
+    private static void Reorder(char[] letters, int[] levels)
+    {
+        int highest = 0;
+
+        for (int i = 0; i < levels.Length; i++)
+        {
+            if (levels[i] > highest) highest = levels[i];
+        }
+
+        for (int level = highest; level >= 1; level--)
+        {
+            int i = 0;
+
+            while (i < levels.Length)
+            {
+                if (levels[i] < level)
+                {
+                    i = i + 1;
+                    continue;
+                }
+
+                int end = i;
+
+                while (end < levels.Length && levels[end] >= level) end = end + 1;
+
+                ReverseRange(letters, i, end - 1);
+
+                i = end;
+            }
+        }
+    }
+
+
+    private static void ReverseRange(char[] letters, int from, int to)
+    {
+        while (from < to)
+        {
+            char keep = letters[from];
+            letters[from] = letters[to];
+            letters[to] = keep;
+
+            from = from + 1;
+            to = to - 1;
+        }
+    }
+
+
+    // סוגר שמוצג הפוך בטקסט בעברית
+    private static char Mirror(char c)
+    {
+        if (c == '(') return ')';
+        if (c == ')') return '(';
+        if (c == '[') return ']';
+        if (c == ']') return '[';
+        if (c == '{') return '}';
+        if (c == '}') return '{';
+        if (c == '<') return '>';
+        if (c == '>') return '<';
+
+        return c;
+    }
+
+
+    private static bool IsNumberSeparator(char c)
+    {
+        return c == ',' || c == '.' || c == ':';
+    }
+
+
+    private static int KindOf(char c)
+    {
+        // טווח האותיות בעברית בטבלת התווים
+        if (c >= '֐' && c <= '׿') return Rtl;
+
+        if (c >= 'a' && c <= 'z') return Latin;
+        if (c >= 'A' && c <= 'Z') return Latin;
+
+        if (c >= '0' && c <= '9') return Number;
+
+        return Neutral;
     }
 }
