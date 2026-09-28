@@ -1232,7 +1232,7 @@ MonoBehaviour:
   stageCompleteSound: {fileID: 8300000, guid: 13f03f49991ea433592c9b8e71d1909d, type: 3}
   fixHebrewOrder: 1
   rockMaxChars: 12
-  tagLineLength: 7
+  tagLineLength: 0
   canAnswer: 0
 --- !u!1 &557400470
 GameObject:
