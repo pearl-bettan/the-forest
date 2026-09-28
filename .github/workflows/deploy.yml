@@ -52,6 +52,11 @@ jobs:
           restore-keys: |
             Library-WebGL-
             Library-
+      
+      - name: Add WebGLExport build script (CI only)
+        run: |
+          mkdir -p src/unity/Assets/Editor
+          cp src/unity/_editor-tools/WebGLExport.cs src/unity/Assets/Editor/
 
       # אותה מתודה ש-build-all.sh מריץ מקומית, כדי שהבנייה בשרת
       # תצא זהה לבנייה במחשב: Brotli, Data Caching כבוי, והתאמת
