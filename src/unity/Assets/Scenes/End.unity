@@ -633,13 +633,10 @@ MonoBehaviour:
   winImage: {fileID: 0}
   timeOutImage: {fileID: 155321382}
   noLivesImage: {fileID: 0}
-  loseImage: {fileID: 0}
   scoreText: {fileID: 1820667902}
   timeText: {fileID: 1180089250}
   timeTitle: {fileID: 0}
   mistakesText: {fileID: 1732365421}
-  questionsText: {fileID: 0}
-  summaryText: {fileID: 0}
 --- !u!1 &210435551
 GameObject:
   m_ObjectHideFlags: 0
@@ -1082,13 +1079,10 @@ MonoBehaviour:
   winImage: {fileID: 1926488124}
   timeOutImage: {fileID: 155321382}
   noLivesImage: {fileID: 1798062726}
-  loseImage: {fileID: 0}
   scoreText: {fileID: 0}
   timeText: {fileID: 0}
   timeTitle: {fileID: 0}
   mistakesText: {fileID: 0}
-  questionsText: {fileID: 0}
-  summaryText: {fileID: 0}
 --- !u!4 &373498815
 Transform:
   m_ObjectHideFlags: 0
@@ -1255,8 +1249,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CameraScript
   lakeViewPoint: {fileID: 0}
-  followSpeed: 4
-  moveSpeed: 3
+  smoothTime: 0.45
+  maxSpeed: 18
+  zoomSmoothTime: 0.5
+  arriveDistance: 0.05
   stayAtLakeTime: 1
   referenceWidth: 1280
   referenceHeight: 720
@@ -1918,7 +1914,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 14beb56bc792c435383f229d5aa9ff08, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SpriteButtonScript
-  action: restart
+  action: home
   gameManager: {fileID: 0}
   serverManager: {fileID: 0}
   menu: {fileID: 0}
@@ -3690,13 +3686,10 @@ MonoBehaviour:
   winImage: {fileID: 0}
   timeOutImage: {fileID: 0}
   noLivesImage: {fileID: 1798062726}
-  loseImage: {fileID: 0}
   scoreText: {fileID: 239372519}
   timeText: {fileID: 2101127480}
   timeTitle: {fileID: 0}
   mistakesText: {fileID: 1274782891}
-  questionsText: {fileID: 0}
-  summaryText: {fileID: 0}
 --- !u!1 &1820667900
 GameObject:
   m_ObjectHideFlags: 0
@@ -4216,13 +4209,10 @@ MonoBehaviour:
   winImage: {fileID: 1926488124}
   timeOutImage: {fileID: 0}
   noLivesImage: {fileID: 0}
-  loseImage: {fileID: 0}
   scoreText: {fileID: 1141054269}
   timeText: {fileID: 1898766569}
   timeTitle: {fileID: 0}
   mistakesText: {fileID: 1267578631}
-  questionsText: {fileID: 0}
-  summaryText: {fileID: 0}
 --- !u!1 &2101127478
 GameObject:
   m_ObjectHideFlags: 0
