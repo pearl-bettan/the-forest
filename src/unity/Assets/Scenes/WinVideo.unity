@@ -381,6 +381,12 @@ MonoBehaviour:
   skipButton: {fileID: 487445732}
   escapeSkips: 1
   nextScene: End
+  retryWithoutSound: 1
+  alwaysWithoutSound: 0
+  autoplayGrace: 1.5
+  separateSoundtrack: 1
+  soundtrackFolder: Audio
+  syncTolerance: 0.25
   prepareTimeout: 8
   firstFrameTimeout: 2
   surfaceWidth: 1280
@@ -500,7 +506,7 @@ VideoPlayer:
   m_TargetMaterialProperty: <noninit>
   m_RenderMode: 2
   m_AspectRatio: 2
-  m_DataSource: 0
+  m_DataSource: 1
   m_TimeUpdateMode: 2
   m_PlaybackSpeed: 1
   m_AudioOutputMode: 2
@@ -508,7 +514,7 @@ VideoPlayer:
   - {fileID: 0}
   m_DirectAudioVolumes:
   - 1
-  m_Url: 
+  m_Url: https://drive.usercontent.google.com/download?id=1ICeLXzlbE_KOiRer__kx9vPEzJFwr81C&export=download&authuser=0&confirm=t
   m_EnabledAudioTracks: 01
   m_DirectAudioMutes: 00
   m_ControlledAudioTrackCount: 1

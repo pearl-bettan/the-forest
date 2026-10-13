@@ -90,9 +90,16 @@ public class VideoSceneScript : MonoBehaviour
 
     private IEnumerator PlayVideo()
     {
-        string path = Path.Combine(Application.streamingAssetsPath, videoFileName);
-
         if (video == null) video = gameObject.AddComponent<VideoPlayer>();
+
+        // כתובת הסרטון. אם הוזנה כתובת (URL) ברכיב הניגון בעורך משתמשים בה,
+        // ואחרת הסרטון נטען מתיקיית StreamingAssets לפי שם הקובץ
+        string path = video.url;
+
+        if (string.IsNullOrEmpty(path) == true)
+        {
+            path = Path.Combine(Application.streamingAssetsPath, videoFileName);
+        }
 
         screen = new RenderTexture(surfaceWidth, surfaceHeight, 0);
 
